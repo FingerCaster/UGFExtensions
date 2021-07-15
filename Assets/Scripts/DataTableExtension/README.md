@@ -66,7 +66,7 @@ GF中实现了GenericDataProcessor的类型有22中 为Boolean,Byte,Char,Color,C
 自定义类型可以自行扩展。
 
 ## 生成数据实体类
-关于数据表用到的配置存放在 [DataTableConfig.cs](./Assets/Scripts/DataTableExtensions/Editor/Extensions/DataTableConfig.cs) 中
+关于数据表用到的配置存放在 [DataTableConfig.cs](./DataTableExtensions/Editor/Extensions/DataTableConfig.cs) 中
 
 |               注释                |           变量名           |
 | :-------------------------------: | :------------------------: |
@@ -86,7 +86,7 @@ GF中实现了GenericDataProcessor的类型有22中 为Boolean,Byte,Char,Color,C
 
 生成解析扩展类否则无法解析自定义类型. 
 
-扩展类中 [BinaryReaderExtension.cs](./Assets/Scripts/DataTableExtensions/Runtime/Extensions/BinaryReaderExtension.cs) 和 [DataTableExtension.cs](./Assets/Scripts/DataTableExtensions/Runtime/Extensions/DataTableExtension.cs) 为默认解析类 不会自动生成 如更改扩展类路径 请自行拷贝。
+扩展类中 [BinaryReaderExtension.cs](./DataTableExtensions/Runtime/Extensions/BinaryReaderExtension.cs) 和 [DataTableExtension.cs](./DataTableExtensions/Runtime/Extensions/DataTableExtension.cs) 为默认解析类 不会自动生成 如更改扩展类路径 请自行拷贝。
 
 1. 使用Unity菜单栏中 `DataTable/Generate DataTables` 生成数据实体类
 2. 使用Unity菜单栏中 `DataTable/ExcelToTxt` `DataTable/ExcelToBytes` 通过excel生成对应 Txt 或BytesAndCode

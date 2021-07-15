@@ -8,7 +8,7 @@
 
    UGF中各种加载 显示都是通过事件通知的。 修改成await/async 也是基于此 。所以需要调用
 
-   [AwaitableExtension](./Assets/Scripts/AwaitableExtension/AwaitableExtension.cs)  中`SubscribeEvent` 函数来注册事件。 需要在框架的启动流程中调用。
+   [AwaitableExtension](./AwaitableExtension.cs)  中`SubscribeEvent` 函数来注册事件。 需要在框架的启动流程中调用。
 
    在启动流程中注册 的目的 也是为了防止调用框架重启 导致事件失效问题。
 
@@ -24,7 +24,7 @@
 
 # 特殊说明
 
-​	因为使用 web和download 组件时可能无论成功失败都需要返回 所以封装了 [WebResult](./Assets/Scripts/AwaitableExtension/WebResult.cs) 和	 [DownLoadResult](./Assets/Scripts/AwaitableExtension/DownLoadResult.cs) 用于查看请求是否成功 或返回数据。
+​	因为使用 web和download 组件时可能无论成功失败都需要返回 所以封装了 [WebResult](./WebResult.cs) 和	 [DownLoadResult](./DownLoadResult.cs) 用于查看请求是否成功 或返回数据。
 
 ​	例如:
 
