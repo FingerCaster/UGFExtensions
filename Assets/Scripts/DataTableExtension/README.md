@@ -5,7 +5,7 @@
 # 使用教程
 使用本工具需要熟悉[UnityGameFramework](https://github.com/EllanJiang/UnityGameFramework) 框架中DataTable模块 
 ## 配置数据表
-使用如(Microsoft Excel,Wps)等工具编辑表格 保存时文件类型选择 文本文件(制表符分隔)(*.txt) 格式也可以自定义 如使用自定义分隔符分隔 需修改 [DataTableProcessor.cs](./Assets/Scripts/DataTableExtensions/Editor/DataTableGenerator/DataTableProcessor.cs)文件中的DataSplitSeparators。
+使用如(Microsoft Excel,Wps)等工具编辑表格 保存时文件类型选择 文本文件(制表符分隔)(*.txt) 格式也可以自定义 如使用自定义分隔符分隔 需修改 [DataTableProcessor.cs](./Editor/DataTableGenerator/DataTableProcessor.cs)文件中的DataSplitSeparators。
 
 或使用自带Unity菜单栏中 `DataTable/DataTableEditor `  编辑表格。
 
@@ -66,7 +66,7 @@ GF中实现了GenericDataProcessor的类型有22中 为Boolean,Byte,Char,Color,C
 自定义类型可以自行扩展。
 
 ## 生成数据实体类
-关于数据表用到的配置存放在 [DataTableConfig.cs](./DataTableExtensions/Editor/Extensions/DataTableConfig.cs) 中
+关于数据表用到的配置存放在 [DataTableConfig.cs](./Editor/Extensions/DataTableConfig.cs) 中
 
 |               注释                |           变量名           |
 | :-------------------------------: | :------------------------: |
@@ -86,7 +86,7 @@ GF中实现了GenericDataProcessor的类型有22中 为Boolean,Byte,Char,Color,C
 
 生成解析扩展类否则无法解析自定义类型. 
 
-扩展类中 [BinaryReaderExtension.cs](./DataTableExtensions/Runtime/Extensions/BinaryReaderExtension.cs) 和 [DataTableExtension.cs](./DataTableExtensions/Runtime/Extensions/DataTableExtension.cs) 为默认解析类 不会自动生成 如更改扩展类路径 请自行拷贝。
+扩展类中 [BinaryReaderExtension.cs](./Runtime/Extensions/BinaryReaderExtension.cs) 和 [DataTableExtension.cs](./Runtime/Extensions/DataTableExtension.cs) 为默认解析类 不会自动生成 如更改扩展类路径 请自行拷贝。
 
 1. 使用Unity菜单栏中 `DataTable/Generate DataTables` 生成数据实体类
 2. 使用Unity菜单栏中 `DataTable/ExcelToTxt` `DataTable/ExcelToBytes` 通过excel生成对应 Txt 或BytesAndCode
