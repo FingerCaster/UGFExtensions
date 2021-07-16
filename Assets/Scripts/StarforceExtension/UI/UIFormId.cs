@@ -1,4 +1,4 @@
-namespace Sudoku
+namespace UGFExtensions
 {
     /// <summary>
     /// 界面编号。

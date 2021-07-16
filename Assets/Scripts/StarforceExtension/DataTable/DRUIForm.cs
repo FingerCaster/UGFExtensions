@@ -12,7 +12,7 @@ using DE;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     /// <summary>
     /// 界面配置表。

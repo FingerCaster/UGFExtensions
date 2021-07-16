@@ -1,7 +1,7 @@
 using System;
 using GameFramework;
 
-namespace Sudoku
+namespace UGFExtensions.Await
 {
     /// <summary>
     /// DownLoad 结果

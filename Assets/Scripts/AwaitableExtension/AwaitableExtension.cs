@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions.Await
 {
     public static class AwaitableExtension
     {

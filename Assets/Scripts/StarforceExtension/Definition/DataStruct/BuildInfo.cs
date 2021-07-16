@@ -1,6 +1,6 @@
 ﻿
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public class BuildInfo
     {

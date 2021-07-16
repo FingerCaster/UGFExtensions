@@ -1,17 +1,11 @@
-﻿//**********************************************************************************************************************
-// Name: TimerComponent.cs
-// Date: 2021-04-23
-// Author: 石成智
-// Description: 定时器类
-//**********************************************************************************************************************
-
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions.Timer
 {
     public class TimerComponent : GameFrameworkComponent
     {
@@ -25,10 +19,10 @@ namespace Sudoku
             /// </summary>
             None,
 
-            // /// <summary>
-            // /// 等待执行一次
-            // /// </summary>
-            // OnceWait,
+            /// <summary>
+            /// 等待执行一次
+            /// </summary>
+            OnceWait,
 
             /// <summary>
             /// 执行一次
@@ -285,13 +279,13 @@ namespace Sudoku
         {
             switch (timer.TimerType)
             {
-                // case TimerType.OnceWait:
-                // {
-                //     TaskCompletionSource<bool> tcs = timer.Callback as TaskCompletionSource<bool>;
-                //     RemoveTimer(timer.ID);
-                //     tcs.SetResult(true);
-                //     break;
-                // }
+                case TimerType.OnceWait:
+                {
+                    TaskCompletionSource<bool> tcs = timer.Callback as TaskCompletionSource<bool>;
+                    RemoveTimer(timer.ID);
+                    tcs?.SetResult(true);
+                    break;
+                }
                 case TimerType.Once:
                 {
                     Action action = timer.Callback as Action;
@@ -350,6 +344,13 @@ namespace Sudoku
             if (timer == null)
             {
                 Debug.LogError($"删除了不存在的Timer ID:{id}");
+                return;
+            }
+
+            if (timer.TimerType == TimerType.OnceWait)
+            {
+                TaskCompletionSource<bool> tcs = timer.Callback as TaskCompletionSource<bool>;
+                tcs?.SetResult(false);
             }
 
             ReferencePool.Release(timer);
@@ -492,47 +493,47 @@ namespace Sudoku
             return timer.ID;
         }
 
-        // /// <summary>
-        // /// 可等待执行一次的定时器
-        // /// </summary>
-        // /// <param name="time">定时时间</param>
-        // /// <param name="callback">回调函数</param>
-        // /// <param name="updateCallback">每帧回调函数</param>
-        // /// <returns></returns>
-        // public async Task<bool> AwaitOnceTimer(long time, CancellationToken cancellationToken = null)
-        // {
-        //     long nowTime = TimerTimeUtility.Now();
-        //     if (time <= 0)
-        //     {
-        //         return true;
-        //     }
-        //
-        //     TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-        //     Timer timer = Timer.Create(time, nowTime, TimerType.OnceWait, tcs);
-        //     _timers.Add(timer.ID, timer);
-        //     int timerId = timer.ID;
-        //
-        //     AddTimer(nowTime + time, timerId);
-        //
-        //     void CancelAction()
-        //     {
-        //         RemoveTimer(timerId);
-        //         tcs.SetResult(false);
-        //     }
-        //
-        //     bool result;
-        //     try
-        //     {
-        //         cancellationToken?.Add(CancelAction);
-        //         result = await tcs.Task;
-        //     }
-        //     finally
-        //     {
-        //         cancellationToken?.Remove(CancelAction);
-        //     }
-        //
-        //     return result;
-        // }
+        /// <summary>
+        /// 可等待执行一次的定时器
+        /// </summary>
+        /// <param name="time">定时时间</param>
+        /// <param name="callback">回调函数</param>
+        /// <param name="updateCallback">每帧回调函数</param>
+        /// <returns></returns>
+        public async Task<bool> AwaitOnceTimer(long time, CancellationToken cancellationToken = null)
+        {
+            long nowTime = TimerTimeUtility.Now();
+            if (time <= 0)
+            {
+                return true;
+            }
+        
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            Timer timer = Timer.Create(time, nowTime, TimerType.OnceWait, tcs);
+            _timers.Add(timer.ID, timer);
+            int timerId = timer.ID;
+        
+            AddTimer(nowTime + time, timerId);
+        
+            void CancelAction()
+            {
+                RemoveTimer(timerId);
+                tcs.SetResult(false);
+            }
+
+            bool result;
+            try
+            {
+                cancellationToken?.Add(CancelAction);
+                result = await tcs.Task;
+            }
+            finally
+            {
+                cancellationToken?.Remove(CancelAction);
+            }
+        
+            return result;
+        }
 
         // /// <summary>
         // /// 可等待的帧定时器

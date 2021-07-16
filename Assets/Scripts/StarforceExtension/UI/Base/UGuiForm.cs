@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
-namespace Sudoku
+namespace UGFExtensions
 {
      public abstract class UGuiForm : UIFormLogic
     {

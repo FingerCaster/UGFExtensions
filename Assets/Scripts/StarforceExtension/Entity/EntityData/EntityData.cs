@@ -4,7 +4,7 @@ using System;
 using GameFramework;
 using UnityEngine;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     [Serializable]
     public abstract class EntityData : IReference

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Sudoku
+namespace UGFExtensions.Timer
 {
     public class MultiMap<T, K>: SortedDictionary<T, List<K>>
     {

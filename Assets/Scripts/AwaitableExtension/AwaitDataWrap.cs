@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using GameFramework;
 
-namespace Sudoku
+namespace UGFExtensions.Await
 {
     /// <summary>
     /// Await包装类

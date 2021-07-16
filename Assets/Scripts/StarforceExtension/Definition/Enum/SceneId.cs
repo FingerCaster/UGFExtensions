@@ -1,4 +1,4 @@
-namespace Sudoku
+namespace UGFExtensions
 {
     public enum SceneId
     {

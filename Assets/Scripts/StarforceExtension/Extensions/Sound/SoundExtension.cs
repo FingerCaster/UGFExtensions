@@ -10,7 +10,7 @@ using GameFramework.DataTable;
 using GameFramework.Sound;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public static class SoundExtension
     {

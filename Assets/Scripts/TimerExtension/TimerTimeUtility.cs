@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sudoku
+namespace UGFExtensions.Timer
 {
     public static class TimerTimeUtility
     {
@@ -13,14 +13,5 @@ namespace Sudoku
         {
             return (DateTime.UtcNow.Ticks - epoch) / 10000;
         }
-        
-        // /// <summary>
-        // /// 当前时间
-        // /// </summary>
-        // /// <returns></returns>
-        // public static long Now()
-        // {
-        //     return (DateTime.UtcNow.Ticks - epoch) / 10000;
-        // }
     }
 }

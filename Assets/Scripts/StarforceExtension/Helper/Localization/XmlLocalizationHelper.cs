@@ -3,7 +3,7 @@ using System;
 using System.Xml;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     /// <summary>
     /// XML 格式的本地化辅助器。

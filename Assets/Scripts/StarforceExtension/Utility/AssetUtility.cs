@@ -2,7 +2,7 @@
 
 using GameFramework;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public static class AssetUtility
     {

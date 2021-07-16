@@ -4,7 +4,7 @@ using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public abstract class EntityLogic : UnityGameFramework.Runtime.EntityLogic
     {

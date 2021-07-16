@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public static class WebUtility
     {

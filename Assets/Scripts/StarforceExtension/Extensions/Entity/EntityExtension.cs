@@ -9,7 +9,7 @@ using GameFramework.DataTable;
 using System;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public static class EntityExtension
     {

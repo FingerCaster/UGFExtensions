@@ -1,9 +1,6 @@
-﻿
+﻿using UGFExtensions.Timer;
 
-using UnityEngine;
-using UnityGameFramework.Runtime;
-
-namespace Sudoku
+namespace UGFExtensions
 {
     /// <summary>
     /// 游戏入口。

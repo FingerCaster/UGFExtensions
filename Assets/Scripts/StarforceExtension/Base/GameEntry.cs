@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     /// <summary>
     /// 游戏入口。

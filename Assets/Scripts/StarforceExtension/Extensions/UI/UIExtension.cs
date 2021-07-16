@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public static class UIExtension
     {
@@ -158,27 +158,5 @@ namespace Sudoku
             }
             return uiComponent.OpenUIForm(assetName, drUIForm.UIGroupName, Constant.AssetPriority.UIFormAsset, drUIForm.PauseCoveredUIForm, userData);
         }
-
-        private static Canvas UiRoot;
-        public static Canvas GetUiRoot(this UIComponent uiComponent)
-        {
-            if (UiRoot == null)
-            {
-                UiRoot = uiComponent.transform.Find("UI Form Instances").GetComponent<Canvas>();
-            }
-            return UiRoot;
-        }
-        
-        private static Camera UiCamera;
-        public static Camera GetUiCamera(this UIComponent uiComponent)
-        {
-            if (UiCamera == null)
-            {
-                UiCamera = uiComponent.transform.Find("UI Form Instances").GetComponent<Canvas>().worldCamera;
-            }
-            return UiCamera;
-        }
-
-
     }
 }

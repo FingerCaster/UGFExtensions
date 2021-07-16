@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     public static partial class Constant
     {

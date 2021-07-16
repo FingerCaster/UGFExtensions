@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku
+namespace UGFExtensions
 {
     /// <summary>
     /// LitJSON 函数集辅助器。

@@ -6,7 +6,7 @@ using GameFramework.DataTable;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace Sudoku.GameMain
+namespace UGFExtensions.GameMain
 {
     public class DataTableHelper : DataTableHelperBase
     {

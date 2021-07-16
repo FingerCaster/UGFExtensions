@@ -1,6 +1,6 @@
 using GameFramework;
 
-namespace Sudoku
+namespace UGFExtensions.Await
 {
     /// <summary>
     /// web 访问结果
