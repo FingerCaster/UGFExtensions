@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace DE.Editor.DataTableTools
 {
@@ -15,44 +16,7 @@ namespace DE.Editor.DataTableTools
             public override bool IsSystem => false;
             public override bool IsEnum => false;
 
-            public override Type Type
-            {
-                get
-                {
-                    // if (!(Activator.CreateInstance(typeof(T)) is T t))
-                    //     return typeof(T[]);
-                     T t = Activator.CreateInstance<T>();
-                    // var mo = this.GetType().GetMethod("CreateArray", BindingFlags.Static | BindingFlags.NonPublic);
-                    // if (!(mo is null))
-                    // {
-                    //     mo.MakeGenericMethod(t.Type);
-                    //     var type = mo.Invoke(null, null) as Type;
-                    //     return type;
-                    // }
-                    System.Type type = null;
-                    foreach (var assemblyName in DataTableConfig.AssemblyNames)
-                    {
-                        Assembly assembly = null;
-                        try
-                        {
-                            assembly = Assembly.Load(assemblyName);
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-
-                        if (assembly == null) continue;
-
-                        type = assembly.GetTypes().FirstOrDefault(_ => _.Name == $"{t.Type.Name}[]");
-                        if (type != null)
-                        {
-                            break;
-                        }
-                    }
-                    return type?? typeof(K[]);
-                }
-            }
+            public override Type Type => typeof(K[]);
 
             private static Type CreateArray<TArray>()
             {

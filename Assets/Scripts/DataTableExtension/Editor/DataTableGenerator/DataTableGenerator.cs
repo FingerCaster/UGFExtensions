@@ -71,65 +71,17 @@ namespace DE.Editor.DataTableTools
 
         private static bool CheckIsChanged(DataTableProcessor dataTableProcessor, string dataTableName)
         {
-            Dictionary<string, DataTableProcessor.DataProcessor> properties =
-                new Dictionary<string, DataTableProcessor.DataProcessor>(dataTableProcessor.RawColumnCount - 1);
-            for (var i = 0; i < dataTableProcessor.RawColumnCount; i++)
-            {
-                if (dataTableProcessor.IsCommentColumn(i))
-                    // 注释列
-                    continue;
-                properties.Add(dataTableProcessor.GetName(i), dataTableProcessor.GetDataProcessor(i));
-            }
-
-            Type drType = null;
-            string typeName = "DR" + dataTableName;
-            foreach (var assemblyName in DataTableConfig.AssemblyNames)
-            {
-                Assembly assembly = null;
-                try
-                {
-                    assembly = Assembly.Load(assemblyName);
-                }
-                catch
-                {
-                    continue;
-                }
-
-                if (assembly == null) continue;
-
-                drType = assembly.GetTypes().FirstOrDefault(_ => _.Name == typeName);
-                if (drType != null)
-                {
-                    break;
-                }
-            }
-
-            bool isChanged = false;
-
-            var drProperties = drType?.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            if (drProperties == null)
-            {
-                return true;
-            }
-
-            if (drProperties.Length != properties.Count)
-            {
-                return true;
-            }
-            else
-            {
-                for (int i = 0; i < drProperties.Length; i++)
-                {
-                    properties.TryGetValue(drProperties[i].Name, out var dataProcessor);
-                    isChanged = dataProcessor == null || dataProcessor.Type != drProperties[i].PropertyType;
-                    if (isChanged)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return isChanged;
+            var stringBuilder = new StringBuilder(File.ReadAllText(DataTableConfig.CSharpCodeTemplateFileName, Encoding.UTF8));
+            DataTableCodeGenerator(dataTableProcessor, stringBuilder, dataTableName);
+            string csharpCode = GetNotHeadString(stringBuilder.ToString());
+            string oldCsharpCode = GetNotHeadString(File.ReadAllText(Path.Combine(DataTableConfig.CSharpCodePath, "DR" + dataTableName + ".cs")));
+            return csharpCode != oldCsharpCode;
+        }
+        static string GetNotHeadString(string str)
+        {
+            int index = str.IndexOf("using", StringComparison.Ordinal);
+            str = str.Substring(index);
+            return str;
         }
 
         private static void DataTableCodeGenerator(DataTableProcessor dataTableProcessor,
