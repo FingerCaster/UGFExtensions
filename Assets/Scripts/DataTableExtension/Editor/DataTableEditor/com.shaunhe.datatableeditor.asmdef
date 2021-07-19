@@ -1,0 +1,16 @@
+{
+    "name": "com.shaunhe.datatableeditor",
+    "references": [
+        "Unity.InternalAPIEngineBridge.006"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
