@@ -16,24 +16,25 @@ namespace DE.Editor.DataTableTools
                 }
             }
 
-            public Type EnumType => typeof(T);
+            public override Type Type => typeof(T);
+            //public Type EnumType => typeof(T);
             public override bool IsSystem => false;
             public override bool IsEnum => true;
-            public string NameSpace => EnumType.Namespace;
-            public override string LanguageKeyword => EnumType.FullName;
+            public string NameSpace => Type.Namespace;
+            public override string LanguageKeyword => Type.FullName;
 
             public override string[] GetTypeStrings()
             {
-                if (string.IsNullOrEmpty(EnumType.FullName) || EnumType.FullName == EnumType.Name)
+                if (string.IsNullOrEmpty(Type.FullName) || Type.FullName == Type.Name)
                 {
-                    return new[] {EnumType.Name.ToLower()};
+                    return new[] {Type.Name.ToLower()};
                 }
                 else
                 {
                     return new[]
                     {
                         //EnumType.Name.ToLower(),
-                        EnumType.FullName.ToLower()
+                        Type.FullName.ToLower()
                     };
                 }
             }

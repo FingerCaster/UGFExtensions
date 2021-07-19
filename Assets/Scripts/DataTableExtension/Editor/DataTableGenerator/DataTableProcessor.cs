@@ -267,6 +267,14 @@ namespace DE.Editor.DataTableTools
 
             return m_DataProcessor[rawColumn].LanguageKeyword;
         }
+        public string[] GetTypeStrings(int rawColumn)
+        {
+            if (rawColumn < 0 || rawColumn >= RawColumnCount)
+                throw new GameFrameworkException(Utility.Text.Format("Raw column '{0}' is out of range.",
+                    rawColumn.ToString()));
+
+            return m_DataProcessor[rawColumn].GetTypeStrings();
+        }
 
         public string GetDefaultValue(int rawColumn)
         {
