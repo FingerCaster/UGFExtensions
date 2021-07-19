@@ -91,58 +91,58 @@ namespace DE
             float realElapseSeconds)
         {
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
-            // foreach (var loadedFlag in m_LoadedFlag)
-            //     if (!loadedFlag.Value)
-            //         return;
-            //
-            // if (Input.GetKeyDown(KeyCode.A))
-            // {
-            //     var drTests = DataTable.GetDataTable<DRTest>();
-            //     var drTest = drTests.GetDataRow(1);
-            //     if (drTest == null) return;
-            //
-            //     Debug.Log(
-            //         $"{drTest.Id}    {drTest.BoolValue}    {drTest.ByteValue}    {drTest.CharValue}    {drTest.Color32Value}    {drTest.ColorValue}    {drTest.DateTimeValue}    " +
-            //         $"{drTest.DecimalValue}    {drTest.DoubleValue}    {drTest.FloatValue}    {drTest.IntValue}    {drTest.LongValue}    {drTest.QuaternionValue}    {drTest.RectValue}    " +
-            //         $"{drTest.SByteValue}    {drTest.ShortValue}    {drTest.StringValue}    {drTest.UIntValue}    {drTest.ULongValue}    {drTest.UShortValue}    {drTest.Vector2Value}    " +
-            //         $"{drTest.Vector3Value}    {drTest.Vector4Value}");
-            //     Debug.Log(
-            //         $"{drTest.Id}    {ListToString(drTest.BoolList)}    {ListToString(drTest.ByteList)}    {ListToString(drTest.CharList)}    {ListToString(drTest.Color32List)}    {ListToString(drTest.ColorList)}    {ListToString(drTest.DateTimeList)}    " +
-            //         $"{ListToString(drTest.DecimalList)}    {ListToString(drTest.DoubleList)}    {ListToString(drTest.FloatList)}    {ListToString(drTest.IntList)}    {ListToString(drTest.LongList)}    {ListToString(drTest.QuaternionList)}    {ListToString(drTest.RectList)}    " +
-            //         $"{ListToString(drTest.SByteList)}    {ListToString(drTest.ShortList)}    {ListToString(drTest.StringList)}    {ListToString(drTest.UIntList)}    {ListToString(drTest.ULongList)}    {ListToString(drTest.UShortList)}    {ListToString(drTest.Vector2List)}    " +
-            //         $"{ListToString(drTest.Vector3List)}    {ListToString(drTest.Vector4List)}");
-            //     Debug.Log(
-            //         $"{drTest.Id}    {ArrayToString(drTest.BoolArray)}    {ArrayToString(drTest.ByteArray)}    {ArrayToString(drTest.CharArray)}    {ArrayToString(drTest.Color32Array)}    {ArrayToString(drTest.ColorArray)}    {ArrayToString(drTest.DateTimeArray)}    " +
-            //         $"{ArrayToString(drTest.DecimalArray)}    {ArrayToString(drTest.DoubleArray)}    {ArrayToString(drTest.FloatArray)}    {ArrayToString(drTest.IntArray)}    {ArrayToString(drTest.LongArray)}    {ArrayToString(drTest.QuaternionArray)}    {ArrayToString(drTest.RectArray)}    " +
-            //         $"{ArrayToString(drTest.SByteArray)}    {ArrayToString(drTest.ShortArray)}    {ArrayToString(drTest.StringArray)}    {ArrayToString(drTest.UIntArray)}    {ArrayToString(drTest.ULongArray)}    {ArrayToString(drTest.UShortArray)}    {ArrayToString(drTest.Vector2Array)}    " +
-            //         $"{ArrayToString(drTest.Vector3Array)}    {ArrayToString(drTest.Vector4Array)}");
-            //
-            //     
-            // }
-            //
-            // if (Input.GetKeyDown(KeyCode.B))
-            // {
-            //     var drTestDictionaries = DataTable.GetDataTable<DRTestDictionary>();
-            //     var drTestDictionary = drTestDictionaries.GetDataRow(1);
-            //     if (drTestDictionary == null)
-            //         return;
-            //     Debug.Log(
-            //         $"{drTestDictionary.Id}    TestIntIntDictionary:{DictionaryToString(drTestDictionary.TestIntIntDictionary)}    TestIntVector3Dictionary:{DictionaryToString(drTestDictionary.TestIntVector3Dictionary)}");
-            //
-            //    
-            // }
-            //
-            // if (Input.GetKeyDown(KeyCode.C))
-            // {
-            //     var drTestEnums = DataTable.GetDataTable<DRTestEnum>();
-            //     var drTestEnum = drTestEnums.GetDataRow(1);
-            //     if (drTestEnum == null)
-            //         return;
-            //     Debug.Log(
-            //         $"{drTestEnum.Id}    TestEnum:{drTestEnum.TestEnum}  TestEnumList:{ListToString(drTestEnum.TestEnumList)} " +
-            //         $"TestEnumArray:{ArrayToString(drTestEnum.TestEnumArray)}   TestEnumDic:{DictionaryToString(drTestEnum.TestEnumDic)}");
-            //
-            // }
+            foreach (var loadedFlag in m_LoadedFlag)
+                if (!loadedFlag.Value)
+                    return;
+            
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                var drTests = DataTable.GetDataTable<DRTest>();
+                var drTest = drTests.GetDataRow(1);
+                if (drTest == null) return;
+            
+                Debug.Log(
+                    $"{drTest.Id}    {drTest.BoolValue}    {drTest.ByteValue}    {drTest.CharValue}    {drTest.Color32Value}    {drTest.ColorValue}    {drTest.DateTimeValue}    " +
+                    $"{drTest.DecimalValue}    {drTest.DoubleValue}    {drTest.FloatValue}    {drTest.IntValue}    {drTest.LongValue}    {drTest.QuaternionValue}    {drTest.RectValue}    " +
+                    $"{drTest.SByteValue}    {drTest.ShortValue}    {drTest.StringValue}    {drTest.UIntValue}    {drTest.ULongValue}    {drTest.UShortValue}    {drTest.Vector2Value}    " +
+                    $"{drTest.Vector3Value}    {drTest.Vector4Value}");
+                Debug.Log(
+                    $"{drTest.Id}    {ListToString(drTest.BoolList)}    {ListToString(drTest.ByteList)}    {ListToString(drTest.CharList)}    {ListToString(drTest.Color32List)}    {ListToString(drTest.ColorList)}    {ListToString(drTest.DateTimeList)}    " +
+                    $"{ListToString(drTest.DecimalList)}    {ListToString(drTest.DoubleList)}    {ListToString(drTest.FloatList)}    {ListToString(drTest.IntList)}    {ListToString(drTest.LongList)}    {ListToString(drTest.QuaternionList)}    {ListToString(drTest.RectList)}    " +
+                    $"{ListToString(drTest.SByteList)}    {ListToString(drTest.ShortList)}    {ListToString(drTest.StringList)}    {ListToString(drTest.UIntList)}    {ListToString(drTest.ULongList)}    {ListToString(drTest.UShortList)}    {ListToString(drTest.Vector2List)}    " +
+                    $"{ListToString(drTest.Vector3List)}    {ListToString(drTest.Vector4List)}");
+                Debug.Log(
+                    $"{drTest.Id}    {ArrayToString(drTest.BoolArray)}    {ArrayToString(drTest.ByteArray)}    {ArrayToString(drTest.CharArray)}    {ArrayToString(drTest.Color32Array)}    {ArrayToString(drTest.ColorArray)}    {ArrayToString(drTest.DateTimeArray)}    " +
+                    $"{ArrayToString(drTest.DecimalArray)}    {ArrayToString(drTest.DoubleArray)}    {ArrayToString(drTest.FloatArray)}    {ArrayToString(drTest.IntArray)}    {ArrayToString(drTest.LongArray)}    {ArrayToString(drTest.QuaternionArray)}    {ArrayToString(drTest.RectArray)}    " +
+                    $"{ArrayToString(drTest.SByteArray)}    {ArrayToString(drTest.ShortArray)}    {ArrayToString(drTest.StringArray)}    {ArrayToString(drTest.UIntArray)}    {ArrayToString(drTest.ULongArray)}    {ArrayToString(drTest.UShortArray)}    {ArrayToString(drTest.Vector2Array)}    " +
+                    $"{ArrayToString(drTest.Vector3Array)}    {ArrayToString(drTest.Vector4Array)}");
+            
+                
+            }
+            
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                var drTestDictionaries = DataTable.GetDataTable<DRTestDictionary>();
+                var drTestDictionary = drTestDictionaries.GetDataRow(1);
+                if (drTestDictionary == null)
+                    return;
+                Debug.Log(
+                    $"{drTestDictionary.Id}    TestIntIntDictionary:{DictionaryToString(drTestDictionary.TestIntIntDictionary)}    TestIntVector3Dictionary:{DictionaryToString(drTestDictionary.TestIntVector3Dictionary)}");
+            
+               
+            }
+            
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                var drTestEnums = DataTable.GetDataTable<DRTestEnum>();
+                var drTestEnum = drTestEnums.GetDataRow(1);
+                if (drTestEnum == null)
+                    return;
+                Debug.Log(
+                    $"{drTestEnum.Id}    TestEnum:{drTestEnum.TestEnum}  TestEnumList:{ListToString(drTestEnum.TestEnumList)} " +
+                    $"TestEnumArray:{ArrayToString(drTestEnum.TestEnumArray)}   TestEnumDic:{DictionaryToString(drTestEnum.TestEnumDic)}");
+            
+            }
         }
 
         private void PreloadResources()
