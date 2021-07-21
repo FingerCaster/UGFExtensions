@@ -32,7 +32,7 @@ namespace DE.Editor
         /// <summary>
         /// 数据表命名空间
         /// </summary>
-        public const string NameSpace = "DE";
+        public const string NameSpace = "UGFExtensions";
         /// <summary>
         /// 数据表中使用类型 所在的所有程序集
         /// </summary>
@@ -58,12 +58,17 @@ namespace DE.Editor
         /// <summary>
         /// 数据表文件路径
         /// </summary>
-        public static readonly string[] DataTablePaths;
+        public static string[] DataTablePaths;
         /// <summary>
         /// 数据表文件名
         /// </summary>
-        public static readonly string[] DataTableNames;
+        public static string[] DataTableNames;
         static DataTableConfig()
+        {
+            RefreshDataTables();
+        }
+
+        public static void RefreshDataTables()
         {
             var folder = new DirectoryInfo(DataTableFolderPath);
             DataTablePaths = folder.GetFiles("*.txt").Select(_ => Utility.Path.GetRegularPath(_.FullName))

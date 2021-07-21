@@ -8,11 +8,11 @@ using GameFramework.Procedure;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace DE
+namespace UGFExtensions
 {
-    public class ProcedureTest : ProcedureBase
+    public class ProcedureDataTableTest : ProcedureBase
     {
-        private const string DataRowClassPrefixName = "DE.DR";
+        private const string DataRowClassPrefixName = "UGFExtensions.DR";
 
         public static readonly string[] DataTableNames =
         {
@@ -36,8 +36,8 @@ namespace DE
         protected override void OnEnter(IFsm<IProcedureManager> procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            Event = GameEntry.GetComponent<EventComponent>();
-            DataTable = GameEntry.GetComponent<DataTableComponent>();
+            Event = UnityGameFramework.Runtime.GameEntry.GetComponent<EventComponent>();
+            DataTable = UnityGameFramework.Runtime.GameEntry.GetComponent<DataTableComponent>();
             Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
             PreloadResources();
@@ -139,7 +139,7 @@ namespace DE
                 if (drTestEnum == null)
                     return;
                 Debug.Log(
-                    $"{drTestEnum.Id}    TestEnum:{drTestEnum.TestEnum}  TestEnumList:{ListToString(drTestEnum.TestEnumList)} " +
+                    $"{drTestEnum.Id}    TestEnum:{drTestEnum.TestEnum}   TestEnum1:{drTestEnum.TestEnum1}  TestEnumList:{ListToString(drTestEnum.TestEnumList)} " +
                     $"TestEnumArray:{ArrayToString(drTestEnum.TestEnumArray)}   TestEnumDic:{DictionaryToString(drTestEnum.TestEnumDic)}");
             
             }

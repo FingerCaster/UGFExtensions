@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using DE;
-using UnityEngine;
 using UnityGameFramework.Runtime;
 
 namespace UGFExtensions

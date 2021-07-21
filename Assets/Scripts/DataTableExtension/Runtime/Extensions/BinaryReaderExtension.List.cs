@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
-namespace DE
+namespace UGFExtensions
 {
 	public static partial class BinaryReaderExtension
 	{

@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2021-07-19 21:21:52.656
+// 生成时间：2021-07-21 18:34:25.628
 //------------------------------------------------------------
 
 using GameFramework;
@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityGameFramework.Runtime;
 
 
-namespace DE
+namespace UGFExtensions
 {
     /// <summary>
     /// 测试表格生成。
@@ -36,6 +36,15 @@ namespace DE
         /// 获取测试枚举。
         /// </summary>
         public Test.TestEnum TestEnum
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取测试枚举1。
+        /// </summary>
+        public Test.TestEnum1 TestEnum1
         {
             get;
             private set;
@@ -79,7 +88,28 @@ namespace DE
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-			TestEnum = (Test.TestEnum)int.Parse(columnStrings[index++]);
+			bool isInt = int.TryParse(columnStrings[index],out int enumInt);
+			if (isInt)
+			{
+				TestEnum = (Test.TestEnum) enumInt;
+				index++;
+			}
+			else
+			{
+				DataTableExtension.EnumParse(columnStrings[index++], out Test.TestEnum value);
+				TestEnum = value;
+			}
+			isInt = int.TryParse(columnStrings[index],out enumInt);
+			if (isInt)
+			{
+				TestEnum1 = (Test.TestEnum1) enumInt;
+				index++;
+			}
+			else
+			{
+				DataTableExtension.EnumParse(columnStrings[index++], out Test.TestEnum1 value);
+				TestEnum1 = value;
+			}
 			TestEnumList = DataTableExtension.ParseTestTestEnumList(columnStrings[index++]);
 			TestEnumArray = DataTableExtension.ParseTestTestEnumArray(columnStrings[index++]);
 			TestEnumDic = DataTableExtension.ParseTestTestEnumInt32Dictionary(columnStrings[index++]);
@@ -96,6 +126,7 @@ namespace DE
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
 					TestEnum = (Test.TestEnum)binaryReader.Read7BitEncodedInt32();
+					TestEnum1 = (Test.TestEnum1)binaryReader.Read7BitEncodedInt32();
 					TestEnumList = binaryReader.ReadTestTestEnumList();
 					TestEnumArray = binaryReader.ReadTestTestEnumArray();
 					TestEnumDic = binaryReader.ReadTestTestEnumInt32Dictionary();
@@ -106,9 +137,45 @@ namespace DE
             return true;
         }
 
+        private KeyValuePair<int, Test.TestEnum1>[] m_TestEnum = null;
+
+        public int TestEnumCount
+        {
+            get
+            {
+                return m_TestEnum.Length;
+            }
+        }
+
+        public Test.TestEnum1 GetTestEnum(int id)
+        {
+            foreach (KeyValuePair<int, Test.TestEnum1> i in m_TestEnum)
+            {
+                if (i.Key == id)
+                {
+                    return i.Value;
+                }
+            }
+
+            throw new GameFrameworkException(Utility.Text.Format("GetTestEnum with invalid id '{0}'.", id.ToString()));
+        }
+
+        public Test.TestEnum1 GetTestEnumAt(int index)
+        {
+            if (index < 0 || index >= m_TestEnum.Length)
+            {
+                throw new GameFrameworkException(Utility.Text.Format("GetTestEnumAt with invalid index '{0}'.", index.ToString()));
+            }
+
+            return m_TestEnum[index].Value;
+        }
+
         private void GeneratePropertyArray()
         {
-
+            m_TestEnum = new KeyValuePair<int, Test.TestEnum1>[]
+            {
+                new KeyValuePair<int, Test.TestEnum1>(1, TestEnum1),
+            };
         }
     }
 }

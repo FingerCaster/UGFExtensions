@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DE
+namespace UGFExtensions
 {
     public static partial class DataTableExtension
     {
