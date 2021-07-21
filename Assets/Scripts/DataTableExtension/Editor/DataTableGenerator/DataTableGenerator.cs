@@ -71,10 +71,15 @@ namespace DE.Editor.DataTableTools
 
         private static bool CheckIsChanged(DataTableProcessor dataTableProcessor, string dataTableName)
         {
+            string oldCsharpCodePath = Path.Combine(DataTableConfig.CSharpCodePath, "DR" + dataTableName + ".cs");
+            if (!File.Exists(oldCsharpCodePath))
+            {
+                return true;
+            }
             var stringBuilder = new StringBuilder(File.ReadAllText(DataTableConfig.CSharpCodeTemplateFileName, Encoding.UTF8));
             DataTableCodeGenerator(dataTableProcessor, stringBuilder, dataTableName);
             string csharpCode = GetNotHeadString(stringBuilder.ToString());
-            string oldCsharpCode = GetNotHeadString(File.ReadAllText(Path.Combine(DataTableConfig.CSharpCodePath, "DR" + dataTableName + ".cs")));
+            string oldCsharpCode = GetNotHeadString(File.ReadAllText(oldCsharpCodePath));
             return csharpCode != oldCsharpCode;
         }
         static string GetNotHeadString(string str)
@@ -157,7 +162,7 @@ namespace DE.Editor.DataTableTools
                 .AppendLine("            }")
                 .AppendLine()
                 .AppendLine("            int index = 0;");
-
+            bool isFirstEnum = true;
             for (var i = 0; i < dataTableProcessor.RawColumnCount; i++)
             {
                 if (dataTableProcessor.IsCommentColumn(i))
@@ -255,8 +260,33 @@ namespace DE.Editor.DataTableTools
 
                     if (dataTableProcessor.IsEnumrColumn(i))
                     {
-                        stringBuilder.AppendFormat("\t\t\t{0} = ({1})int.Parse(columnStrings[index++]);",
-                            dataTableProcessor.GetName(i), dataTableProcessor.GetLanguageKeyword(i)).AppendLine();
+                        if (isFirstEnum)
+                        {
+                            isFirstEnum = false;
+                            stringBuilder
+                                .AppendLine("\t\t\tbool isInt = int.TryParse(columnStrings[index],out int enumInt);");
+                        }
+                        else
+                        {
+                            stringBuilder
+                                .AppendLine("\t\t\tisInt = int.TryParse(columnStrings[index],out enumInt);");
+                        }
+
+                        stringBuilder
+                            .AppendLine("\t\t\tif (isInt)")
+                            .AppendLine("\t\t\t{")
+                            .AppendLine(
+                                $"\t\t\t\t{dataTableProcessor.GetName(i)} = ({dataTableProcessor.GetLanguageKeyword(i)}) enumInt;")
+                            .AppendLine("\t\t\t\tindex++;")
+                            .AppendLine("\t\t\t}")
+                            .AppendLine("\t\t\telse")
+                            .AppendLine("\t\t\t{")
+                            .AppendLine($"\t\t\t\tDataTableExtension.EnumParse(columnStrings[index++], out {dataTableProcessor.GetLanguageKeyword(i)} value);")
+                            .AppendLine($"\t\t\t\t{dataTableProcessor.GetName(i)} = value;")
+                            .AppendLine("\t\t\t}");
+                        
+                        // stringBuilder.AppendFormat("\t\t\t{0} = ({1})int.Parse(columnStrings[index++]);",
+                        //     dataTableProcessor.GetName(i), dataTableProcessor.GetLanguageKeyword(i)).AppendLine();
                         continue;
                     }
 

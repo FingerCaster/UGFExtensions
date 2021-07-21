@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GameFramework;
+using GameFramework.DataTable;
 using GameFramework.Event;
 using GameFramework.Resource;
 using JetBrains.Annotations;
@@ -48,6 +49,8 @@ namespace UGFExtensions.Await
             GameEntry.Event.Subscribe(DownloadSuccessEventArgs.EventId, OnDownloadSuccess);
             GameEntry.Event.Subscribe(DownloadFailureEventArgs.EventId, OnDownloadFailure);
         }
+        
+      
 
         /// <summary>
         /// 打开界面（可等待）

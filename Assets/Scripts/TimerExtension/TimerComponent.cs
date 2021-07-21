@@ -346,13 +346,7 @@ namespace UGFExtensions.Timer
                 Debug.LogError($"删除了不存在的Timer ID:{id}");
                 return;
             }
-
-            if (timer.TimerType == TimerType.OnceWait)
-            {
-                TaskCompletionSource<bool> tcs = timer.Callback as TaskCompletionSource<bool>;
-                tcs?.SetResult(false);
-            }
-
+            
             ReferencePool.Release(timer);
             _timers.Remove(id);
             _updateTimer.Remove(id);
@@ -399,6 +393,7 @@ namespace UGFExtensions.Timer
             if (oldTimer == null)
             {
                 Debug.LogError($"Timer不存在 ID:{id}");
+                return;
             }
 
             _timeId.Remove(oldTimer.StartTime + oldTimer.Time, oldTimer.ID);
@@ -418,6 +413,7 @@ namespace UGFExtensions.Timer
             if (timer == null)
             {
                 Debug.LogError($"Timer不存在 ID:{id}");
+                return;
             }
 
             _timers.Add(id, timer.Timer);
@@ -500,7 +496,7 @@ namespace UGFExtensions.Timer
         /// <param name="callback">回调函数</param>
         /// <param name="updateCallback">每帧回调函数</param>
         /// <returns></returns>
-        public async Task<bool> AwaitOnceTimer(long time, CancellationToken cancellationToken = null)
+        public async Task<bool> OnceTimerAsync(long time, CancellationToken cancellationToken = null)
         {
             long nowTime = TimerTimeUtility.Now();
             if (time <= 0)

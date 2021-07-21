@@ -135,7 +135,9 @@ namespace DE.Editor
             }
 
             AssetDatabase.Refresh();
+            DataTableConfig.RefreshDataTables();
             ExtensionsGenerate.GenerateExtensionByAnalysis();
+            
         }
 
         [MenuItem("DataTable/ExcelToBytes",priority = 13)]

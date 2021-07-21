@@ -301,7 +301,7 @@ namespace DE.Editor.DataTableTools
                     else if (item.Value.IsEnum)
                     {
                         sb.AppendLine(
-                            $"\t\t\t\tlist.Add(({item.Value.LanguageKeyword})binaryReader.Read7BitEncoded{item.Value.Type.Name}());");
+                            $"\t\t\t\tlist.Add(({item.Value.LanguageKeyword})binaryReader.Read7BitEncodedInt32());");
                     }
                     else
                         sb.AppendLine($"\t\t\t\tlist.Add(binaryReader.Read{item.Value.Type.Name}());");
@@ -363,7 +363,7 @@ namespace DE.Editor.DataTableTools
                     else if (item.Value.IsEnum)
                     {
                         sb.AppendLine(
-                            $"\t\t\t\tarray[i] = ({item.Value.LanguageKeyword})binaryReader.Read7BitEncoded{item.Value.Type.Name}();");
+                            $"\t\t\t\tarray[i] = ({item.Value.LanguageKeyword})binaryReader.Read7BitEncodedInt32();");
                     }
                     else
                         sb.AppendLine($"\t\t\t\tarray[i] = binaryReader.Read{item.Value.Type.Name}();");
@@ -570,7 +570,7 @@ namespace DE.Editor.DataTableTools
                             if (dataProcessorT2.IsEnum)
                             {
                                 sb.AppendLine(
-                                    $"\t\t\t\tdictionary.Add(binaryReader.Read7BitEncoded{dataProcessorT1.Type.Name}(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT2.Type.Name}());");
+                                    $"\t\t\t\tdictionary.Add(binaryReader.Read7BitEncoded{dataProcessorT1.Type.Name}(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncodedInt32());");
                             }
                             else
                             {
@@ -580,7 +580,7 @@ namespace DE.Editor.DataTableTools
                         else if (dataProcessorT2.IsEnum)
                         {
                             sb.AppendLine(
-                                $"\t\t\t\tdictionary.Add(binaryReader.Read{dataProcessorT1.Type.Name}(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT2.Type.Name}());");
+                                $"\t\t\t\tdictionary.Add(binaryReader.Read{dataProcessorT1.Type.Name}(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncodedInt32());");
                         }
                         else
                             sb.AppendLine(
@@ -597,7 +597,7 @@ namespace DE.Editor.DataTableTools
                             if (dataProcessorT1.IsEnum)
                             {
                                 sb.AppendLine(
-                                    $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT1.Type.Name}(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT2.Type.Name}());");
+                                    $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncodedInt32(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncodedInt32());");
                             }
                             else
                             {
@@ -608,7 +608,7 @@ namespace DE.Editor.DataTableTools
                         else if (dataProcessorT1.IsEnum)
                         {
                             sb.AppendLine(
-                                $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT1.Type.Name}(),binaryReader.Read{dataProcessorT2.Type.Name}());");
+                                $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncodedInt32(),binaryReader.Read{dataProcessorT2.Type.Name}());");
                         }
                         else
                             sb.AppendLine(
@@ -620,13 +620,13 @@ namespace DE.Editor.DataTableTools
                         {
                             sb.AppendLine(
                                 dataProcessorT1.IsEnum
-                                    ? $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT1.Type.Name}(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT2.Type.Name}());"
-                                    : $"\t\t\t\tdictionary.Add(Read{dataProcessorT1.LanguageKeyword}(binaryReader),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT2.Type.Name}());");
+                                    ? $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncodedInt32(),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncodedInt32());"
+                                    : $"\t\t\t\tdictionary.Add(Read{dataProcessorT1.LanguageKeyword}(binaryReader),({dataProcessorT2.LanguageKeyword}) binaryReader.Read7BitEncodedInt32());");
                         }
                         else if (dataProcessorT1.IsEnum)
                         {
                             sb.AppendLine(
-                                $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncoded{dataProcessorT1.Type.Name}(),Read{dataProcessorT2.LanguageKeyword}(binaryReader));");
+                                $"\t\t\t\tdictionary.Add(({dataProcessorT1.LanguageKeyword}) binaryReader.Read7BitEncodedInt32(),Read{dataProcessorT2.LanguageKeyword}(binaryReader));");
                         }
                         else
                         {

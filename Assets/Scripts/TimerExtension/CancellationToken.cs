@@ -64,7 +64,7 @@ namespace UGFExtensions
                 return;
             }
 
-            await UGFExtensions.GameEntry.Timer.AwaitOnceTimer(afterTimeCancel);
+            await UGFExtensions.GameEntry.Timer.OnceTimerAsync(afterTimeCancel);
             
             this.Invoke();
         }

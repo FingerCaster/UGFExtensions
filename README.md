@@ -3,7 +3,7 @@
 
 ## 1.[数据表扩展](./Assets/Scripts/DataTableExtension)  
 
-## 2.[Await/Async扩展](./Assets/Scripts/AwaitableExtension)
+## 2.[Await/Async扩展](./Assets/Scripts/AwaitExtension)
 
 ## 3.[Starforce中的扩展](./Assets/Scripts/StarforceExtension)
 
