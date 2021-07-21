@@ -11,7 +11,6 @@ namespace DataTableEditor
     public class LauncherEditorWindow : EditorWindow
     {
         public static float ButtonHeight = 50;
-        public static LauncherEditorWindow Instance;
         private Encoding m_CurrentEncoding;
         private bool m_IsValidEncode;
 
@@ -23,19 +22,8 @@ namespace DataTableEditor
         [MenuItem("DataTable/DataTableEditor &1", priority = 2)]
         public static void OpenWindow()
         {
-            if (Instance != null)
-            {
-                Instance.Close();
-                return;
-            }
-
-#if UNITY_2019_1_OR_NEWER
-            Instance = LauncherEditorWindow.CreateWindow<LauncherEditorWindow>("数据表编辑器");
-#else
-            Instance = EditorWindowUtility.CreateWindow<LauncherEditorWindow>("数据表编辑器");
-#endif
-
-            Instance.Show();
+            LauncherEditorWindow window = GetWindow<LauncherEditorWindow>();
+            window.Show();
         }
 
         private void OnEnable()
