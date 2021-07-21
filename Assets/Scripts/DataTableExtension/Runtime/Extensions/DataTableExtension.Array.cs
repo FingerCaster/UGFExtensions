@@ -300,17 +300,7 @@ namespace UGFExtensions
 			Test.TestEnum[] array = new Test.TestEnum[splitValue.Length];
 			for (int i = 0; i < splitValue.Length; i++)
 			{
-				bool isInt = int.TryParse(splitValue[i], out int v);
-				if (isInt)
-				{
-					array[i] = (Test.TestEnum)v;
-					continue;
-				}
-				bool isString = EnumParse(splitValue[i], out Test.TestEnum v1);
-				if (isString)
-				{
-					array[i] = v1;
-				}
+				array[i] = EnumParse<Test.TestEnum>(splitValue[i]);
 			}
 
 			return array;

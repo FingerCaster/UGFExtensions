@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2021-07-21 18:34:25.628
+// 生成时间：2021-07-22 00:56:51.769
 //------------------------------------------------------------
 
 using GameFramework;
@@ -88,32 +88,11 @@ namespace UGFExtensions
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-			bool isInt = int.TryParse(columnStrings[index],out int enumInt);
-			if (isInt)
-			{
-				TestEnum = (Test.TestEnum) enumInt;
-				index++;
-			}
-			else
-			{
-				DataTableExtension.EnumParse(columnStrings[index++], out Test.TestEnum value);
-				TestEnum = value;
-			}
-			isInt = int.TryParse(columnStrings[index],out enumInt);
-			if (isInt)
-			{
-				TestEnum1 = (Test.TestEnum1) enumInt;
-				index++;
-			}
-			else
-			{
-				DataTableExtension.EnumParse(columnStrings[index++], out Test.TestEnum1 value);
-				TestEnum1 = value;
-			}
+			TestEnum = DataTableExtension.EnumParse<Test.TestEnum>(columnStrings[index++]);
+			TestEnum1 = DataTableExtension.EnumParse<Test.TestEnum1>(columnStrings[index++]);
 			TestEnumList = DataTableExtension.ParseTestTestEnumList(columnStrings[index++]);
 			TestEnumArray = DataTableExtension.ParseTestTestEnumArray(columnStrings[index++]);
 			TestEnumDic = DataTableExtension.ParseTestTestEnumInt32Dictionary(columnStrings[index++]);
-            index++;
             GeneratePropertyArray();
             return true;
         }

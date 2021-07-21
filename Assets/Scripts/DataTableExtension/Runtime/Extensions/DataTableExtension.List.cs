@@ -278,17 +278,7 @@ namespace UGFExtensions
 			List<Test.TestEnum> list = new List<Test.TestEnum>(splitValue.Length);
 			for (int i = 0; i < splitValue.Length; i++)
 			{
-				bool isInt = int.TryParse(splitValue[i], out int v);
-				if (isInt)
-				{
-					list.Add((Test.TestEnum)v);
-					continue;
-				}
-				bool isString = EnumParse(splitValue[i], out Test.TestEnum v1);
-				if (isString)
-				{
-					list.Add(v1);
-				}
+				list.Add(EnumParse<Test.TestEnum>(splitValue[i]));
 			}
 			return list;
 		}

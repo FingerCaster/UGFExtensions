@@ -55,23 +55,34 @@ namespace UGFExtensions
                 float.Parse(splitValue[3]));
         }
         
-        public static bool EnumParse<TE>(string value,out TE defaultValue) where TE : struct, IConvertible 
+        public static T EnumParse<T>(string value) where T : struct, IConvertible
         {
-            if (!typeof(TE).IsEnum) throw new ArgumentException("T must be an enumerated type");
+            if (!typeof(T).IsEnum) throw new ArgumentException("T must be an enumerated type");
             if (string.IsNullOrEmpty(value))
             {
-                defaultValue = default;
-                return false;
+                throw new ArgumentException("enum stringValue can not empty or null");
             }
-            foreach (TE item in Enum.GetValues(typeof(TE)))
+            
+            bool isInt = int.TryParse(value, out int enumInt);
+            if (isInt)
             {
-                if (!item.ToString().ToLowerInvariant().Equals(value.Trim().ToLowerInvariant())) continue;
-                defaultValue = item;
-                return true;
+                foreach (T item in Enum.GetValues(typeof(T)))
+                {
+                    if (item.ToInt32(null) != enumInt) continue;
+                    return item;
+                }
             }
+            else
+            {
+                foreach (T item in Enum.GetValues(typeof(T)))
+                {
+                    if (!item.ToString().ToLowerInvariant().Equals(value.Trim().ToLowerInvariant())) continue;
+                    return item;
+                }
+            }
+            
+            throw new ArgumentException($"EnumStringValue :{value} is can not parse to {typeof(T).FullName}");
 
-            defaultValue = default;
-            return false;
         }
     }
 }

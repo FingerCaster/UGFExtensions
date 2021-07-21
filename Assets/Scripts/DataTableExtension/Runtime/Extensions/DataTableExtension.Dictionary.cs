@@ -41,7 +41,7 @@ namespace UGFExtensions
 			for (int i = 0; i < splitValue.Length; i++)
 			{
 				string[] keyValue = splitValue[i].Split('#');
-				dictionary.Add((Test.TestEnum) int.Parse(keyValue[0].Substring(1)),Int32.Parse(keyValue[1].Substring(0, keyValue[1].Length - 1)));
+				dictionary.Add(EnumParse<Test.TestEnum>(keyValue[0].Substring(1)),Int32.Parse(keyValue[1].Substring(0, keyValue[1].Length - 1)));
 			}
 			return dictionary;
 		}

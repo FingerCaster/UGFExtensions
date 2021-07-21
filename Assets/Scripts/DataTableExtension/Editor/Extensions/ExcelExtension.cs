@@ -69,14 +69,14 @@ namespace DE.Editor
                         continue;
                     }
 
-                    IRow row1 = sheet.GetRow(1);
-                    int columnCount = 1;
-                    for (int i = 0; i < row1.Cells.Count; i++)
-                    {
-                        if (string.IsNullOrWhiteSpace(row1.Cells[i].ToString()))
-                            continue;
-                        columnCount++;
-                    }
+                    IRow row1 = sheet.GetRow(3);
+                    int columnCount = row1.Cells.Count;
+                    // for (int i = 0; i < row1.Cells.Count; i++)
+                    // {
+                    //     if (string.IsNullOrWhiteSpace(row1.Cells[i].ToString()))
+                    //         continue;
+                    //     columnCount++;
+                    // }
 
                     for (int i = 0; i <= sheet.LastRowNum + 1; i++)
                     {
@@ -120,7 +120,7 @@ namespace DE.Editor
                                 }
                             }
 
-                            if (j != columnCount - 1)
+                            if (j != columnCount-1)
                             {
                                 sb.Append('\t');
                             }
