@@ -21,7 +21,7 @@ namespace DE.Editor
     {
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
 
-        [MenuItem("DataTable/ExcelToTxt",priority = 13)]
+        [MenuItem("DataTable/ExcelExport",priority = 13)]
         public static void ExcelToTxt()
         {
             if (!Directory.Exists(DataTableConfig.ExcelsFolder))
@@ -71,13 +71,6 @@ namespace DE.Editor
 
                     IRow row1 = sheet.GetRow(3);
                     int columnCount = row1.Cells.Count;
-                    // for (int i = 0; i < row1.Cells.Count; i++)
-                    // {
-                    //     if (string.IsNullOrWhiteSpace(row1.Cells[i].ToString()))
-                    //         continue;
-                    //     columnCount++;
-                    // }
-
                     for (int i = 0; i <= sheet.LastRowNum + 1; i++)
                     {
                         sb.Clear();
@@ -133,17 +126,9 @@ namespace DE.Editor
                     Debug.LogFormat("更新Excel表格：{0}", fileFullPath);
                 }
             }
-
-            AssetDatabase.Refresh();
+            
             DataTableConfig.RefreshDataTables();
             ExtensionsGenerate.GenerateExtensionByAnalysis();
-            
-        }
-
-        [MenuItem("DataTable/ExcelToBytes",priority = 13)]
-        public static void ExcelToBytes()
-        {
-            ExcelToTxt();
             DataTableGeneratorMenu.GenerateDataTables();
             AssetDatabase.Refresh();
         }
