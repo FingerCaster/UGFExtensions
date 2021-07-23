@@ -19,6 +19,9 @@ namespace UGFExtensions.Await
         private static Dictionary<int, TaskCompletionSource<Entity>> s_EntityTcs =
             new Dictionary<int, TaskCompletionSource<Entity>>();
 
+        private static Dictionary<string, TaskCompletionSource<bool>> s_DataTableTcs =
+            new Dictionary<string, TaskCompletionSource<bool>>();
+
         private static Dictionary<string, TaskCompletionSource<bool>> s_SceneTcs =
             new Dictionary<string, TaskCompletionSource<bool>>();
 
@@ -43,14 +46,61 @@ namespace UGFExtensions.Await
             GameEntry.Event.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadSceneSuccess);
             GameEntry.Event.Subscribe(LoadSceneFailureEventArgs.EventId, OnLoadSceneFailure);
 
+            GameEntry.Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
+            GameEntry.Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
+
             GameEntry.Event.Subscribe(WebRequestSuccessEventArgs.EventId, OnWebRequestSuccess);
             GameEntry.Event.Subscribe(WebRequestFailureEventArgs.EventId, OnWebRequestFailure);
 
             GameEntry.Event.Subscribe(DownloadSuccessEventArgs.EventId, OnDownloadSuccess);
             GameEntry.Event.Subscribe(DownloadFailureEventArgs.EventId, OnDownloadFailure);
         }
-        
-      
+
+        /// <summary>
+        /// 加载数据表（可等待）
+        /// </summary>
+        public static async Task<IDataTable<T>> LoadDataTableAsync<T>(this DataTableComponent dataTableComponent,
+            string dataTableName, bool formBytes, object userData = null) where T : IDataRow
+        {
+            IDataTable<T> dataTable = dataTableComponent.GetDataTable<T>();
+            if (dataTable != null)
+            {
+                return await Task.FromResult(dataTable);
+            }
+            
+            var loadTcs = new TaskCompletionSource<bool>();
+            var dataTableAssetName = AssetUtility.GetDataTableAsset(dataTableName, formBytes);
+            s_DataTableTcs.Add(dataTableAssetName, loadTcs);
+            dataTableComponent.LoadDataTable(dataTableName, dataTableAssetName, userData);
+            bool isLoaded = await loadTcs.Task;
+            dataTable = isLoaded ? dataTableComponent.GetDataTable<T>() : null;
+            return await Task.FromResult(dataTable);
+        }
+
+        private static void OnLoadDataTableSuccess(object sender, GameEventArgs e)
+        {
+            var ne = (LoadDataTableSuccessEventArgs) e;
+            s_DataTableTcs.TryGetValue(ne.DataTableAssetName, out TaskCompletionSource<bool> tcs);
+            if (tcs != null)
+            {
+                Log.Info("Load data table '{0}' OK.", ne.DataTableAssetName);
+                tcs.SetResult(true);
+                s_DataTableTcs.Remove(ne.DataTableAssetName);
+            }
+        }
+
+        private static void OnLoadDataTableFailure(object sender, GameEventArgs e)
+        {
+            var ne = (LoadDataTableFailureEventArgs) e;
+            s_DataTableTcs.TryGetValue(ne.DataTableAssetName, out TaskCompletionSource<bool> tcs);
+            if (tcs != null)
+            {
+                Log.Error("Can not load data table '{0}' from '{1}' with error message '{2}'.", ne.DataTableAssetName,
+                    ne.DataTableAssetName, ne.ErrorMessage);
+                tcs.SetResult(false);
+                s_DataTableTcs.Remove(ne.DataTableAssetName);
+            }
+        }
 
         /// <summary>
         /// 打开界面（可等待）
@@ -120,6 +170,7 @@ namespace UGFExtensions.Await
             entityComponent.ShowEntity(logicType, priority, data);
             return tcs.Task;
         }
+
         private static void OnShowEntitySuccess(object sender, GameEventArgs e)
         {
             ShowEntitySuccessEventArgs ne = (ShowEntitySuccessEventArgs) e;
@@ -180,7 +231,8 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 加载资源（可等待）
         /// </summary>
-        public static Task<T> LoadAssetAsync<T>(this ResourceComponent resourceComponent, string assetName,object userData = null)
+        public static Task<T> LoadAssetAsync<T>(this ResourceComponent resourceComponent, string assetName,
+            object userData = null)
             where T : UnityEngine.Object
         {
             TaskCompletionSource<T> loadAssetTcs = new TaskCompletionSource<T>();
@@ -200,10 +252,12 @@ namespace UGFExtensions.Await
             ));
             return loadAssetTcs.Task;
         }
+
         /// <summary>
         /// 加载多个资源（可等待）
         /// </summary>
-        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent, [NotNull] string[] assetName,object userData = null) where T : UnityEngine.Object
+        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent,
+            [NotNull] string[] assetName, object userData = null) where T : UnityEngine.Object
         {
             T[] assets = new T[assetName.Length];
             Task<T>[] tasks = new Task<T>[assets.Length];
@@ -217,6 +271,7 @@ namespace UGFExtensions.Await
             {
                 assets[i] = tasks[i].Result;
             }
+
             return assets;
         }
 
@@ -296,7 +351,8 @@ namespace UGFExtensions.Await
             object userdata = null)
         {
             var tcs = new TaskCompletionSource<DownLoadResult>();
-            int serialId = downloadComponent.AddDownload(downloadPath, downloadUri, AwaitDataWrap<DownLoadResult>.Create(userdata, tcs));
+            int serialId = downloadComponent.AddDownload(downloadPath, downloadUri,
+                AwaitDataWrap<DownLoadResult>.Create(userdata, tcs));
             s_DownloadSerialIds.Add(serialId);
             return tcs.Task;
         }
