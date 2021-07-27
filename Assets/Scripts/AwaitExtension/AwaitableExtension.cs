@@ -31,6 +31,9 @@ namespace UGFExtensions.Await
         private static HashSet<int> s_DownloadSerialIds = new HashSet<int>();
         private static List<DownLoadResult> s_DelayReleaseDownloadResult = new List<DownLoadResult>();
 
+#if UNITY_EDITOR
+        private static bool s_IsSubscribeEvent = false;
+#endif
 
         /// <summary>
         /// 注册需要的事件 (需再流程入口处调用 防止框架重启导致事件被取消问题)
@@ -54,7 +57,18 @@ namespace UGFExtensions.Await
 
             GameEntry.Event.Subscribe(DownloadSuccessEventArgs.EventId, OnDownloadSuccess);
             GameEntry.Event.Subscribe(DownloadFailureEventArgs.EventId, OnDownloadFailure);
+            s_IsSubscribeEvent = true;
         }
+
+#if UNITY_EDITOR
+        private static void TipsSubscribeEvent()
+        {
+            if (!s_IsSubscribeEvent)
+            {
+                throw new Exception("Use await/async extensions must to subscribe event!");
+            }
+        }
+#endif
 
         /// <summary>
         /// 加载数据表（可等待）
@@ -62,12 +76,15 @@ namespace UGFExtensions.Await
         public static async Task<IDataTable<T>> LoadDataTableAsync<T>(this DataTableComponent dataTableComponent,
             string dataTableName, bool formBytes, object userData = null) where T : IDataRow
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             IDataTable<T> dataTable = dataTableComponent.GetDataTable<T>();
             if (dataTable != null)
             {
                 return await Task.FromResult(dataTable);
             }
-            
+
             var loadTcs = new TaskCompletionSource<bool>();
             var dataTableAssetName = AssetUtility.GetDataTableAsset(dataTableName, formBytes);
             s_DataTableTcs.Add(dataTableAssetName, loadTcs);
@@ -108,6 +125,9 @@ namespace UGFExtensions.Await
         public static Task<UIForm> OpenUIFormAsync(this UIComponent uiComponent, UIFormId uiFormId,
             object userData = null)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             int? serialId = uiComponent.OpenUIForm(uiFormId, userData);
             if (serialId == null)
             {
@@ -125,6 +145,9 @@ namespace UGFExtensions.Await
         public static Task<UIForm> OpenUIFormAsync(this UIComponent uiComponent, int uiFormId,
             object userData = null)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             int? serialId = uiComponent.OpenUIForm(uiFormId, userData);
             if (serialId == null)
             {
@@ -165,6 +188,9 @@ namespace UGFExtensions.Await
             int priority,
             EntityData data)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             var tcs = new TaskCompletionSource<Entity>();
             s_EntityTcs.Add(data.Id, tcs);
             entityComponent.ShowEntity(logicType, priority, data);
@@ -200,6 +226,9 @@ namespace UGFExtensions.Await
         /// </summary>
         public static Task<bool> LoadSceneAsync(this SceneComponent sceneComponent, string sceneAssetName)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             var tcs = new TaskCompletionSource<bool>();
             s_SceneTcs.Add(sceneAssetName, tcs);
             GameEntry.Scene.LoadScene(sceneAssetName);
@@ -235,6 +264,9 @@ namespace UGFExtensions.Await
             object userData = null)
             where T : UnityEngine.Object
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             TaskCompletionSource<T> loadAssetTcs = new TaskCompletionSource<T>();
             GameEntry.Resource.LoadAsset(assetName, new LoadAssetCallbacks(
                 (tempAssetName, asset, duration, userdata) =>
@@ -259,6 +291,9 @@ namespace UGFExtensions.Await
         public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent,
             [NotNull] string[] assetName, object userData = null) where T : UnityEngine.Object
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             T[] assets = new T[assetName.Length];
             Task<T>[] tasks = new Task<T>[assets.Length];
             for (int i = 0; i < tasks.Length; i++)
@@ -279,19 +314,28 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 增加Web请求任务（可等待）
         /// </summary>
-        public static Task<WebResult> AddWebRequestAsync(this WebRequestComponent webRequestComponent, string webRequestUri, WWWForm wwwForm = null, object userdata = null)
+        public static Task<WebResult> AddWebRequestAsync(this WebRequestComponent webRequestComponent,
+            string webRequestUri, WWWForm wwwForm = null, object userdata = null)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             var tsc = new TaskCompletionSource<WebResult>();
             int serialId = webRequestComponent.AddWebRequest(webRequestUri, wwwForm,
                 AwaitDataWrap<WebResult>.Create(userdata, tsc));
             s_WebSerialIDs.Add(serialId);
             return tsc.Task;
         }
+
         /// <summary>
         /// 增加Web请求任务（可等待）
         /// </summary>
-        public static Task<WebResult> AddWebRequestAsync(this WebRequestComponent webRequestComponent, string webRequestUri, byte[] postData, object userdata = null)
+        public static Task<WebResult> AddWebRequestAsync(this WebRequestComponent webRequestComponent,
+            string webRequestUri, byte[] postData, object userdata = null)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             var tsc = new TaskCompletionSource<WebResult>();
             int serialId = webRequestComponent.AddWebRequest(webRequestUri, postData,
                 AwaitDataWrap<WebResult>.Create(userdata, tsc));
@@ -360,6 +404,9 @@ namespace UGFExtensions.Await
             string downloadUri,
             object userdata = null)
         {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
             var tcs = new TaskCompletionSource<DownLoadResult>();
             int serialId = downloadComponent.AddDownload(downloadPath, downloadUri,
                 AwaitDataWrap<DownLoadResult>.Create(userdata, tcs));
