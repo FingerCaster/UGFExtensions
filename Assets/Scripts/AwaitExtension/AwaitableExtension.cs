@@ -290,10 +290,10 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 增加Web请求任务（可等待）
         /// </summary>
-        public static Task<WebResult> AddWebRequestAsync(this WebRequestComponent webRequestComponent, string webRequestUri, byte[] bytes, object userdata = null)
+        public static Task<WebResult> AddWebRequestAsync(this WebRequestComponent webRequestComponent, string webRequestUri, byte[] postData, object userdata = null)
         {
             var tsc = new TaskCompletionSource<WebResult>();
-            int serialId = webRequestComponent.AddWebRequest(webRequestUri, bytes,
+            int serialId = webRequestComponent.AddWebRequest(webRequestUri, postData,
                 AwaitDataWrap<WebResult>.Create(userdata, tsc));
             s_WebSerialIDs.Add(serialId);
             return tsc.Task;
