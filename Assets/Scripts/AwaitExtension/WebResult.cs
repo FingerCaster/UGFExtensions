@@ -8,6 +8,14 @@ namespace UGFExtensions.Await
     public class WebResult : IReference
     {
         /// <summary>
+        /// 获取 Web 请求任务的序列编号。
+        /// </summary>
+        public int SerialId
+        {
+            get;
+            private set;
+        }
+        /// <summary>
         /// web请求 返回数据
         /// </summary>
         public byte[] Bytes { get; private set; }
@@ -23,11 +31,13 @@ namespace UGFExtensions.Await
         /// 自定义数据
         /// </summary>
         public object UserData { get; private set; }
+       
 
 
-        public static WebResult Create(byte[] bytes, bool isError, string errorMessage, object userData)
+        public static WebResult Create(int serialId,byte[] bytes, bool isError, string errorMessage, object userData)
         {
             WebResult webResult = ReferencePool.Acquire<WebResult>();
+            webResult.SerialId = serialId;
             webResult.Bytes = bytes;
             webResult.IsError = isError;
             webResult.ErrorMessage = errorMessage;
@@ -35,16 +45,9 @@ namespace UGFExtensions.Await
             return webResult;
         }
         
-        public WebResult Init(byte[] bytes, bool isError, string errorMessage, object userData)
-        {
-            this.Bytes = bytes;
-            this.IsError = isError;
-            this.ErrorMessage = errorMessage;
-            this.UserData = userData;
-            return this;
-        }
         public void Clear()
         {
+            SerialId = 0;
             Bytes = null;
             IsError = false;
             ErrorMessage = string.Empty;

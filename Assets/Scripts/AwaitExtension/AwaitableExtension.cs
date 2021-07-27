@@ -296,7 +296,7 @@ namespace UGFExtensions.Await
             {
                 if (ne.UserData is AwaitDataWrap<WebResult> webRequestUserdata)
                 {
-                    WebResult result = WebResult.Create(ne.GetWebResponseBytes(), false, string.Empty,
+                    WebResult result = WebResult.Create(ne.SerialId,ne.GetWebResponseBytes(), false, string.Empty,
                         webRequestUserdata.UserData);
                     s_DelayReleaseWebResult.Add(result);
                     webRequestUserdata.Source.TrySetResult(result);
@@ -323,7 +323,7 @@ namespace UGFExtensions.Await
             {
                 if (ne.UserData is AwaitDataWrap<WebResult> webRequestUserdata)
                 {
-                    WebResult result = WebResult.Create(null, true, ne.ErrorMessage, webRequestUserdata.UserData);
+                    WebResult result = WebResult.Create(ne.SerialId,null, true, ne.ErrorMessage, webRequestUserdata.UserData);
                     webRequestUserdata.Source.TrySetResult(result);
                     s_DelayReleaseWebResult.Add(result);
                     ReferencePool.Release(webRequestUserdata);
@@ -364,7 +364,7 @@ namespace UGFExtensions.Await
             {
                 if (ne.UserData is AwaitDataWrap<DownLoadResult> awaitDataWrap)
                 {
-                    DownLoadResult result = DownLoadResult.Create(false, string.Empty, awaitDataWrap.UserData);
+                    DownLoadResult result = DownLoadResult.Create(ne.SerialId,false, string.Empty, awaitDataWrap.UserData);
                     s_DelayReleaseDownloadResult.Add(result);
                     awaitDataWrap.Source.TrySetResult(result);
                     ReferencePool.Release(awaitDataWrap);
@@ -390,7 +390,7 @@ namespace UGFExtensions.Await
             {
                 if (ne.UserData is AwaitDataWrap<DownLoadResult> awaitDataWrap)
                 {
-                    DownLoadResult result = DownLoadResult.Create(true, ne.ErrorMessage, awaitDataWrap.UserData);
+                    DownLoadResult result = DownLoadResult.Create(ne.SerialId,true, ne.ErrorMessage, awaitDataWrap.UserData);
                     s_DelayReleaseDownloadResult.Add(result);
                     awaitDataWrap.Source.TrySetResult(result);
                     ReferencePool.Release(awaitDataWrap);
