@@ -57,7 +57,9 @@ namespace UGFExtensions.Await
 
             GameEntry.Event.Subscribe(DownloadSuccessEventArgs.EventId, OnDownloadSuccess);
             GameEntry.Event.Subscribe(DownloadFailureEventArgs.EventId, OnDownloadFailure);
+#if UNITY_EDITOR
             s_IsSubscribeEvent = true;
+#endif
         }
 
 #if UNITY_EDITOR
