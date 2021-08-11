@@ -55,6 +55,15 @@ namespace UGFExtensions
             Debug.Log(
                 $"{drTestEnum.Id}    TestEnum:{drTestEnum.TestEnum}   TestEnum1:{drTestEnum.TestEnum1}  TestEnumList:{ListToString(drTestEnum.TestEnumList)} " +
                 $"TestEnumArray:{ArrayToString(drTestEnum.TestEnumArray)}   TestEnumDic:{DictionaryToString(drTestEnum.TestEnumDic)}");
+            
+           var IDic = await  GameEntry.DataTable.LoadDataTableAsync<DRTestDictionary>("TestDictionary", true);
+           
+           drTestDictionary = IDic.GetDataRow(1);
+           if (drTestDictionary == null)
+               return;
+           Debug.Log(
+               $"{drTestDictionary.Id}    TestIntIntDictionary:{DictionaryToString(drTestDictionary.TestIntIntDictionary)}    TestIntVector3Dictionary:{DictionaryToString(drTestDictionary.TestIntVector3Dictionary)}");
+
         }
         
         string ArrayToString<T>(T[] array)

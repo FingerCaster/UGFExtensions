@@ -269,6 +269,10 @@ PrefabInstance:
       propertyPath: m_AvailableProcedureTypeNames.Array.data[2]
       value: UGFExtensions.ProcedureTimerTest
       objectReference: {fileID: 0}
+    - target: {fileID: 11497722, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
+      propertyPath: m_ResourceMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
 --- !u!1 &892764399
