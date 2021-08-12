@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using GameFramework;
 using UnityEditor;
@@ -19,8 +20,11 @@ namespace UGFExtensions.Build.Editor
         private SerializedProperty m_VersionListCompressedLength;
         private SerializedProperty m_VersionListCompressedHashCode;
         private SerializedProperty m_Environment;
+        private SerializedProperty m_IsGenerateToFullPath;
+        private SerializedProperty m_OutPath;
+        private SerializedProperty m_IsShowCanNotChangeProperty;
+        private string m_LastUpdatePrefixUri;
         private int m_LastEnvironment;
-
 
         private void OnEnable()
         {
@@ -35,20 +39,20 @@ namespace UGFExtensions.Build.Editor
             }
 
             m_InternalGameVersion = serializedObject.FindProperty("m_InternalGameVersion");
-            if (m_InternalGameVersion.intValue == 0)
-            {
-                m_InternalGameVersion.intValue = EditorPrefs.GetInt(
-                    m_Environment.enumValueIndex == (int)VersionInfoData.EnvironmentType.Debug
-                        ? "DebugInternalGameVersion"
-                        : "ReleaseInternalGameVersion", 0);
-            }
-            
+            m_InternalGameVersion.intValue = EditorPrefs.GetInt($"{m_Environment.enumNames[m_Environment.enumValueIndex]}InternalGameVersion", 0);
+
             m_UpdatePrefixUri = serializedObject.FindProperty("m_UpdatePrefixUri");
+            m_UpdatePrefixUri.stringValue = EditorPrefs.GetString($"{m_Environment.enumNames[m_Environment.enumValueIndex]}UpdatePrefixUri", string.Empty);
+            m_LastUpdatePrefixUri = m_UpdatePrefixUri.stringValue;
             m_VersionListLength = serializedObject.FindProperty("m_VersionListLength");
             m_InternalResourceVersion = serializedObject.FindProperty("m_InternalResourceVersion");
             m_VersionListHashCode = serializedObject.FindProperty("m_VersionListHashCode");
             m_VersionListCompressedLength = serializedObject.FindProperty("m_VersionListCompressedLength");
             m_VersionListCompressedHashCode = serializedObject.FindProperty("m_VersionListCompressedHashCode");
+            m_IsGenerateToFullPath = serializedObject.FindProperty("m_IsGenerateToFullPath");
+            m_OutPath = serializedObject.FindProperty("m_OutPath");
+            m_IsShowCanNotChangeProperty = serializedObject.FindProperty("m_IsShowCanNotChangeProperty");
+            
         }
 
 
@@ -58,69 +62,76 @@ namespace UGFExtensions.Build.Editor
             EditorGUILayout.PropertyField(m_Environment);
             if (m_LastEnvironment != m_Environment.enumValueIndex )
             {
-                m_InternalGameVersion.intValue = EditorPrefs.GetInt(
-                    m_Environment.enumValueIndex == (int)VersionInfoData.EnvironmentType.Debug
-                        ? "DebugInternalGameVersion"
-                        : "ReleaseInternalGameVersion", 0);
                 m_LastEnvironment = m_Environment.enumValueIndex;
+
+                m_InternalGameVersion.intValue = EditorPrefs.GetInt($"{m_Environment.enumNames[m_Environment.enumValueIndex]}InternalGameVersion", 0);
+                m_UpdatePrefixUri.stringValue = EditorPrefs.GetString($"{m_Environment.enumNames[m_Environment.enumValueIndex]}UpdatePrefixUri", string.Empty);
+                m_LastUpdatePrefixUri = m_UpdatePrefixUri.stringValue;
             }
             EditorGUILayout.PropertyField(m_ForceUpdateGame);
             EditorGUILayout.PropertyField(m_LatestGameVersion);
             EditorGUILayout.PropertyField(m_InternalGameVersion);
+            if (m_LastUpdatePrefixUri != m_UpdatePrefixUri.stringValue)
+            {
+                EditorPrefs.SetString($"{m_Environment.enumNames[m_Environment.enumValueIndex]}UpdatePrefixUri",m_UpdatePrefixUri.stringValue);
+                m_LastUpdatePrefixUri = m_UpdatePrefixUri.stringValue;
+            }
             EditorGUILayout.PropertyField(m_UpdatePrefixUri);
-            bool isValidUri = CheckUri(m_UpdatePrefixUri.stringValue);
+            bool isValidUri = Utility.Uri.CheckUri(m_UpdatePrefixUri.stringValue);
             if (!isValidUri)
             {
                 EditorGUILayout.HelpBox("UpdatePrefixUri is Not Valid!", MessageType.Error);
             }
+            EditorGUILayout.PropertyField(m_IsShowCanNotChangeProperty);
+            if (m_IsShowCanNotChangeProperty.boolValue)
+            {
+                EditorGUILayout.PropertyField(m_InternalResourceVersion);
+                EditorGUILayout.PropertyField(m_VersionListLength);
+                EditorGUILayout.PropertyField(m_VersionListHashCode);
+                EditorGUILayout.PropertyField(m_VersionListCompressedLength);
+                EditorGUILayout.PropertyField(m_VersionListCompressedHashCode);
+            }
+          
+            EditorGUILayout.PropertyField(m_IsGenerateToFullPath);
+            if (!m_IsGenerateToFullPath.boolValue)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
 
-            EditorGUILayout.PropertyField(m_InternalResourceVersion);
-            EditorGUILayout.PropertyField(m_VersionListLength);
-            EditorGUILayout.PropertyField(m_VersionListHashCode);
-            EditorGUILayout.PropertyField(m_VersionListCompressedLength);
-            EditorGUILayout.PropertyField(m_VersionListCompressedHashCode);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("文件生成地址:", m_OutPath.stringValue);
+                if (GUILayout.Button("选择路径"))
+                {
+                    m_OutPath.stringValue = EditorUtility.SaveFilePanel("选择生成地址", String.Empty, "version", "txt");
+                }
+                EditorGUILayout.EndHorizontal();
+                if (string.IsNullOrEmpty(m_OutPath.stringValue))
+                {
+                    EditorGUILayout.HelpBox("OutPath is Not Valid!", MessageType.Error);
+                }
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+                if (GUILayout.Button("生成Txt")&& isValidUri)
+                {
+                    int internalGameVersion =   EditorPrefs.GetInt($"{m_Environment.enumNames[m_Environment.enumValueIndex]}InternalGameVersion", 0);
+                    if (m_InternalGameVersion.intValue!= internalGameVersion)
+                    {
+                        EditorPrefs.SetInt($"{m_Environment.enumNames[m_Environment.enumValueIndex]}InternalGameVersion", m_InternalGameVersion.intValue);
+                    }
+                    VersionInfoData data = target as VersionInfoData;
+                    if (data == null)
+                    {
+                        return;
+                    }
+                    File.WriteAllText(m_OutPath.stringValue,data.ToVersionInfoJson());
+                    EditorUtility.RevealInFinder(m_OutPath.stringValue);
+                }
+            }
+            
             serializedObject.ApplyModifiedProperties();
 
-
-            if (GUILayout.Button("生成Txt")&& isValidUri)
-            {
-                if (m_Environment.enumValueIndex == (int)VersionInfoData.EnvironmentType.Debug)
-                {
-                    int internalGameVersion = EditorPrefs.GetInt("DebugInternalGameVersion", 0);
-                    if (m_InternalGameVersion.intValue!= internalGameVersion)
-                    {
-                        EditorPrefs.SetInt("DebugInternalGameVersion", m_InternalGameVersion.intValue);
-                    }
-                }
-                else
-                {
-                    int internalGameVersion = EditorPrefs.GetInt("ReleaseInternalGameVersion", 0);
-                    if (m_InternalGameVersion.intValue!= internalGameVersion)
-                    {
-                        EditorPrefs.SetInt("ReleaseInternalGameVersion", m_InternalGameVersion.intValue);
-                    }
-                }
-                VersionInfo versionInfo = new VersionInfo
-                {
-                    InternalGameVersion = m_InternalGameVersion.intValue,
-                    ForceUpdateGame = m_ForceUpdateGame.boolValue,
-                    LatestGameVersion = m_LatestGameVersion.stringValue,
-                    UpdatePrefixUri = m_UpdatePrefixUri.stringValue,
-                    InternalResourceVersion = m_InternalResourceVersion.intValue,
-                    VersionListLength = m_VersionListLength.intValue,
-                    VersionListHashCode = m_VersionListHashCode.intValue,
-                    VersionListCompressedLength = m_VersionListCompressedLength.intValue,
-                    VersionListCompressedHashCode = m_VersionListCompressedHashCode.intValue
-                };
-
-                Debug.Log(LitJson.JsonMapper.ToJson(versionInfo));
-            }
         }
 
-        private bool CheckUri(string uri)
-        {
-            Regex regex = new Regex(@"^[A-Za-z]+://[A-Za-z0-9-_]+\.[A-Za-z0-9-_%&?/.=]+$");
-            return regex.IsMatch(uri);
-        }
+        
     }
 }

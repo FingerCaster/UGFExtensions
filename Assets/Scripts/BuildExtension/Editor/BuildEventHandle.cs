@@ -6,9 +6,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityGameFramework.Editor;
 using UnityGameFramework.Editor.ResourceTools;
-
 namespace  UGFExtensions.Build.Editor
 {
+
     public class BuildEventHandle : IBuildEventHandler
     {
         public bool ContinueOnFailure
@@ -25,7 +25,7 @@ namespace  UGFExtensions.Build.Editor
             bool outputPackageSelected, string outputPackagePath, bool outputFullSelected, string outputFullPath,
             bool outputPackedSelected, string outputPackedPath, string buildReportPath)
         {
-            string streamingAssetsPath = Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
+            string streamingAssetsPath = GameFramework.Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
             if (!Directory.Exists(streamingAssetsPath))
             {
                 Directory.CreateDirectory(streamingAssetsPath);
@@ -42,7 +42,7 @@ namespace  UGFExtensions.Build.Editor
                 File.Delete(fileName);
             }
 
-            Utility.Path.RemoveEmptyDirectory(streamingAssetsPath);
+            GameFramework.Utility.Path.RemoveEmptyDirectory(streamingAssetsPath);
             if (!Directory.Exists(streamingAssetsPath))
             {
                 Directory.CreateDirectory(streamingAssetsPath);
@@ -79,7 +79,6 @@ namespace  UGFExtensions.Build.Editor
             {
                 return;
             }
-            Debug.Log(builderController.InternalResourceVersion);
 
             VersionInfoData versionInfoData =
                 AssetDatabase.LoadAssetAtPath<VersionInfoData>("Assets/Res/Configs/VersionInfo.asset");
@@ -88,19 +87,11 @@ namespace  UGFExtensions.Build.Editor
                 versionInfoData = ScriptableObject.CreateInstance<VersionInfoData>();
                 AssetDatabase.CreateAsset(versionInfoData, "Assets/Res/Configs/VersionInfo.asset");
             }
-
-            if (versionInfoData.Environment == VersionInfoData.EnvironmentType.Debug)
-            {
-                int internalGameVersion = EditorPrefs.GetInt("DebugInternalGameVersion", 0);
-                versionInfoData.InternalGameVersion = ++internalGameVersion;
-                EditorPrefs.SetInt("DebugInternalGameVersion", internalGameVersion);
-            }
             else
             {
-                int internalGameVersion = EditorPrefs.GetInt("ReleaseInternalGameVersion", 0);
-                versionInfoData.InternalGameVersion = ++internalGameVersion;
-                EditorPrefs.SetInt("ReleaseInternalGameVersion", internalGameVersion);
+                versionInfoData.AutoIncrementInternalGameVersion();
             }
+
             versionInfoData.ForceUpdateGame = false;
             versionInfoData.LatestGameVersion = builderController.ApplicableGameVersion;
             versionInfoData.InternalResourceVersion = builderController.InternalResourceVersion;
@@ -109,6 +100,11 @@ namespace  UGFExtensions.Build.Editor
             versionInfoData.VersionListCompressedLength = versionListZipLength;
             versionInfoData.VersionListCompressedHashCode = versionListZipHashCode;
             AssetDatabase.SaveAssets();
+
+            if (versionInfoData.IsGenerateToFullPath)
+            {
+                File.WriteAllText(Path.Combine(builderController.OutputFullPath,platform.ToString(),"version.txt"),versionInfoData.ToVersionInfoJson());
+            }
         }
 
         public void OnPostprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected, string outputPackagePath,
@@ -125,11 +121,11 @@ namespace  UGFExtensions.Build.Editor
             // }
 
             string streamingAssetsPath =
-                Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
+                GameFramework.Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
             string[] fileNames = Directory.GetFiles(outputPackagePath, "*", SearchOption.AllDirectories);
             foreach (string fileName in fileNames)
             {
-                string destFileName = Utility.Path.GetRegularPath(Path.Combine(streamingAssetsPath,
+                string destFileName = GameFramework.Utility.Path.GetRegularPath(Path.Combine(streamingAssetsPath,
                     fileName.Substring(outputPackagePath.Length)));
                 FileInfo destFileInfo = new FileInfo(destFileName);
                 if (destFileInfo.Directory != null && !destFileInfo.Directory.Exists)

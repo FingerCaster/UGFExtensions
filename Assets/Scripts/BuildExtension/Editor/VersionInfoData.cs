@@ -1,10 +1,9 @@
+using UnityEditor;
 using UnityEngine;
 
 namespace UGFExtensions.Build.Editor
 {
-   
-
-
+    
     [CreateAssetMenu(fileName = "VersionInfo", menuName = "UGFExtensions/VersionInfo", order = 0)]
     public class VersionInfoData : ScriptableObject
     {
@@ -23,7 +22,42 @@ namespace UGFExtensions.Build.Editor
         [SerializeField] private int m_VersionListCompressedLength;
         [SerializeField] private int m_VersionListCompressedHashCode;
         [SerializeField] private EnvironmentType m_Environment ;
+        [SerializeField] private bool m_IsGenerateToFullPath;
+        [SerializeField] private bool m_IsShowCanNotChangeProperty;
 
+        /// <summary>
+        /// 是否展示无法修改的属性
+        /// </summary>
+        public bool IsShowCanNotChangeProperty
+        {
+            get => m_IsShowCanNotChangeProperty;
+            set => m_IsShowCanNotChangeProperty = value;
+        }
+
+        [SerializeField] private string m_OutPath;
+
+        /// <summary>
+        /// 输出路径
+        /// </summary>
+        public string OutPath
+        {
+            get => m_OutPath;
+            set => m_OutPath = value;
+        }
+
+        /// <summary>
+        /// 是否生成到自动生成到FullPath
+        /// </summary>
+        public bool IsGenerateToFullPath
+        {
+            get => m_IsGenerateToFullPath;
+            set => m_IsGenerateToFullPath = value;
+        }
+
+
+        /// <summary>
+        /// 环境
+        /// </summary>
         public EnvironmentType Environment
         {
             get => m_Environment;
@@ -110,6 +144,33 @@ namespace UGFExtensions.Build.Editor
         {
             get => m_VersionListCompressedHashCode;
             set => m_VersionListCompressedHashCode = value;
+        }
+
+        public VersionInfo ToVersionInfo()
+        {
+            VersionInfo versionInfo = new VersionInfo
+            {
+                InternalGameVersion = m_InternalGameVersion,
+                ForceUpdateGame = m_ForceUpdateGame,
+                LatestGameVersion = m_LatestGameVersion,
+                UpdatePrefixUri = m_UpdatePrefixUri,
+                InternalResourceVersion = m_InternalResourceVersion,
+                VersionListLength = m_VersionListLength,
+                VersionListHashCode = m_VersionListHashCode,
+                VersionListCompressedLength = m_VersionListCompressedLength,
+                VersionListCompressedHashCode = m_VersionListCompressedHashCode
+            };
+
+            return versionInfo;
+        }
+        public string ToVersionInfoJson()
+        {
+            return LitJson.JsonMapper.ToJson(ToVersionInfo());
+        }
+
+        public void AutoIncrementInternalGameVersion()
+        {
+            EditorPrefs.SetInt($"{m_Environment}InternalGameVersion", ++m_InternalGameVersion);
         }
     }
 }

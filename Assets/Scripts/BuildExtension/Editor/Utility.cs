@@ -1,0 +1,16 @@
+using System.Text.RegularExpressions;
+
+namespace UGFExtensions.Build.Editor
+{
+    public static class Utility
+    {
+        public static class Uri
+        {
+            public static bool CheckUri(string uri)
+            {
+                Regex regex = new Regex(@"^[A-Za-z]+://[A-Za-z0-9-_]+\.[A-Za-z0-9-_%&?/.=]+$");
+                return regex.IsMatch(uri);
+            }
+        }
+    }
+}
