@@ -41,6 +41,7 @@
       * 添加VersionInfoData   `Key`为 Version 环境名 比如（测试服1,测试服2,正式服,xxx渠道）
         `value` 为VersionInfo 其中需要配置UpdatePrefixUri  不同环境下 uri可能不一样 所以需要自己配置
       * VersionInfo 中 `InternalGameVersion` 每次打包自增 也可以自己手动设置后 手动生成version.txt
+      * `Active` 是当前处于激活的环境  生成时根据当前激活的配置进行生成。
    3. 两种生成version的模式 
 
       * `IsGenerateToFullPath`  设置为True 时 
