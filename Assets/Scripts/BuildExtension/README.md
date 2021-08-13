@@ -30,16 +30,17 @@
 
    Unity 菜单栏 `Game Framework/Resource Tools/Resource Builder`
 
-   `BuildEventHandle` 设置为[UGFExtensions.Build.Editor.BuildEventhandle](./Editor/BuildEventhandle.cs) 
+   `BuildEventHandle` 设置为[UGFExtensions.Build.Editor.BuildEventHandle](./Editor/BuildEventHandle.cs) 
 
 3. 配置VersionInfo部分参数
 
-   1. 在`Res/Configs` 目录下右键 选择`Create/UGFExtensions/Versioninfo` 创建VersionInfo
+   1. 在`Res/Configs` 目录下右键 选择`Create/UGFExtensions/VersionInfoEditorData` 创建VersionInfoEditorData
 
-   2. Environment   打包环境（默认为Debug, 当前只有Debug 和Release  可以自行扩展）
-
-      需要配置UpdatePrefixUri  不同环境下 uri可能不一样 所以需要自己选择不同环境配置
-
+   2. 设置VersionInfoData
+      * VersionInfoData配置在VersionInfo List.
+      * 添加VersionInfoData   `Key`为 Version 环境名 比如（测试服1,测试服2,正式服,xxx渠道）
+        `value` 为VersionInfo 其中需要配置UpdatePrefixUri  不同环境下 uri可能不一样 所以需要自己配置
+      * VersionInfo 中 `InternalGameVersion` 每次打包自增 也可以自己手动设置后 手动生成version.txt
    3. 两种生成version的模式 
 
       * `IsGenerateToFullPath`  设置为True 时 
@@ -52,4 +53,5 @@
 
 4. 打包
 
-   打包前如果没有配置 VersionInfo 会自动生成VersionInfo.  生成位置配置在 [BuildEventhandle](./Editor/BuildEventhandle.cs)  88 行
+   打包前如果没有配置 `VersionInfoEditorData` 会自动生成 `VersionInfoEditorData`.  生成位置配置在 [BuildEventHandle](./Editor/BuildEventHandle.cs)  87 行
+   会自动生成一个名为Normal 的VersionInfoData 可以自行修改。

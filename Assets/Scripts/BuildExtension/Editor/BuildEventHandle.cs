@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using GameFramework;
@@ -6,16 +7,16 @@ using UnityEditor;
 using UnityEngine;
 using UnityGameFramework.Editor;
 using UnityGameFramework.Editor.ResourceTools;
-namespace  UGFExtensions.Build.Editor
-{
 
+namespace UGFExtensions.Build.Editor
+{
     public class BuildEventHandle : IBuildEventHandler
     {
         public bool ContinueOnFailure
         {
             get { return false; }
         }
-        
+
 
         public void OnPreprocessAllPlatforms(string productName, string companyName, string gameIdentifier,
             string gameFrameworkVersion, string unityVersion, string applicableGameVersion, int internalResourceVersion,
@@ -25,12 +26,13 @@ namespace  UGFExtensions.Build.Editor
             bool outputPackageSelected, string outputPackagePath, bool outputFullSelected, string outputFullPath,
             bool outputPackedSelected, string outputPackedPath, string buildReportPath)
         {
-            string streamingAssetsPath = GameFramework.Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
+            string streamingAssetsPath =
+                GameFramework.Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
             if (!Directory.Exists(streamingAssetsPath))
             {
                 Directory.CreateDirectory(streamingAssetsPath);
             }
-            
+
             string[] fileNames = Directory.GetFiles(streamingAssetsPath, "*", SearchOption.AllDirectories);
             foreach (string fileName in fileNames)
             {
@@ -38,7 +40,7 @@ namespace  UGFExtensions.Build.Editor
                 {
                     continue;
                 }
-            
+
                 File.Delete(fileName);
             }
 
@@ -49,26 +51,21 @@ namespace  UGFExtensions.Build.Editor
             }
         }
 
-        public void OnPreprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected, string outputPackagePath,
+        public void OnPreprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected,
+            string outputPackagePath,
             bool outputFullSelected, string outputFullPath, bool outputPackedSelected, string outputPackedPath)
         {
-           
         }
 
         public void OnBuildAssetBundlesComplete(Platform platform, string workingPath, bool outputPackageSelected,
             string outputPackagePath, bool outputFullSelected, string outputFullPath, bool outputPackedSelected,
             string outputPackedPath, AssetBundleManifest assetBundleManifest)
         {
-        
         }
 
         public void OnOutputUpdatableVersionListData(Platform platform, string versionListPath, int versionListLength,
             int versionListHashCode, int versionListZipLength, int versionListZipHashCode)
         {
-            Debug.Log(
-                $"platform:{platform}  workingPath:{versionListPath}  outputPackageSelected:{versionListLength}  " +
-                $"outputPackagePath:{versionListHashCode}  versionListZipLength:{versionListZipLength} versionListZipHashCode:{versionListZipHashCode}");
-
             Type resourceBuilderType =
                 Type.GetType("UnityGameFramework.Editor.ResourceTools.ResourceBuilder,UnityGameFramework.Editor");
             var window = EditorWindow.GetWindow(resourceBuilderType);
@@ -79,19 +76,22 @@ namespace  UGFExtensions.Build.Editor
             {
                 return;
             }
-
-            VersionInfoData versionInfoData =
-                AssetDatabase.LoadAssetAtPath<VersionInfoData>("Assets/Res/Configs/VersionInfo.asset");
-            if (versionInfoData == null)
+            
+            VersionInfoEditorData versionInfoEditorData =
+                AssetDatabase.LoadAssetAtPath<VersionInfoEditorData>("Assets/Res/Configs/VersionInfoEditorData.asset");
+            if (versionInfoEditorData == null)
             {
-                versionInfoData = ScriptableObject.CreateInstance<VersionInfoData>();
-                AssetDatabase.CreateAsset(versionInfoData, "Assets/Res/Configs/VersionInfo.asset");
-            }
-            else
-            {
-                versionInfoData.AutoIncrementInternalGameVersion();
+                versionInfoEditorData = ScriptableObject.CreateInstance<VersionInfoEditorData>();
+                versionInfoEditorData.VersionInfos = new List<VersionInfoWrapData>
+                    { new VersionInfoWrapData() { Key = "Normal", Value = new VersionInfoData() } };
+                AssetDatabase.CreateAsset(versionInfoEditorData, "Assets/Res/Configs/VersionInfoEditorData.asset");
+                Debug.Log("CreateVersionInfoEditorData Success!");
+                AssetDatabase.Refresh();
+                Selection.activeObject = versionInfoEditorData;
             }
 
+            VersionInfoData versionInfoData = versionInfoEditorData.GetActiveVersionInfoData();
+            versionInfoData.AutoIncrementInternalGameVersion();
             versionInfoData.ForceUpdateGame = false;
             versionInfoData.LatestGameVersion = builderController.ApplicableGameVersion;
             versionInfoData.InternalResourceVersion = builderController.InternalResourceVersion;
@@ -101,14 +101,16 @@ namespace  UGFExtensions.Build.Editor
             versionInfoData.VersionListCompressedHashCode = versionListZipHashCode;
             AssetDatabase.SaveAssets();
 
-            if (versionInfoData.IsGenerateToFullPath)
+            if (versionInfoEditorData.IsGenerateToFullPath)
             {
-                File.WriteAllText(Path.Combine(builderController.OutputFullPath,platform.ToString(),"version.txt"),versionInfoData.ToVersionInfoJson());
+                versionInfoEditorData.Generate(Path.Combine(builderController.OutputFullPath, platform.ToString(), "version.txt"));
             }
         }
 
-        public void OnPostprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected, string outputPackagePath,
-            bool outputFullSelected, string outputFullPath, bool outputPackedSelected, string outputPackedPath, bool isSuccess)
+        public void OnPostprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected,
+            string outputPackagePath,
+            bool outputFullSelected, string outputFullPath, bool outputPackedSelected, string outputPackedPath,
+            bool isSuccess)
         {
             if (!outputPackageSelected)
             {
@@ -132,7 +134,7 @@ namespace  UGFExtensions.Build.Editor
                 {
                     destFileInfo.Directory.Create();
                 }
-            
+
                 File.Copy(fileName, destFileName);
             }
         }
@@ -145,8 +147,6 @@ namespace  UGFExtensions.Build.Editor
             bool outputPackageSelected, string outputPackagePath, bool outputFullSelected, string outputFullPath,
             bool outputPackedSelected, string outputPackedPath, string buildReportPath)
         {
-            
         }
-        
     }
 }

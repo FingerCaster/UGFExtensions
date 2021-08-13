@@ -1,17 +1,11 @@
-using UnityEditor;
+using System;
 using UnityEngine;
 
 namespace UGFExtensions.Build.Editor
 {
-    
-    [CreateAssetMenu(fileName = "VersionInfo", menuName = "UGFExtensions/VersionInfo", order = 0)]
-    public class VersionInfoData : ScriptableObject
+    [Serializable]
+    public class VersionInfoData
     {
-        public enum EnvironmentType
-        {
-            Debug,
-            Release
-        }
         [SerializeField] private bool m_ForceUpdateGame;
         [SerializeField] private string m_LatestGameVersion;
         [SerializeField] private int m_InternalGameVersion;
@@ -21,8 +15,6 @@ namespace UGFExtensions.Build.Editor
         [SerializeField] private int m_VersionListHashCode;
         [SerializeField] private int m_VersionListCompressedLength;
         [SerializeField] private int m_VersionListCompressedHashCode;
-        [SerializeField] private EnvironmentType m_Environment ;
-        [SerializeField] private bool m_IsGenerateToFullPath;
         [SerializeField] private bool m_IsShowCanNotChangeProperty;
 
         /// <summary>
@@ -32,36 +24,6 @@ namespace UGFExtensions.Build.Editor
         {
             get => m_IsShowCanNotChangeProperty;
             set => m_IsShowCanNotChangeProperty = value;
-        }
-
-        [SerializeField] private string m_OutPath;
-
-        /// <summary>
-        /// 输出路径
-        /// </summary>
-        public string OutPath
-        {
-            get => m_OutPath;
-            set => m_OutPath = value;
-        }
-
-        /// <summary>
-        /// 是否生成到自动生成到FullPath
-        /// </summary>
-        public bool IsGenerateToFullPath
-        {
-            get => m_IsGenerateToFullPath;
-            set => m_IsGenerateToFullPath = value;
-        }
-
-
-        /// <summary>
-        /// 环境
-        /// </summary>
-        public EnvironmentType Environment
-        {
-            get => m_Environment;
-            set => m_Environment = value;
         }
 
         /// <summary>
@@ -145,7 +107,6 @@ namespace UGFExtensions.Build.Editor
             get => m_VersionListCompressedHashCode;
             set => m_VersionListCompressedHashCode = value;
         }
-
         public VersionInfo ToVersionInfo()
         {
             VersionInfo versionInfo = new VersionInfo
@@ -170,7 +131,7 @@ namespace UGFExtensions.Build.Editor
 
         public void AutoIncrementInternalGameVersion()
         {
-            EditorPrefs.SetInt($"{m_Environment}InternalGameVersion", ++m_InternalGameVersion);
+            ++m_InternalGameVersion;
         }
     }
 }
