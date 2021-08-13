@@ -12,6 +12,7 @@ namespace UGFExtensions.Editor
         private List<Data> m_Sprites;
         private ReorderableList m_ReorderableList;
         private int m_PageIndex = 0;
+
         public override void OnGUI(Rect position, SerializedProperty property,
             GUIContent label)
         {
@@ -19,60 +20,87 @@ namespace UGFExtensions.Editor
             SerializedProperty keys = property.FindPropertyRelative("m_Keys");
             SerializedProperty values = property.FindPropertyRelative("m_Values");
             int count = Math.Min(keys.arraySize, values.arraySize);
-            m_Sprites = new List<Data>(count);
-            for (int i = 0; i < count; i++)
+           // int tempCount = count - m_PageIndex * 10;
+           if (count == 0)
+           {
+               m_ReorderableList = null;
+           }
+           else
+           {
+               
+               if (m_ReorderableList == null)
+               {
+                   DrawDictionary(keys, values);
+               }
+
+               m_ReorderableList.DoLayoutList();
+               position.y = m_ReorderableList.GetHeight()+45;
+               position.width = position.width/2;
+               position.height += 40;
+               if (GUI.Button(position, "上一页"))
+               {
+                   --m_PageIndex;
+                   m_PageIndex = m_PageIndex < 0 ? 0 : m_PageIndex;
+                   DrawDictionary(keys, values);
+               }
+               position.x +=  position.width ;
+               if (GUI.Button(position, "下一页"))
+               {
+                   ++m_PageIndex;
+                   int pages = count / 10 + ((count % 10) > 0 ? 1 : 0);
+                   m_PageIndex = m_PageIndex < pages  ? m_PageIndex : pages-1;
+                   m_PageIndex = m_PageIndex < 0 ? 0 : m_PageIndex;
+                   DrawDictionary(keys, values);
+               }
+           }
+
+
+            EditorGUILayout.GetControlRect(false, position.height);
+        }
+
+        private void DrawDictionary(SerializedProperty keys,SerializedProperty values)
+        {
+            int count = Math.Min(keys.arraySize, values.arraySize);
+            int tempCount = count - m_PageIndex * 10;
+            tempCount = tempCount > 10 ? 10 : Mathf.Abs(tempCount);
+            m_Sprites = new List<Data>(tempCount);
+            int spIndex = m_PageIndex * 10 > 0?m_PageIndex * 10 -1:0;
+       
+            for (int i = 0;i < tempCount; i++)
             {
-                m_Sprites.Add(new Data(keys.GetArrayElementAtIndex(i).stringValue,
-                    values.GetArrayElementAtIndex(i).objectReferenceValue as Sprite));
+                m_Sprites.Add(new Data(keys.GetArrayElementAtIndex(spIndex+i).stringValue,
+                    values.GetArrayElementAtIndex(spIndex+i).objectReferenceValue as Sprite));
             }
-            // if (m_Sprites == null)
-            // { 
-            //   
-            // }
-          
-            if (m_ReorderableList == null)
+            m_ReorderableList = new ReorderableList(m_Sprites, typeof(List<Data>), true, false, true, true);
+
+            if (m_Sprites.Count>0)
             {
-                m_ReorderableList =
-                    new ReorderableList(m_Sprites, typeof(List<Data>), true, false, true, true);
-            
                 m_ReorderableList.drawElementCallback = (Rect rect, int index, bool selected, bool focused) =>
                 {
-                    int sCount = m_Sprites.Count-m_PageIndex * 10 ;
-                    sCount = sCount > 10 ? 10 : sCount;
-                    for (int i = 0; i < sCount; i++)
-                    {
-                        Data data = m_Sprites[m_PageIndex * 10+i];
-                        var keyRect = new Rect(rect.x, rect.y + i*30, rect.width/2, 30);
-                      
-                        
-                        EditorGUI.LabelField(keyRect,data.Key); 
-                        var valueRect = new Rect(rect.x+rect.width/2, rect.y + i*30+3.5f, rect.width/2, 16);
-                        values.GetArrayElementAtIndex(m_PageIndex * 10+i).objectReferenceValue =
-                            EditorGUI.ObjectField(valueRect,data.Value,typeof(Sprite),false) as Sprite;
-                    }
+                    Data data = m_Sprites[index];
+                    rect.width /= 2;
+                    EditorGUI.LabelField(rect, data.Key);
+                    rect.x += rect.width;
+                    rect.height = 16;
+                    values.GetArrayElementAtIndex(spIndex+index).objectReferenceValue =
+                        EditorGUI.ObjectField(rect, data.Value, typeof(Sprite), false) as Sprite;
                 };
                 m_ReorderableList.displayAdd = false;
                 m_ReorderableList.displayRemove = false;
-                m_ReorderableList.drawHeaderCallback = (Rect rect) =>
-                {
-                    EditorGUI.LabelField(new Rect(rect.x+15, rect.y , rect.width/2, 18),"Path");
-                    EditorGUI.LabelField(new Rect(rect.x+15 + rect.width / 2, rect.y, rect.width / 2, 18), "Sprite");
-                };
             }
-            m_ReorderableList.DoLayoutList();
+         
+            m_ReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                EditorGUI.LabelField(new Rect(rect.x + 15, rect.y, rect.width / 2, 18), "Path");
+                EditorGUI.LabelField(new Rect(rect.x + 15 + rect.width / 2, rect.y, rect.width / 2, 18), "Sprite");
+            };
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            // SerializedProperty keys = property.FindPropertyRelative("m_Keys");
-            // int height = 0;
-            // if (keys.arraySize>0)
-            // {
-            //     height = keys.arraySize > 10 ? 300 : keys.arraySize * 30;
-            // }
             return 0;
         }
-        
+
         [Serializable]
         private class Data
         {

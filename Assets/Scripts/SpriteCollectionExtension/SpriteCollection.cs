@@ -25,6 +25,13 @@ namespace UGFExtensions
             }
             m_Sprites.Add(spritePath,sprite);
         }
+
+        public void Clear()
+        {
+            m_Sprites.Sprites.Clear();
+            m_Sprites.Keys.Clear();
+            m_Sprites.Values.Clear();
+        }
 #endif
     }
     [Serializable]
