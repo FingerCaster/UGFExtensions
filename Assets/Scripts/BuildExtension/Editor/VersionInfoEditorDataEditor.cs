@@ -16,7 +16,6 @@ namespace UGFExtensions.Build.Editor
         private SerializedProperty m_VersionInfos;
         private SerializedProperty m_ActiveIndex;
         private SerializedProperty m_IsGenerateToFullPath;
-        private bool m_LastIsGenerateToFullPath;
         private SerializedProperty m_OutPath;
         
         private void OnEnable()
@@ -26,8 +25,13 @@ namespace UGFExtensions.Build.Editor
             m_VersionInfos = serializedObject.FindProperty("m_VersionInfos");
             m_ActiveIndex = serializedObject.FindProperty("m_ActiveIndex");
             m_IsGenerateToFullPath = serializedObject.FindProperty("m_IsGenerateToFullPath");
-            m_LastIsGenerateToFullPath = m_IsGenerateToFullPath.boolValue;
             m_OutPath = serializedObject.FindProperty("m_OutPath");
+
+            if (!(m_VersionInfoEditorData is null) && (m_VersionInfoEditorData.VersionInfos == null || m_VersionInfoEditorData.VersionInfos.Count == 0))
+            {
+                m_VersionInfoEditorData.VersionInfos = new List<VersionInfoWrapData>
+                    { new VersionInfoWrapData() { Key = "Normal", Value = new VersionInfoData() } };
+            }
         }
 
         public override void OnInspectorGUI()
