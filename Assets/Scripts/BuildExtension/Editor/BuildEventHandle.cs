@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using GameFramework;
 using UnityEditor;
 using UnityEngine;
-using UnityGameFramework.Editor;
 using UnityGameFramework.Editor.ResourceTools;
 
 namespace UGFExtensions.Build.Editor
@@ -26,29 +24,6 @@ namespace UGFExtensions.Build.Editor
             bool outputPackageSelected, string outputPackagePath, bool outputFullSelected, string outputFullPath,
             bool outputPackedSelected, string outputPackedPath, string buildReportPath)
         {
-            string streamingAssetsPath =
-                GameFramework.Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
-            if (!Directory.Exists(streamingAssetsPath))
-            {
-                Directory.CreateDirectory(streamingAssetsPath);
-            }
-
-            string[] fileNames = Directory.GetFiles(streamingAssetsPath, "*", SearchOption.AllDirectories);
-            foreach (string fileName in fileNames)
-            {
-                if (fileName.Contains(".gitkeep"))
-                {
-                    continue;
-                }
-
-                File.Delete(fileName);
-            }
-
-            GameFramework.Utility.Path.RemoveEmptyDirectory(streamingAssetsPath);
-            if (!Directory.Exists(streamingAssetsPath))
-            {
-                Directory.CreateDirectory(streamingAssetsPath);
-            }
         }
 
         public void OnPreprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected,
@@ -112,31 +87,6 @@ namespace UGFExtensions.Build.Editor
             bool outputFullSelected, string outputFullPath, bool outputPackedSelected, string outputPackedPath,
             bool isSuccess)
         {
-            if (!outputPackageSelected)
-            {
-                return;
-            }
-
-            // if (platform != Platform.Windows)
-            // {
-            //     return;
-            // }
-
-            string streamingAssetsPath =
-                GameFramework.Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "StreamingAssets"));
-            string[] fileNames = Directory.GetFiles(outputPackagePath, "*", SearchOption.AllDirectories);
-            foreach (string fileName in fileNames)
-            {
-                string destFileName = GameFramework.Utility.Path.GetRegularPath(Path.Combine(streamingAssetsPath,
-                    fileName.Substring(outputPackagePath.Length)));
-                FileInfo destFileInfo = new FileInfo(destFileName);
-                if (destFileInfo.Directory != null && !destFileInfo.Directory.Exists)
-                {
-                    destFileInfo.Directory.Create();
-                }
-
-                File.Copy(fileName, destFileName);
-            }
         }
 
         public void OnPostprocessAllPlatforms(string productName, string companyName, string gameIdentifier,
