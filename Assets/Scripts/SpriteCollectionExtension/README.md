@@ -6,7 +6,9 @@ Unity Sprite有个问题 是如果Sprite在预制体上有依赖  加载类型�
 
 针对这个问题  写了这个扩展  收集需要加载的Sprite  生成一个SpriteCollection  加载Sprite时 通过SpriteCollention 获取Sprite 
 
-**PS: 当前版本 编辑器采用Odin 实现 需要自行导入Odin 插件( odin 太好用了 强烈推荐)  未来会增加通用编辑器（基本写完了 还需要完善。）** 
+**PS: 当前版本 编辑器采用Odin 实现 需要自行导入Odin 插件( odin 太好用了 强烈推荐)  未来会增加通用编辑器（基本写完了 还需要完善。）本扩展中用到了 Timer 和Await 扩展  如果只使用此扩展可以自行替换**
+
+  
 
 # 使用方法
 
