@@ -15,7 +15,7 @@
 
 ## 6.[ResourceRule扩展](https://github.com/northWolf/GameFramework.ResourceRuleEditor)
 
-
+## 7.[SpriteCollection扩展](./Assets/Scripts/SpriteCollectionExtension)
 
 # 引用库 致谢
 
