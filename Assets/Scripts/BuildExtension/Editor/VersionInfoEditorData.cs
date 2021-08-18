@@ -64,7 +64,7 @@ namespace UGFExtensions.Build.Editor
         }
 
 
-        public void Generate(string path)
+        public bool Generate(string path)
         {
             var versionInfoData = VersionInfos[m_ActiveIndex].Value;
 
@@ -72,10 +72,11 @@ namespace UGFExtensions.Build.Editor
             {
                 EditorUtility.DisplayDialog("提示", $"VersionInfo:{VersionInfos[m_ActiveIndex].Key}.UpdatePrefixUri:{versionInfoData.UpdatePrefixUri} is not valid.无法自动生成", "确定");
                 Selection.activeObject = AssetDatabase.LoadAssetAtPath<VersionInfoEditorData>(M_DataPath);
-                return;
+                return false;
             }
-
             File.WriteAllText(path,versionInfoData.ToVersionInfoJson());
+            return true;
+
         }
     }
 }
