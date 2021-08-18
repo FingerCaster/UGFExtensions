@@ -54,21 +54,31 @@ namespace UGFExtensions.SpriteCollection
                 string path = AssetDatabase.GetAssetPath(obj);
                 if (obj is Sprite sp)
                 {
-                    m_Sprites[path] = sp;
+                    Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
+                    if (objects.Length == 2)
+                    {
+                        m_Sprites[path] = sp;;
+                    }
+                    else
+                    {
+                        string regularPath = Utility.Path.GetRegularPath(Path.Combine(path, sp.name));
+                        m_Sprites[regularPath] = sp;
+                    }
                 }
                 else if (obj is Texture2D)
                 {
                     Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
                     if (objects.Length == 2)
                     {
-                        m_Sprites[path] = objects[1] as Sprite;
+                        m_Sprites[path] = GetSprites(objects)[0];;
                     }
                     else
                     {
-                        for (int j = 1; j < objects.Length; j++)
+                        Sprite[] sprites = GetSprites(objects);
+                        for (int j = 0; j < sprites.Length; j++)
                         {
-                            string regularPath = Utility.Path.GetRegularPath(Path.Combine(path, objects[j].name));
-                            m_Sprites[regularPath] = objects[j] as Sprite;
+                            string regularPath = Utility.Path.GetRegularPath(Path.Combine(path, sprites[j].name));
+                            m_Sprites[regularPath] = sprites[j];
                         }
                     }
                 }
@@ -81,15 +91,15 @@ namespace UGFExtensions.SpriteCollection
                         Object[] objects = AssetDatabase.LoadAllAssetsAtPath(file);
                         if (objects.Length == 2)
                         {
-                            m_Sprites.Add(file, objects[1] as Sprite);
-                            m_Sprites[file] = objects[1] as Sprite;
+                            m_Sprites[file] = GetSprites(objects)[0];
                         }
                         else
                         {
-                            for (int j = 1; j < objects.Length; j++)
+                            Sprite[] sprites = GetSprites(objects);
+                            for (int j = 0; j < sprites.Length; j++)
                             {
-                                string regularPath = Utility.Path.GetRegularPath(Path.Combine(file, objects[j].name));
-                                m_Sprites[regularPath] = objects[j] as Sprite;
+                                string regularPath = Utility.Path.GetRegularPath(Path.Combine(file, sprites[j].name));
+                                m_Sprites[regularPath] = sprites[j];
                             }
                         }
                     }
@@ -101,6 +111,11 @@ namespace UGFExtensions.SpriteCollection
         {
             return o != null && (o is Sprite || o is Texture2D ||
                                  (o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID())));
+        }
+
+        private Sprite[] GetSprites(Object[] objects)
+        {
+            return objects.OfType<Sprite>().ToArray();
         }
 #endif
     }
