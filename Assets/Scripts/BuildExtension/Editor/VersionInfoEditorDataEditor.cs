@@ -75,8 +75,10 @@ namespace UGFExtensions.Build.Editor
                 EditorGUILayout.Space();
                 if (GUILayout.Button("生成"))
                 {
-                    m_VersionInfoEditorData.Generate(m_OutPath.stringValue);
-                    EditorUtility.RevealInFinder(m_OutPath.stringValue);
+                    if (m_VersionInfoEditorData.Generate(m_OutPath.stringValue))
+                    {
+                        EditorUtility.RevealInFinder(m_OutPath.stringValue);
+                    }
                 }
             }else if(!isValidUri)
             {
