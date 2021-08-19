@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using GameFramework.ObjectPool;
+
+#if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
+#endif
 using UGFExtensions.Await;
 using UGFExtensions.Timer;
 using UnityEngine;
@@ -21,11 +24,20 @@ namespace UGFExtensions.SpriteCollection
         /// </summary>
         [SerializeField] private int m_AutoReleaseInterval = 60;
 
-
-        [ReadOnly] [ShowInInspector] private LinkedList<LoadSpriteObject> m_LoadSpriteObjectsLinkedList;
+#if ODIN_INSPECTOR
+        [ReadOnly] [ShowInInspector]
+#endif
+        private LinkedList<LoadSpriteObject> m_LoadSpriteObjectsLinkedList;
+        
         private HashSet<string> m_SpriteCollectionBeingLoaded;
         private Dictionary<string, LinkedList<ISetSpriteObject>> m_WaitSetObjects;
-
+#if UNITY_EDITOR
+        public LinkedList<LoadSpriteObject> LoadSpriteObjectsLinkedList
+        {
+            get => m_LoadSpriteObjectsLinkedList;
+            set => m_LoadSpriteObjectsLinkedList = value;
+        }
+#endif
         private void Start()
         {
             ObjectPoolComponent objectPoolComponent =
@@ -34,7 +46,7 @@ namespace UGFExtensions.SpriteCollection
                 "SpriteCollection",
                 60.0f, 16, 60, 0);
             TimerComponent timerComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<TimerComponent>();
-            timerComponent.AddRepeatedTimer(m_AutoReleaseInterval * 1000, -1, Release);
+            timerComponent.AddRepeatedTimer(m_AutoReleaseInterval * 1000, -1, ReleaseUnused);
             m_LoadSpriteObjectsLinkedList = new LinkedList<LoadSpriteObject>();
             m_SpriteCollectionBeingLoaded = new HashSet<string>();
             m_WaitSetObjects = new Dictionary<string, LinkedList<ISetSpriteObject>>();
@@ -43,8 +55,10 @@ namespace UGFExtensions.SpriteCollection
         /// <summary>
         /// 回收无引用的 Image 对应图集。
         /// </summary>
-        [Button("Release All Unused")]
-        private void Release()
+#if ODIN_INSPECTOR
+        [Button("Release Unused")]
+#endif
+        public void ReleaseUnused()
         {
             LinkedListNode<LoadSpriteObject> current = m_LoadSpriteObjectsLinkedList.First;
             while (current != null)
@@ -66,8 +80,6 @@ namespace UGFExtensions.SpriteCollection
         /// <param name="setSpriteObject">需要设置精灵的对象</param>
         public async void SetSprite(ISetSpriteObject setSpriteObject)
         {
-            Log.Info($"collectionPath:{setSpriteObject.CollectionPath}   spriteName:{setSpriteObject.SpritePath}");
-
             if (m_SpriteCollectionPool.CanSpawn(setSpriteObject.CollectionPath))
             {
                 SpriteCollection collectionItem =
@@ -97,9 +109,11 @@ namespace UGFExtensions.SpriteCollection
             m_SpriteCollectionBeingLoaded.Add(setSpriteObject.CollectionPath);
             SpriteCollection collection =
                 await GameEntry.Resource.LoadAssetAsync<SpriteCollection>(setSpriteObject.CollectionPath);
-            m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection), false);
+            m_SpriteCollectionPool.Register(
+                SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection), false);
             m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
-            m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages);
+            m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath,
+                out LinkedList<ISetSpriteObject> awaitSetImages);
             LinkedListNode<ISetSpriteObject> current = awaitSetImages?.First;
             while (current != null)
             {
