@@ -28,3 +28,6 @@
 [EllanJiang/StarForce: This is a demo made with Game Framework. (github.com)](https://github.com/EllanJiang/StarForce)
 
 [northWolf/GameFramework.ResourceRuleEditor: This is a Unity resource(AssetBundle) rule editor visual tool based on GameFramework. 这是一个基于GameFramework框架的资源包（AssetBundle）规则编辑器 (github.com)](https://github.com/northWolf/GameFramework.ResourceRuleEditor)
+
+[azixMcAze/Unity-SerializableDictionary: Serializable dictionary class for Unity (github.com)](https://github.com/azixMcAze/Unity-SerializableDictionary)
+
