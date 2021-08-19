@@ -20,5 +20,8 @@ namespace UGFExtensions.SpriteCollection
         /// 是否可以回收
         /// </summary>
         bool IsCanRelease();
+#if !ODIN_INSPECTOR && UNITY_EDITOR
+        Rect DrawSetSpriteObject(Rect rect);
+#endif
     }
 }
