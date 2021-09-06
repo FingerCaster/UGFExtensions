@@ -7,6 +7,7 @@ using GameFramework;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
 namespace UGFExtensions.Editor
@@ -161,8 +162,10 @@ namespace UGFExtensions.Editor
 
         static bool IsPackable(Object o)
         {
-            return o != null && (o is Sprite || o is Texture2D ||
-                                 (o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID())));
+            return o != null && (o is Sprite ||
+                                 o is Texture2D ||
+                                 o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID()) ||
+                                 o is SpriteAtlas);
         }
 
         private void DrawPackUI()

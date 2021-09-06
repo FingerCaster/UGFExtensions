@@ -17,7 +17,7 @@ Unity Sprite有个问题 是如果Sprite在预制体上有依赖  加载类型�
 ## SpriteCollection 使用方法
 
 1. Project界面右键  `UGFExtensions/SpriteCollection`创建SpriteCollection
-2. SpriteCollect 支持 单个Sprite  multiple类型的图片 文件夹  直接拖到`Objects` 上即可
+2. SpriteCollect 支持 单个Sprite  multiple类型的图片 文件夹 SpriteAtlas  直接拖到`Objects` 上即可
 3. `PackPreview` 可以立即添加Sprite 到 SpriteCollection的字典中。 如果不点击 会在（打包,打AB包，编辑器进入播放状态）自动进行添加  Ps： 打ab包预处理 只针对UGF  通过BuildEventHandle 的接口进行处理
 
 ## SpriteCollection 的加载 卸载

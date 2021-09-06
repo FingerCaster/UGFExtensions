@@ -10,7 +10,9 @@ using Sirenix.Serialization;
 #endif
 
 using UnityEditor;
+using UnityEditor.U2D;
 using UnityEngine;
+using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
 namespace UGFExtensions.SpriteCollection
@@ -19,7 +21,6 @@ namespace UGFExtensions.SpriteCollection
 #if ODIN_INSPECTOR
     public class SpriteCollection : SerializedScriptableObject
     {
-
         [OdinSerialize] [DictionaryDrawerSettings(KeyLabel = "Path", ValueLabel = "Sprite", IsReadOnly = true)]
         private Dictionary<string, Sprite> m_Sprites = new Dictionary<string, Sprite>();
 
@@ -58,7 +59,16 @@ namespace UGFExtensions.SpriteCollection
             for (int i = 0; i < m_Objects.Count; i++)
             {
                 Object obj = m_Objects[i];
-                string path = AssetDatabase.GetAssetPath(obj);
+                HandlePackable(obj);
+            }
+
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+
+        void HandlePackable(Object obj)
+        {
+                 string path = AssetDatabase.GetAssetPath(obj);
                 if (obj is Sprite sp)
                 {
                     Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
@@ -111,15 +121,22 @@ namespace UGFExtensions.SpriteCollection
                         }
                     }
                 }
-            }
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+                else if (obj is SpriteAtlas spriteAtlas)
+                {
+                    Object[] objs = spriteAtlas.GetPackables();
+                    for (int i = 0; i < objs.Length; i++)
+                    {
+                        HandlePackable(objs[i]);
+                    }
+                }
         }
 
         private bool ObjectFilter(Object o)
         {
-            return o != null && (o is Sprite || o is Texture2D ||
-                                 (o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID())));
+            return o != null && (o is Sprite ||
+                                 o is Texture2D ||
+                                 o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID()) ||
+                                 o is SpriteAtlas);
         }
 
         private Sprite[] GetSprites(Object[] objects)
@@ -145,7 +162,7 @@ namespace UGFExtensions.SpriteCollection
             get { return m_Sprites; }
             set { m_Sprites.CopyFrom(value); }
         }
-  public void Pack()
+        public void Pack()
         {
             m_Sprites.Clear();
             for (int i = m_Objects.Count - 1; i >= 0; i--)
@@ -160,7 +177,14 @@ namespace UGFExtensions.SpriteCollection
             for (int i = 0; i < m_Objects.Count; i++)
             {
                 Object obj = m_Objects[i];
-                string path = AssetDatabase.GetAssetPath(obj);
+                HandlePackable(obj);
+            }
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+         void HandlePackable(Object obj)
+        {
+                 string path = AssetDatabase.GetAssetPath(obj);
                 if (obj is Sprite sp)
                 {
                     Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
@@ -213,20 +237,26 @@ namespace UGFExtensions.SpriteCollection
                         }
                     }
                 }
-            }
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+                else if (obj is SpriteAtlas spriteAtlas)
+                {
+                    Object[] objs = spriteAtlas.GetPackables();
+                    for (int i = 0; i < objs.Length; i++)
+                    {
+                        HandlePackable(objs[i]);
+                    }
+                }
         }
-        
+
+        private bool ObjectFilter(Object o)
+        {
+            return o != null && (o is Sprite ||
+                                 o is Texture2D ||
+                                 o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID()) ||
+                                 o is SpriteAtlas);
+        }
         private Sprite[] GetSprites(Object[] objects)
         {
             return objects.OfType<Sprite>().ToArray();
-        }
-        
-        private bool ObjectFilter(Object o)
-        {
-            return o != null && (o is Sprite || o is Texture2D ||
-                                 (o is DefaultAsset && ProjectWindowUtil.IsFolder(o.GetInstanceID())));
         }
 #endif
 
