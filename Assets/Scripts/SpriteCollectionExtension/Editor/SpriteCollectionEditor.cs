@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using GameFramework;
 using UnityEditor;
+using UnityEditor.U2D;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -19,14 +20,22 @@ namespace UGFExtensions.Editor
         private SpriteCollection.SpriteCollection Target => target as SpriteCollection.SpriteCollection;
         private SerializedProperty m_Sprites;
         private SerializedProperty m_Objects;
+        private SerializedProperty m_AtlasFolder;
         private ReorderableList m_ReorderableList;
         private readonly int m_SelectorHash = "ObjectSelector".GetHashCode();
         private bool m_PackableListExpanded = true;
+        private bool m_AtlasExpanded = true;
+        private string m_NormalAtlasFolder = "Assets/Res/SpriteAtlas";
 
         private void OnEnable()
         {
             m_Sprites = serializedObject.FindProperty("m_Sprites");
             m_Objects = serializedObject.FindProperty("m_Objects");
+            m_AtlasFolder = serializedObject.FindProperty("m_AtlasFolder");
+            m_AtlasFolder.stringValue = string.IsNullOrEmpty(m_AtlasFolder.stringValue)
+                ? m_NormalAtlasFolder
+                : m_AtlasFolder.stringValue;
+            serializedObject.ApplyModifiedProperties();
             m_ReorderableList = new ReorderableList(serializedObject, m_Objects, true, true, true, true)
             {
                 onAddCallback = AddPackable,
@@ -64,6 +73,7 @@ namespace UGFExtensions.Editor
 
             HandlePackableListUI();
             DrawPackUI();
+            DrawCreateAtlasUI();
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -174,6 +184,95 @@ namespace UGFExtensions.Editor
             {
                 Target.Pack();
             }
+        }
+
+        private void DrawCreateAtlasUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            m_AtlasExpanded = EditorGUILayout.Foldout(m_AtlasExpanded,"Create Atlas", true);
+
+            if (!m_AtlasExpanded)
+            {
+                return;
+            }
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(m_AtlasFolder.stringValue);
+            if (GUILayout.Button("Select"))
+            {
+                string path = EditorUtility.SaveFolderPanel("", Application.dataPath, $"{target.name}.spriteatlas");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    int index = path.IndexOf("Assets/", StringComparison.Ordinal);
+                    if (index==-1)
+                    {
+                        m_AtlasFolder.stringValue = m_NormalAtlasFolder;
+                        EditorUtility.DisplayDialog("提示", $"图集生成文件夹必须在Assets目录下", "确定");
+                        return;
+                    }
+
+                    m_AtlasFolder.stringValue = path.Substring(index);
+                }
+            }
+
+            EditorGUILayout.EndHorizontal();
+            if (GUILayout.Button("Create Atlas"))
+            {
+                CreateAtlas();
+            }
+        }
+
+        private void CreateAtlas()
+        {
+            if (string.IsNullOrEmpty(m_AtlasFolder.stringValue))
+            {
+                EditorUtility.DisplayDialog("提示", $"请先选择图集生成文件夹！", "确定");
+                return;
+            }
+
+            if (Target.Objects.Find(_ => _ is SpriteAtlas) != null)
+            {
+                EditorUtility.DisplayDialog("提示", $"SpriteCollection 中存在Atlas 请检查!", "确定");
+                return;
+            }
+            
+            //创建图集
+            string atlas = m_AtlasFolder.stringValue + "/" + target.name + ".spriteatlas";
+
+            if (File.Exists(atlas))
+            {
+                bool result = EditorUtility.DisplayDialog("提示", $"存在同名图集,是否覆盖？", "确定", "取消");
+                if (!result)
+                {
+                    return;
+                }
+            }
+            SpriteAtlas sa = new SpriteAtlas();
+
+            SpriteAtlasPackingSettings packSet = new SpriteAtlasPackingSettings()
+            {
+                blockOffset = 1,
+                enableRotation = false,
+                enableTightPacking = false,
+                padding = 8,
+            };
+            sa.SetPackingSettings(packSet);
+
+
+            SpriteAtlasTextureSettings textureSet = new SpriteAtlasTextureSettings()
+            {
+                readable = false,
+                generateMipMaps = false,
+                sRGB = true,
+                filterMode = FilterMode.Bilinear,
+            };
+            sa.SetTextureSettings(textureSet);
+            AssetDatabase.CreateAsset(sa, atlas);
+
+            sa.Add(Target.Objects.ToArray());
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
     }
 #endif
