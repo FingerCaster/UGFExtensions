@@ -1,8 +1,9 @@
+using GameFramework;
 using UnityEngine;
 
 namespace UGFExtensions.SpriteCollection
 {
-    public interface ISetSpriteObject
+    public interface ISetSpriteObject: IReference
     {
         /// <summary>
         /// 精灵名称

@@ -1,4 +1,5 @@
 using System;
+using GameFramework;
 using UnityEditor;
 
 #if ODIN_INSPECTOR
@@ -18,29 +19,31 @@ namespace UGFExtensions.SpriteCollection
 #endif
         private Image m_Image;
 
-        public WaitSetImage(Image obj, string collection, string spriteName)
+        public static WaitSetImage Create(Image obj, string collection, string spriteName)
         {
-            m_Image = obj;
-            SpritePath = spriteName;
-            CollectionPath = collection;
-            int index1 = SpritePath.LastIndexOf("/", StringComparison.Ordinal);
-            int index2 = SpritePath.LastIndexOf(".", StringComparison.Ordinal);
-            SpriteName = index2 < index1
-                ? SpritePath.Substring(index1 + 1)
-                : SpritePath.Substring(index1 + 1, index2 - index1 - 1);
+            WaitSetImage waitSetImage = ReferencePool.Acquire<WaitSetImage>();
+            waitSetImage.m_Image = obj;
+            waitSetImage.SpritePath = spriteName;
+            waitSetImage.CollectionPath = collection;
+            int index1 = waitSetImage.SpritePath.LastIndexOf("/", StringComparison.Ordinal);
+            int index2 = waitSetImage.SpritePath.LastIndexOf(".", StringComparison.Ordinal);
+            waitSetImage.SpriteName = index2 < index1
+                ? waitSetImage.SpritePath.Substring(index1 + 1)
+                : waitSetImage.SpritePath.Substring(index1 + 1, index2 - index1 - 1);
+            return waitSetImage;
         }
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public string SpritePath { get; }
+        public string SpritePath { get; private set; }
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        public string CollectionPath { get; }
+        public string CollectionPath { get; private set; }
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
-        private string SpriteName { get; }
+        private string SpriteName { get; set; }
 
         public void SetSprite(Sprite sprite)
         {
@@ -72,5 +75,12 @@ namespace UGFExtensions.SpriteCollection
             return rect;
         }
 #endif
+        public void Clear()
+        {
+            m_Image = null;
+            SpritePath = null;
+            CollectionPath = null;
+            SpriteName = null;
+        }
     }
 }

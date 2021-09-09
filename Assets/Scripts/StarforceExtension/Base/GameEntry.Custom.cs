@@ -1,4 +1,5 @@
 ﻿using UGFExtensions.SpriteCollection;
+using UGFExtensions.Texture;
 using UGFExtensions.Timer;
 
 namespace UGFExtensions
@@ -9,7 +10,7 @@ namespace UGFExtensions
     public partial class GameEntry
     {
         /// <summary>
-        /// 获取游戏基础组件。
+        /// 获取定时器组件。
         /// </summary>
         public static TimerComponent Timer
         {
@@ -17,9 +18,17 @@ namespace UGFExtensions
             private set;
         }
         /// <summary>
-        /// 获取游戏基础组件。
+        /// 获取精灵收集组件。
         /// </summary>
         public static SpriteCollectionComponent SpriteCollection
+        {
+            get;
+            private set;
+        }
+        /// <summary>
+        /// 获取图片设置组件。
+        /// </summary>
+        public static TextureSetComponent TextureSet
         {
             get;
             private set;
@@ -33,6 +42,7 @@ namespace UGFExtensions
             Timer = UnityGameFramework.Runtime.GameEntry.GetComponent<TimerComponent>();
             BuiltinData = UnityGameFramework.Runtime.GameEntry.GetComponent<BuiltinDataComponent>();
             SpriteCollection = UnityGameFramework.Runtime.GameEntry.GetComponent<SpriteCollectionComponent>();
+            TextureSet = UnityGameFramework.Runtime.GameEntry.GetComponent<TextureSetComponent>();
         }
     }
 }

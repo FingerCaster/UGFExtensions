@@ -493,8 +493,7 @@ namespace UGFExtensions.Timer
         /// 可等待执行一次的定时器
         /// </summary>
         /// <param name="time">定时时间</param>
-        /// <param name="callback">回调函数</param>
-        /// <param name="updateCallback">每帧回调函数</param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<bool> OnceTimerAsync(long time, CancellationToken cancellationToken = null)
         {
@@ -531,15 +530,14 @@ namespace UGFExtensions.Timer
             return result;
         }
 
-        // /// <summary>
-        // /// 可等待的帧定时器
-        // /// </summary>
-        // /// <param name="callback">回调函数</param>
-        // /// <returns>定时器 ID</returns>
-        // public async Task<bool> AwaitFrameAsync(CancellationToken cancellationToken = null)
-        // {
-        //     return await AwaitOnceTimer(1, cancellationToken);
-        // }
+        /// <summary>
+        /// 可等待的帧定时器
+        /// </summary>
+        /// <returns>定时器 ID</returns>
+        public async Task<bool> FrameAsync(CancellationToken cancellationToken = null)
+        {
+            return await OnceTimerAsync(1, cancellationToken);
+        }
 
         /// <summary>
         /// 添加执行多次的定时器
