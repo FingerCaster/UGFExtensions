@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GameFramework;
 using GameFramework.ObjectPool;
 
 #if ODIN_INSPECTOR
@@ -67,6 +68,7 @@ namespace UGFExtensions.SpriteCollection
                 if (current.Value.SpriteObject.IsCanRelease())
                 {
                     m_SpriteCollectionPool.Unspawn(current.Value.Collection);
+                    ReferencePool.Release(current.Value.SpriteObject);
                     m_LoadSpriteObjectsLinkedList.Remove(current);
                 }
 

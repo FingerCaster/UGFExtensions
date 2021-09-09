@@ -71,7 +71,7 @@ namespace UGFExtensions.SpriteCollection
         }
 
         [SerializeField]
-        [FolderPath(ParentFolder = "Assets")]
+        [FolderPath]
         [FoldoutGroup("Create Atlas", true)]
         [PropertyOrder(1)]
         [OnValueChanged("AtlasFolderChanged")]

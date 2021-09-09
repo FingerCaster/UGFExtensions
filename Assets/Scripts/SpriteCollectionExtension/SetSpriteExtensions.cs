@@ -12,7 +12,7 @@ namespace UGFExtensions.SpriteCollection
         /// <param name="spritePath">精灵名称</param>
         public static void SetSprite(this Image image, string collectionPath, string spritePath)
         {
-            GameEntry.SpriteCollection.SetSprite(new WaitSetImage(image,collectionPath,spritePath));
+            GameEntry.SpriteCollection.SetSprite(WaitSetImage.Create(image,collectionPath,spritePath));
         }
     }
 }
