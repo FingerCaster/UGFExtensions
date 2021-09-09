@@ -1,5 +1,9 @@
 using System;
 using GameFramework;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 #endif
@@ -53,5 +57,23 @@ namespace UGFExtensions.Texture
             TextureName = null;
             Texture2dFilePath = null;
         }
+        
+        //!ODIN_INSPECTOR &&
+#if  UNITY_EDITOR
+        public Rect DrawSetTextureObject(Rect rect)
+        {
+            EditorGUI.ObjectField(rect, "RawImage", m_RawImage, typeof(RawImage), true);
+            rect.y += EditorGUIUtility.singleLineHeight;
+
+            EditorGUI.TextField(rect, "Texture2dFilePath", Texture2dFilePath);
+            rect.y += EditorGUIUtility.singleLineHeight;
+
+            EditorGUI.TextField(rect, "TextureName", TextureName);
+            rect.y += EditorGUIUtility.singleLineHeight;
+
+            EditorGUI.Toggle(rect, "IsCanRelease", IsCanRelease());
+            return rect;
+        }
+#endif
     }
 }

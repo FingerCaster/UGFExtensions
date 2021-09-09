@@ -58,6 +58,14 @@ namespace UGFExtensions.Texture
         /// </summary>
         private IObjectPool<TextureItemObject> m_TexturePool;
 
+        
+#if UNITY_EDITOR
+        public LinkedList<LoadTextureObject> LoadTextureObjectsLinkedList
+        {
+            get => m_LoadTextureObjectsLinkedList;
+            set => m_LoadTextureObjectsLinkedList = value;
+        }
+#endif
         private async void Start()
         {
             FileSystemComponent fileSystemComponent =
