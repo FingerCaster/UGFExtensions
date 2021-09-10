@@ -20,9 +20,9 @@ namespace UGFExtensions.Texture
 #endif
         private RawImage m_RawImage;
 #if ODIN_INSPECTOR
-        [ShowInInspector]
+        [ShowInInspector] 
 #endif
-        private string TextureName { get; set; }
+        private Texture2D Texture2D { get; set; }
 #if ODIN_INSPECTOR
         [ShowInInspector]
 #endif
@@ -31,11 +31,13 @@ namespace UGFExtensions.Texture
         public void SetTexture(Texture2D texture)
         {
             m_RawImage.texture = texture;
+            Texture2D = texture;
         }
 
         public bool IsCanRelease()
         {
-            return m_RawImage == null || m_RawImage.texture == null || m_RawImage.texture.name != TextureName;
+            return m_RawImage == null || m_RawImage.texture == null ||
+                   (Texture2D != null && m_RawImage.texture != Texture2D);
         }
 
         public static SetRawImage Create(RawImage rawImage, string filePath)
@@ -43,23 +45,17 @@ namespace UGFExtensions.Texture
             SetRawImage item = ReferencePool.Acquire<SetRawImage>();
             item.m_RawImage = rawImage;
             item.Texture2dFilePath = filePath;
-            int index1 = filePath.LastIndexOf("/", StringComparison.Ordinal);
-            int index2 = filePath.LastIndexOf(".", StringComparison.Ordinal);
-            item.TextureName = index2 < index1
-                ? filePath.Substring(index1 + 1)
-                : filePath.Substring(index1 + 1, index2 - index1 - 1);
             return item;
         }
 
         public void Clear()
         {
             m_RawImage = null;
-            TextureName = null;
+            Texture2D = null;
             Texture2dFilePath = null;
         }
         
-        //!ODIN_INSPECTOR &&
-#if  UNITY_EDITOR
+#if !ODIN_INSPECTOR && UNITY_EDITOR
         public Rect DrawSetTextureObject(Rect rect)
         {
             EditorGUI.ObjectField(rect, "RawImage", m_RawImage, typeof(RawImage), true);
@@ -68,7 +64,7 @@ namespace UGFExtensions.Texture
             EditorGUI.TextField(rect, "Texture2dFilePath", Texture2dFilePath);
             rect.y += EditorGUIUtility.singleLineHeight;
 
-            EditorGUI.TextField(rect, "TextureName", TextureName);
+            EditorGUI.ObjectField(rect, "Texture", Texture2D, typeof(Texture2D), false);
             rect.y += EditorGUIUtility.singleLineHeight;
 
             EditorGUI.Toggle(rect, "IsCanRelease", IsCanRelease());

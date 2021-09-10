@@ -1,3 +1,6 @@
+#if !ODIN_INSPECTOR 
+
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -61,8 +64,6 @@ namespace UGFExtensions.Texture.Editor
         private void DrawLoadSpriteObjectsLinkedList()
         {
             RefreshList();
-            // m_ReorderableList.DoLayoutList();
-            // EditorGUILayout.LabelField("LoadSpriteObjectsLinkedList");
             Rect rect = EditorGUILayout.GetControlRect();
             m_SelectList = EditorGUI.Foldout(rect, m_SelectList, "LoadSpriteObjectsLinkedList", true);
             if (m_SelectList)
@@ -121,3 +122,4 @@ namespace UGFExtensions.Texture.Editor
         }
     }
 }
+#endif
