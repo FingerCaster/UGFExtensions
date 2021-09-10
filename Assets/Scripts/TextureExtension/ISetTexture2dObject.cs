@@ -19,5 +19,8 @@ namespace UGFExtensions.Texture
         /// 是否可以回收
         /// </summary>
         bool IsCanRelease();
+#if !ODIN_INSPECTOR && UNITY_EDITOR
+        Rect DrawSetTextureObject(Rect rect);
+#endif
     }
 }

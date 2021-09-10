@@ -19,7 +19,9 @@ namespace UGFExtensions.Texture
             [ShowInInspector]
 #endif
             public Texture2D Texture2D { get; }
-
+#if UNITY_EDITOR
+            public bool IsSelect { get; set; }
+#endif
             public LoadTextureObject(ISetTexture2dObject obj,Texture2D texture2D)
             {
                 Texture2dObject = obj;
