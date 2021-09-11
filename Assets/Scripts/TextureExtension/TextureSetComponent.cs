@@ -21,15 +21,17 @@ namespace UGFExtensions.Texture
         /// 文件系统最大文件数量
         /// </summary>
         [SerializeField] private int m_FileSystemMaxFileLength = 64;
+
         /// <summary>
         /// 初始化Buffer长度
         /// </summary>
         [SerializeField] private int m_InitBufferLength = 1024 * 64;
+
         /// <summary>
         /// 自动释放时间间隔
         /// </summary>
         [SerializeField] private int m_AutoReleaseInterval = 60;
-        
+
         /// <summary>
         /// 图片文件系统
         /// </summary>
@@ -44,7 +46,7 @@ namespace UGFExtensions.Texture
         /// 图片加载缓存
         /// </summary>
         private byte[] m_Buffer;
-        
+
         /// <summary>
         /// 保存加载的图片对象
         /// </summary>
@@ -58,7 +60,7 @@ namespace UGFExtensions.Texture
         /// </summary>
         private IObjectPool<TextureItemObject> m_TexturePool;
 
-        
+
 #if UNITY_EDITOR
         public LinkedList<LoadTextureObject> LoadTextureObjectsLinkedList
         {
@@ -79,9 +81,18 @@ namespace UGFExtensions.Texture
             m_Buffer = new byte[m_InitBufferLength];
             string fileName = settingComponent.GetString("TextureFileSystemFullPath", "TextureFileSystem");
             m_FullPath = Utility.Path.GetRegularPath(Path.Combine(Application.persistentDataPath, $"{fileName}.dat"));
-            m_TextureFileSystem = File.Exists(m_FullPath)
-                ? fileSystemComponent.LoadFileSystem(m_FullPath, FileSystemAccess.ReadWrite)
-                : fileSystemComponent.CreateFileSystem(m_FullPath, FileSystemAccess.ReadWrite, m_FileSystemMaxFileLength, m_FileSystemMaxFileLength*8);
+            if (File.Exists(m_FullPath))
+            {
+                m_TextureFileSystem = fileSystemComponent.LoadFileSystem(m_FullPath, FileSystemAccess.ReadWrite);
+            }
+            else
+            {
+                m_TextureFileSystem = fileSystemComponent.CreateFileSystem(m_FullPath, FileSystemAccess.ReadWrite,
+                    m_FileSystemMaxFileLength, m_FileSystemMaxFileLength * 8);
+                //写入一字节 避免空VSF 加载报错
+                m_TextureFileSystem.WriteFile("KeepByte.dat", new byte[] { 1 });
+            }
+
             m_TexturePool = objectPoolComponent.CreateMultiSpawnObjectPool<TextureItemObject>(
                 "TexturePool",
                 60.0f, 16, 60, 0);
@@ -178,7 +189,9 @@ namespace UGFExtensions.Texture
             else
             {
                 texture = GetTextureFromFileSystem(setTexture2dObject.Texture2dFilePath);
-                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,TextureLoad.FromFileSystem), true);
+                m_TexturePool.Register(
+                    TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromFileSystem),
+                    true);
             }
 
             if (texture != null)
@@ -207,7 +220,8 @@ namespace UGFExtensions.Texture
 
             if (texture != null)
             {
-                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,TextureLoad.FromNet), true);
+                m_TexturePool.Register(
+                    TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromNet), true);
                 m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
                 setTexture2dObject.SetTexture(texture);
             }
@@ -231,7 +245,9 @@ namespace UGFExtensions.Texture
 
             if (texture != null)
             {
-                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,TextureLoad.FromResource), true);
+                m_TexturePool.Register(
+                    TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromResource),
+                    true);
                 m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
                 setTexture2dObject.SetTexture(texture);
             }
@@ -299,6 +315,7 @@ namespace UGFExtensions.Texture
             byte[] bytes = texture.EncodeToPNG();
             return m_TextureFileSystem.WriteFile(file, bytes);
         }
+
         /// <summary>
         /// 保存图片
         /// </summary>
