@@ -279,12 +279,12 @@ namespace UGFExtensions.Await
                 },
                 (tempAssetName, status, errorMessage, userdata) =>
                 {
-                    var source = loadAssetTcs;
-                    loadAssetTcs = null;
-                    source.TrySetException(new GameFrameworkException(errorMessage));
+                    loadAssetTcs.SetException(new GameFrameworkException(errorMessage));
                 }
             ));
+            
             return loadAssetTcs.Task;
+
         }
 
         /// <summary>
