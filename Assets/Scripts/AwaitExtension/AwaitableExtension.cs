@@ -270,7 +270,7 @@ namespace UGFExtensions.Await
             TipsSubscribeEvent();
 #endif
             TaskCompletionSource<T> loadAssetTcs = new TaskCompletionSource<T>();
-            GameEntry.Resource.LoadAsset(assetName, new LoadAssetCallbacks(
+            GameEntry.Resource.LoadAsset(assetName,typeof(T), new LoadAssetCallbacks(
                 (tempAssetName, asset, duration, userdata) =>
                 {
                     var source = loadAssetTcs;

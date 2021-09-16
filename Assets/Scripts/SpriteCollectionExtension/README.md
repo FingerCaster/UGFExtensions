@@ -2,13 +2,19 @@
 
 收集Sprite  扩展Sprite 加载卸载 管理
 
-Unity Sprite有个问题 是如果Sprite在预制体上有依赖  加载类型会此变成Texture2d  从而导致加载Sprite失败  
+当一个图片为Sprite时  打包时 会存在Texture2d 和 sprite 
+
+当GF 加载资源时 如果以Texture2D格式先加载了 这个图片 那么 如果动态加载此Sprite  会因为缓存中他是Texture2D  导致加载失败。反之亦然。 
 
 针对这个问题  写了这个扩展  收集需要加载的Sprite  生成一个SpriteCollection  加载Sprite时 通过SpriteCollention 获取Sprite 
 
-**PS: 本扩展中用到了 Timer 和Await 扩展  如果只使用此扩展可以自行替换**
 
-​	   **编辑器部分使用原生编辑器 和 odin 两套实现 可以自行导入Odin 切换**
+
+**PS: 如果使用了SpriteAtlas图集 那么不会出现此问题 （打包时不会存在原图 只有sprite 和图集大图）**
+
+​	**本扩展中用到了 Timer 和Await 扩展  如果只使用此扩展可以自行替换**
+
+​	**编辑器部分使用原生编辑器 和 odin 两套实现 可以自行导入Odin 切换**
 
   
 
