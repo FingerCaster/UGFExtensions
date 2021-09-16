@@ -274,7 +274,15 @@ namespace UGFExtensions.Await
                 {
                     var source = loadAssetTcs;
                     loadAssetTcs = null;
-                    source.TrySetResult(asset as T);
+                    T tAsset = asset as T;
+                    if (tAsset != null)
+                    {
+                        source.SetResult(tAsset);
+                    }
+                    else
+                    {
+                        source.SetException(new Exception($"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}."));
+                    }
                 },
                 (tempAssetName, status, errorMessage, userdata) =>
                 {
