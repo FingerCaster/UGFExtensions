@@ -262,8 +262,7 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 加载资源（可等待）
         /// </summary>
-        public static Task<T> LoadAssetAsync<T>(this ResourceComponent resourceComponent, string assetName,
-            object userData = null)
+        public static Task<T> LoadAssetAsync<T>(this ResourceComponent resourceComponent, string assetName)
             where T : UnityEngine.Object
         {
 #if UNITY_EDITOR
@@ -290,8 +289,7 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 加载多个资源（可等待）
         /// </summary>
-        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent,
-            [NotNull] string[] assetName, object userData = null) where T : UnityEngine.Object
+        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent, [NotNull] string[] assetName) where T : UnityEngine.Object
         {
 #if UNITY_EDITOR
             TipsSubscribeEvent();
