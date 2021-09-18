@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GameFramework;
+using NPOI.XSSF.UserModel;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,37 +12,42 @@ namespace DE.Editor.DataTableTools
 {
     public static class ExtensionsGenerate
     {
+        public enum DataTableType
+        {
+            Txt,
+            Excel
+        }
 
-
-        [MenuItem("DataTable/GenerateExtensionByAnalysis")]
-        public static void GenerateExtensionByAnalysis()
+        public static void GenerateExtensionByAnalysis(DataTableType dataTableType, int typeLine)
         {
             List<string> types = new List<string>(32);
-            foreach (var dataTableFileName in DataTableConfig.DataTablePaths)
+            if (dataTableType == DataTableType.Txt)
             {
-                var lines = File.ReadAllLines(dataTableFileName, Encoding.UTF8);
-                var rawRowCount = lines.Length;
-
-                var rawColumnCount = 0;
-                var rawValues = new List<string[]>();
-                for (var i = 0; i < lines.Length; i++)
+                foreach (var dataTableFileName in DataTableConfig.DataTablePaths)
                 {
-                    var rawValue = lines[i].Split('\t');
-                    for (var j = 0; j < rawValue.Length; j++) rawValue[j] = rawValue[j].Trim('\"');
-
-                    if (i == 0)
-                        rawColumnCount = rawValue.Length;
-                    else if (rawValue.Length != rawColumnCount)
-                        throw new GameFrameworkException(Utility.Text.Format(
-                            "Data table file '{0}', raw Column is '{2}', but line '{1}' column is '{3}'.",
-                            dataTableFileName, i.ToString(), rawColumnCount.ToString(), rawValue.Length.ToString()));
-
-                    rawValues.Add(rawValue);
+                    var lines = File.ReadAllLines(dataTableFileName, Encoding.UTF8);
+                    var rawValue = lines[typeLine].Split('\t');
+                    types.AddRange(rawValue.Select(_ => _.Trim('\"')));
+                    types = types.Distinct().ToList();
                 }
-
-                types.AddRange(rawValues.ToArray()[2]);
-                types = types.Distinct().ToList();
             }
+            else
+            {
+                foreach (var dataTableName in DataTableConfig.DataTableNames)
+                {
+                    string path = Path.Combine(DataTableConfig.ExcelsFolder, dataTableName + ".xlsx");
+                    using (FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        var workbook = new XSSFWorkbook(fileStream);
+                        var sheet = workbook.GetSheetAt(0);
+                        var row = sheet.GetRow(typeLine);
+                        var rawValue = row.Cells.Select(_ => _.ToString().Trim('\"'));
+                        types.AddRange(rawValue);
+                        types = types.Distinct().ToList();
+                    }
+                }
+            }
+
 
             types.Remove("Id");
             types.Remove("#");
@@ -62,7 +68,7 @@ namespace DE.Editor.DataTableTools
                     DataTableProcessor.DataProcessorUtility.GetDataProcessor(_.LanguageKeyword.ToLower()
                         .Replace("[]", "")))
                 .ToDictionary(_ => _.LanguageKeyword, _ => _);
-            
+
             var dataProcessorsList = datableDataProcessors
                 .Where(_ => _.LanguageKeyword.ToLower().StartsWith("list"))
                 .Select(_ => DataTableProcessor.DataProcessorUtility.GetDataProcessor(_.LanguageKeyword.ToLower()
@@ -87,7 +93,8 @@ namespace DE.Editor.DataTableTools
                 GenerateDataTableExtensionArray(dataProcessorsArray);
                 GenerateBinaryReaderExtensionArray(dataProcessorsArray);
             }
-            if (dataProcessorsList.Count>0)
+
+            if (dataProcessorsList.Count > 0)
             {
                 GenerateDataTableExtensionList(dataProcessorsList);
                 GenerateBinaryReaderExtensionList(dataProcessorsList);
@@ -98,9 +105,10 @@ namespace DE.Editor.DataTableTools
                 GenerateDataTableExtensionDictionary(dataProcessorsDictionary);
                 GenerateBinaryReaderExtensionDictionary(dataProcessorsDictionary);
             }
+
             AssetDatabase.Refresh();
         }
-        
+
         private static void GenerateDataTableExtensionArray(
             IDictionary<string, DataTableProcessor.DataProcessor> dataProcessors)
         {
@@ -220,7 +228,6 @@ namespace DE.Editor.DataTableTools
                     if (item.Value.IsEnum)
                     {
                         sb.AppendLine($"\t\t\t\tlist.Add(EnumParse<{item.Value.LanguageKeyword}>(splitValue[i]));");
-
                     }
                     else
                     {
@@ -364,7 +371,8 @@ namespace DE.Editor.DataTableTools
 
         private static void GenerateCodeFile(string fileName, string value)
         {
-            var filePath = Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.ExtensionDirectoryPath, fileName + ".cs"));
+            var filePath =
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.ExtensionDirectoryPath, fileName + ".cs"));
             if (File.Exists(filePath)) File.Delete(filePath);
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))

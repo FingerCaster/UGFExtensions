@@ -21,7 +21,7 @@ namespace DE.Editor
     {
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
 
-        [MenuItem("DataTable/ExcelExport", priority = 13)]
+        [MenuItem("DataTable/Excel To Txt", priority = 13)]
         public static void ExcelToTxt()
         {
             if (!Directory.Exists(DataTableConfig.ExcelsFolder))
@@ -69,57 +69,28 @@ namespace DE.Editor
                             Debug.LogErrorFormat("{0} has wrong row num!", fileFullPath);
                             continue;
                         }
-
-                        IRow row1 = sheet.GetRow(3);
-                        int columnCount = row1.Cells.Count;
-                        for (int i = 0; i <= sheet.LastRowNum + 1; i++)
+                        
+                        int columnCount = sheet.GetRow(sheet.LastRowNum).LastCellNum;
+                        for (int i = 0; i <= sheet.LastRowNum; i++)
                         {
                             sb.Clear();
                             IRow row = sheet.GetRow(i);
-                            if (row == null || row.Cells == null)
-                            {
-                                continue;
-                            }
-
-                            bool needContinue = true;
-                            foreach (var cell in row.Cells)
-                            {
-                                if (cell != null && !string.IsNullOrWhiteSpace(cell.ToString()))
-                                    needContinue = false;
-                            }
-
-                            if (needContinue)
-                            {
-                                continue;
-                            }
-
-                            int ci = 0;
                             for (int j = 0; j < columnCount; j++)
                             {
-                                if (ci >= row.Cells.Count)
+                                if (row.GetCell(j) == null)
                                 {
                                     sb.Append("");
                                 }
                                 else
                                 {
-                                    ICell cell = row.Cells[ci];
-                                    if (cell.ColumnIndex > j)
-                                    {
-                                        sb.Append("");
-                                    }
-                                    else
-                                    {
-                                        sb.Append(cell);
-                                        ci++;
-                                    }
+                                    ICell cell = row.GetCell(j);
+                                    sb.Append(cell);
                                 }
-
                                 if (j != columnCount - 1)
                                 {
                                     sb.Append('\t');
                                 }
                             }
-
                             sContents.Add(sb.ToString());
                         }
 
@@ -128,10 +99,6 @@ namespace DE.Editor
                     }
                 }
             }
-
-            DataTableConfig.RefreshDataTables();
-            ExtensionsGenerate.GenerateExtensionByAnalysis();
-            DataTableGeneratorMenu.GenerateDataTables();
             AssetDatabase.Refresh();
         }
     }
