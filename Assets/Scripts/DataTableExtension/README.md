@@ -9,6 +9,8 @@
 
 或使用自带Unity菜单栏中 `DataTable/DataTableEditor `  编辑表格。
 
+**新增: 支持从Excel直接生成二进制和脚本(只支持xlsx格式)。**
+
 List在数据表中的类型为配置  ` list<type>` （不区分大小写）。 type为实现了GenericDataProcessor的类型 
 List内置类型使用` ,`进行分割   其他类型使用 `| `进行分割
 
@@ -80,18 +82,15 @@ GF中实现了GenericDataProcessor的类型有22中 为Boolean,Byte,Char,Color,C
 |          数据表文件路径           |       DataTablePaths       |
 |           数据表文件名            |       DataTableNames       |
 
-如果添加了自定义类型Processor 需要先执行Unity菜单栏中 
 
-`DataTable/GenerateExtensionByAnalysis `
-
-生成解析扩展类否则无法解析自定义类型. 
 
 扩展类中 [BinaryReaderExtension.cs](./Runtime/Extensions/BinaryReaderExtension.cs) 和 [DataTableExtension.cs](./Runtime/Extensions/DataTableExtension.cs) 为默认解析类 不会自动生成 如更改扩展类路径 请自行拷贝。
 
-1. 使用Unity菜单栏中 `DataTable/Generate DataTables` 生成数据实体类
-2. 使用Unity菜单栏中 `DataTable/ExcelToTxt` `DataTable/ExcelToBytes` 通过excel生成对应 Txt 或BytesAndCode
+1. 使用Unity菜单栏中 `DataTable/Generate DataTables From Txt`  根据Txt 格式Datatable 生成数据实体类及二进制文件
+2. 使用Unity菜单栏中 `DataTable/Generate DataTables From Excel`  根据Excel 格式Datatable 生成数据实体类及二进制文件
+3. 使用Unity菜单栏中 `DataTable/ExcelToTxt`  通过excel生成对应 Txt.
 
-
+PS: 调用 `Generate DataTables` 方法时会自动调用 `GenerateExtensionByAnalysis` 生成解析扩展类。 
 
 ## 加载使用 
 
