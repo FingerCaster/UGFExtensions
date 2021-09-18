@@ -23,6 +23,14 @@ namespace DE.Editor.DataTableTools
                 Encoding.UTF8, 1, 2,
                 null, 3, 4, 1);
         }
+        
+        public static DataTableProcessor CreateExcelDataTableProcessor(string dataTableName)
+        {
+            return new DataTableProcessor(
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.ExcelsFolder, dataTableName + ".xlsx")),
+                1, 2,
+                null, 3, 4, 1);
+        }
 
         public static bool CheckRawData(DataTableProcessor dataTableProcessor, string dataTableName)
         {

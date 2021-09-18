@@ -281,7 +281,7 @@ namespace UGFExtensions.Await
                     }
                     else
                     {
-                        source.SetException(new Exception($"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}."));
+                        source.SetException(new GameFrameworkException($"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}."));
                     }
                 },
                 (tempAssetName, status, errorMessage, userdata) =>
