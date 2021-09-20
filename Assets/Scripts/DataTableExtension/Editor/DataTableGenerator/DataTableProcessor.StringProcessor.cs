@@ -6,6 +6,7 @@
 //------------------------------------------------------------
 
 using System.IO;
+using System.Linq;
 
 namespace DE.Editor.DataTableTools
 {
@@ -28,7 +29,7 @@ namespace DE.Editor.DataTableTools
 
             public override string Parse(string value)
             {
-                return value;
+                return m_EscapeStrings.Aggregate(value, (current, escapeString) => current.Replace(escapeString.Key, escapeString.Value));
             }
 
             public override void WriteToStream(DataTableProcessor dataTableProcessor, BinaryWriter binaryWriter,

@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2021-09-18 15:22:29.491
+// 生成时间：2021-09-20 18:33:32.874
 //------------------------------------------------------------
 
 using GameFramework;
@@ -77,6 +77,15 @@ namespace UGFExtensions
             private set;
         }
 
+        /// <summary>
+        /// 获取测试带换行的字符串。
+        /// </summary>
+        public string TestString
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -93,6 +102,7 @@ namespace UGFExtensions
 			TestEnumList = DataTableExtension.ParseTestTestEnumList(columnStrings[index++]);
 			TestEnumArray = DataTableExtension.ParseTestTestEnumArray(columnStrings[index++]);
 			TestEnumDic = DataTableExtension.ParseTestTestEnumInt32Dictionary(columnStrings[index++]);
+			TestString = columnStrings[index++];
             GeneratePropertyArray();
             return true;
         }
@@ -109,6 +119,7 @@ namespace UGFExtensions
 					TestEnumList = binaryReader.ReadTestTestEnumList();
 					TestEnumArray = binaryReader.ReadTestTestEnumArray();
 					TestEnumDic = binaryReader.ReadTestTestEnumInt32Dictionary();
+                    TestString = binaryReader.ReadString();
                 }
             }
 
