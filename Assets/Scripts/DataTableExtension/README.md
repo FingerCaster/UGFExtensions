@@ -4,6 +4,9 @@
 
 # 使用教程
 使用本工具需要熟悉[UnityGameFramework](https://github.com/EllanJiang/UnityGameFramework) 框架中DataTable模块 
+
+使用时需要将`DataTableComponent` 中 `DatatableHelper` 替换为  `UGFExtensions.DataTableHelper`
+
 ## 配置数据表
 使用如(Microsoft Excel,Wps)等工具编辑表格 保存时文件类型选择 文本文件(制表符分隔)(*.txt) 格式也可以自定义 如使用自定义分隔符分隔 需修改 [DataTableProcessor.cs](./Editor/DataTableGenerator/DataTableProcessor.cs)文件中的DataSplitSeparators。
 
