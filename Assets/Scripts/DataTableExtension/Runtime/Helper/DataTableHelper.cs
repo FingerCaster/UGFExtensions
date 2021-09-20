@@ -8,12 +8,12 @@ using GameFramework.DataTable;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace DataTableExtension.Runtime.Helper
+namespace UGFExtensions
 {
     public class DataTableHelper : DataTableHelperBase
     {
         /// <summary>
-        /// 常用转义字符串转换表
+        /// 常用转义字符串转换映射
         /// </summary>
         private static readonly Dictionary<string, string> m_EscapeStrings = new Dictionary<string, string>()
         {
@@ -173,7 +173,7 @@ namespace DataTableExtension.Runtime.Helper
 
         private void Start()
         {
-            m_ResourceComponent = GameEntry.GetComponent<ResourceComponent>();
+            m_ResourceComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<ResourceComponent>();
             if (m_ResourceComponent == null)
             {
                 Log.Fatal("Resource component is invalid.");
