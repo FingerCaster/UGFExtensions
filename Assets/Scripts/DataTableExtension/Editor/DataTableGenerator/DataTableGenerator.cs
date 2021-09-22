@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using GameFramework;
+using NPOI.SS.UserModel;
 using UnityEngine;
 
 namespace DE.Editor.DataTableTools
@@ -24,10 +25,10 @@ namespace DE.Editor.DataTableTools
                 null, 3, 4, 1);
         }
         
-        public static DataTableProcessor CreateExcelDataTableProcessor(string dataTableName)
+        public static DataTableProcessor CreateExcelDataTableProcessor(ISheet sheet)
         {
             return new DataTableProcessor(
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.ExcelsFolder, dataTableName + ".xlsx")),
+                sheet,
                 1, 2,
                 null, 3, 4, 1);
         }

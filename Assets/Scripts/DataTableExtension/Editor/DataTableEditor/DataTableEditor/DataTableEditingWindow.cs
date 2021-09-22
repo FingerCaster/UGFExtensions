@@ -34,7 +34,7 @@ namespace DataTableEditor
         public List<DataTableRowData> RowDatas { get; private set; }
 
         private List<DataTableRowData> RowDatasTemp;
-#if UNITY_2019_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
         private UnityInternalBridge.ReorderableList reorderableList;
 #else
         private ReorderableList reorderableList;
@@ -102,7 +102,7 @@ namespace DataTableEditor
 
             if (reorderableList == null)
             {
-#if UNITY_2019_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
                 reorderableList =
                     new UnityInternalBridge.ReorderableList(RowDatas, typeof(List<DataTableRowData>), true, false, true,
                         true);

@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
 using GameFramework;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,17 +35,25 @@ namespace DE.Editor.DataTableTools
         {
             ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,2);
 
-            foreach (var dataTableName in DataTableConfig.DataTableNames)
+            foreach (var excelFile in DataTableConfig.ExcelFilePaths)
             {
-                var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(dataTableName);
-                if (!DataTableGenerator.CheckRawData(dataTableProcessor, dataTableName))
+                using (FileStream fileStream = new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'", dataTableName));
-                    break;
-                }
+                    var workbook = new XSSFWorkbook(fileStream);
+                    for (int i = 0; i < workbook.NumberOfSheets; i++)
+                    {
+                        ISheet sheet = workbook.GetSheetAt(i);
+                        var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(sheet);
+                        if (!DataTableGenerator.CheckRawData(dataTableProcessor, sheet.SheetName))
+                        {
+                            Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'", sheet.SheetName));
+                            break;
+                        }
 
-                DataTableGenerator.GenerateDataFile(dataTableProcessor, dataTableName);
-                DataTableGenerator.GenerateCodeFile(dataTableProcessor, dataTableName);
+                        DataTableGenerator.GenerateDataFile(dataTableProcessor, sheet.SheetName);
+                        DataTableGenerator.GenerateCodeFile(dataTableProcessor, sheet.SheetName);
+                    }
+                }
             }
 
             AssetDatabase.Refresh();
