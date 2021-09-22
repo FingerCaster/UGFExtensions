@@ -1,0 +1,5 @@
+﻿#	测试表格生成				
+#	Id	TestEnum	TestEnum1	TestEnumList	TestEnumArray
+#	int	Test.TestEnum	Test.TestEnum1	list<Test.TestEnum>	Test.TestEnum[]
+#	编号	测试枚举	测试枚举1	测试枚举list	测试枚举Array
+	1	1	Test3	Test3,2,Test4	1,2,3

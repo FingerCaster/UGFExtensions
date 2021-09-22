@@ -12,7 +12,7 @@
 
 或使用自带Unity菜单栏中 `DataTable/DataTableEditor `  编辑表格。
 
-**新增: 支持从Excel直接生成二进制和脚本(只支持xlsx格式)。**
+**新增: 支持从Excel直接生成二进制和脚本(只支持xlsx格式)。从Excel生成时 二进制文件和脚本名使用Excel SheetName   支持多Sheet**
 
 List在数据表中的类型为配置  ` list<type>` （不区分大小写）。 type为实现了GenericDataProcessor的类型 
 List内置类型使用` ,`进行分割   其他类型使用 `| `进行分割
