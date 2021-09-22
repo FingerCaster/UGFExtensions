@@ -63,6 +63,10 @@ namespace DE.Editor
         /// 数据表文件名
         /// </summary>
         public static string[] DataTableNames;
+        /// <summary>
+        /// Excel表文件路径
+        /// </summary>
+        public static string[] ExcelFilePaths;
         static DataTableConfig()
         {
             RefreshDataTables();
@@ -70,10 +74,13 @@ namespace DE.Editor
 
         public static void RefreshDataTables()
         {
-            var folder = new DirectoryInfo(DataTableFolderPath);
-            DataTablePaths = folder.GetFiles("*.txt").Select(_ => Utility.Path.GetRegularPath(_.FullName))
+            var txtFolder = new DirectoryInfo(DataTableFolderPath);
+            DataTablePaths = txtFolder.GetFiles("*.txt").Select(_ => Utility.Path.GetRegularPath(_.FullName))
                 .ToArray();
-            DataTableNames = folder.GetFiles("*.txt").Select(file => Path.GetFileNameWithoutExtension(file.Name))
+            DataTableNames = txtFolder.GetFiles("*.txt").Select(file => Path.GetFileNameWithoutExtension(file.Name))
+                .ToArray();
+            var excelFolder = new DirectoryInfo(ExcelsFolder);
+            ExcelFilePaths = excelFolder.GetFiles("*.xlsx").Select(_ => Utility.Path.GetRegularPath(_.FullName))
                 .ToArray();
         }
     }

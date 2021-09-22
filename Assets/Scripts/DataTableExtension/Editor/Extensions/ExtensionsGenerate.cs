@@ -33,19 +33,22 @@ namespace DE.Editor.DataTableTools
             }
             else
             {
-                foreach (var dataTableName in DataTableConfig.DataTableNames)
+                
+                foreach (var excelFile in DataTableConfig.ExcelFilePaths)
                 {
-                    string path = Path.Combine(DataTableConfig.ExcelsFolder, dataTableName + ".xlsx");
-                    using (FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (FileStream fileStream = new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         var workbook = new XSSFWorkbook(fileStream);
-                        var sheet = workbook.GetSheetAt(0);
-                        var row = sheet.GetRow(typeLine);
-                        var rawValue = row.Cells.Select(_ => _.ToString().Trim('\"'));
-                        types.AddRange(rawValue);
-                        types = types.Distinct().ToList();
+                        for (int i = 0; i < workbook.NumberOfSheets; i++)
+                        {
+                            var sheet = workbook.GetSheetAt(i);
+                            var row = sheet.GetRow(typeLine);
+                            var rawValue = row.Cells.Select(_ => _.ToString().Trim('\"'));
+                            types.AddRange(rawValue);
+                        }
                     }
                 }
+                types = types.Distinct().ToList();
             }
 
 

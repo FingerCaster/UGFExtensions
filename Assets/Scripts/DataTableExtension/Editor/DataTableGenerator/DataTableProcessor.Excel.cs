@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GameFramework;
+using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using UnityEngine;
 
@@ -10,52 +11,46 @@ namespace DE.Editor.DataTableTools
 {
     public partial class DataTableProcessor
     {
-        public DataTableProcessor(string dataTableFileName, int nameRow, int typeRow,
+        public DataTableProcessor(ISheet sheet, int nameRow, int typeRow,
             int? defaultValueRow, int? commentRow, int contentStartRow, int idColumn)
         {
-            if (string.IsNullOrEmpty(dataTableFileName))
-                throw new GameFrameworkException("Data table file name is invalid.");
-
-            if (!dataTableFileName.EndsWith(".xlsx", StringComparison.Ordinal))
-                throw new GameFrameworkException(Utility.Text.Format("Data table file '{0}' is not a excel.",
-                    dataTableFileName));
-
-            if (!File.Exists(dataTableFileName))
-                throw new GameFrameworkException(Utility.Text.Format("Data table file '{0}' is not exist.",
-                    dataTableFileName));
+            // if (string.IsNullOrEmpty(sheet))
+            //     throw new GameFrameworkException("Data table file name is invalid.");
+            //
+            // if (!dataTableFileName.EndsWith(".xlsx", StringComparison.Ordinal))
+            //     throw new GameFrameworkException(Utility.Text.Format("Data table file '{0}' is not a excel.",
+            //         dataTableFileName));
+            //
+            // if (!File.Exists(dataTableFileName))
+            //     throw new GameFrameworkException(Utility.Text.Format("Data table file '{0}' is not exist.",
+            //         dataTableFileName));
             var rawRowCount = 0;
             var rawColumnCount = 0;
-
-            using (FileStream fileStream =
-                new FileStream(dataTableFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            var rawValues = new List<string[]>();
+            rawRowCount = sheet.LastRowNum + 1;
+            rawColumnCount = sheet.GetRow(sheet.LastRowNum).LastCellNum;
+            for (int i = 0; i <= sheet.LastRowNum; i++)
             {
-                var rawValues = new List<string[]>();
-                var workBook = new XSSFWorkbook(fileStream);
-                var sheet = workBook.GetSheetAt(0);
-                rawRowCount = sheet.LastRowNum + 1;
-                rawColumnCount = sheet.GetRow(sheet.LastRowNum).LastCellNum;
-                for (int i = 0; i <= sheet.LastRowNum; i++)
+                var raw = sheet.GetRow(i);
+                var rawValue = new string[rawColumnCount];
+                for (int j = 0; j < rawColumnCount; j++)
                 {
-                    var raw = sheet.GetRow(i);
-                    var rawValue = new string[rawColumnCount];
-                    for (int j = 0; j < rawColumnCount; j++)
+                    if (raw.GetCell(j) == null)
                     {
-                        if (raw.GetCell(j) == null)
-                        {
-                            rawValue[j] = string.Empty;
-                        }
-                        else
-                        {
-                            rawValue[j] = raw.GetCell(j).ToString();
-                        }
+                        rawValue[j] = string.Empty;
                     }
-
-                    rawValues.Add(rawValue);
+                    else
+                    {
+                        rawValue[j] = raw.GetCell(j).ToString();
+                    }
                 }
 
-                m_RawValues = rawValues.ToArray();
+                rawValues.Add(rawValue);
             }
-            
+
+            m_RawValues = rawValues.ToArray();
+
+
             if (nameRow < 0)
                 throw new GameFrameworkException(Utility.Text.Format("Name row '{0}' is invalid.", nameRow.ToString()));
 
