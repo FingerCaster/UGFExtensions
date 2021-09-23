@@ -8,7 +8,7 @@ namespace DE.Editor
     /// <summary>
     /// 数据表配置类
     /// </summary>
-    public class DataTableConfig
+    public static class DataTableConfig
     {
         /// <summary>
         /// 数据表存放文件夹路径

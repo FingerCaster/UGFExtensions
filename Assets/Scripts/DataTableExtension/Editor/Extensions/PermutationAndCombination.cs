@@ -2,18 +2,16 @@ using System.Collections.Generic;
 
 namespace DE.Editor
 {
-    public class PermutationAndCombination<T>
+    public static class PermutationAndCombination<T>
     {
         /// <summary>
-        ///     交换两个变量
+        /// 交换两个变量
         /// </summary>
         /// <param name="a">变量1</param>
         /// <param name="b">变量2</param>
-        public static void Swap(ref T a, ref T b)
+        private static void Swap(ref T a, ref T b)
         {
-            var temp = a;
-            a = b;
-            b = temp;
+            (a, b) = (b, a);
         }
 
         /// <summary>
