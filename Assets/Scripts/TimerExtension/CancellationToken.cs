@@ -7,38 +7,38 @@ namespace UGFExtensions
 {
     public class CancellationToken
     {
-        private HashSet<Action> actions = new HashSet<Action>();
+        private HashSet<Action> m_Actions = new HashSet<Action>();
 
         public void Add(Action callback)
         {
             // 如果action是null，绝对不能添加,要抛异常，说明有协程泄漏
-            this.actions.Add(callback);
+            m_Actions.Add(callback);
         }
         
         public void Remove(Action callback)
         {
-            this.actions?.Remove(callback);
+            m_Actions?.Remove(callback);
         }
 
         public void Cancel()
         {
-            if (this.actions == null)
+            if (m_Actions == null)
             {
                 return;
             }
             
-            if (this.actions.Count == 0)
+            if (m_Actions.Count == 0)
             {
                 return;
             }
 
-            this.Invoke();
+            Invoke();
         }
 
         private void Invoke()
         {
-            HashSet<Action> runActions = this.actions;
-            this.actions = null;
+            HashSet<Action> runActions = m_Actions;
+            m_Actions = null;
             try
             {
                 foreach (Action action in runActions)
@@ -54,19 +54,19 @@ namespace UGFExtensions
 
         public async void CancelAfter(long afterTimeCancel)
         {
-            if (this.actions == null)
+            if (m_Actions == null)
             {
                 return;
             }
 
-            if (this.actions.Count == 0)
+            if (m_Actions.Count == 0)
             {
                 return;
             }
 
-            await UGFExtensions.GameEntry.Timer.OnceTimerAsync(afterTimeCancel);
+            await GameEntry.Timer.OnceTimerAsync(afterTimeCancel);
             
-            this.Invoke();
+            Invoke();
         }
     }
 }

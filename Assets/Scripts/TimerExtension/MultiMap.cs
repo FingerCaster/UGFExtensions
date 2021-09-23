@@ -1,27 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace UGFExtensions.Timer
 {
     public class MultiMap<T, K>: SortedDictionary<T, List<K>>
     {
-        private readonly List<K> Empty = new List<K>();
+        private readonly List<K> m_Empty = new List<K>();
 
         public void Add(T t, K k)
         {
-            List<K> list;
-            this.TryGetValue(t, out list);
+            TryGetValue(t, out var list);
             if (list == null)
             {
                 list = new List<K>();
-                this.Add(t, list);
+                Add(t, list);
             }
             list.Add(k);
         }
 
         public bool Remove(T t, K k)
         {
-            List<K> list;
-            this.TryGetValue(t, out list);
+            TryGetValue(t, out var list);
             if (list == null)
             {
                 return false;
@@ -32,7 +31,7 @@ namespace UGFExtensions.Timer
             }
             if (list.Count == 0)
             {
-                this.Remove(t);
+                Remove(t);
             }
             return true;
         }
@@ -44,11 +43,10 @@ namespace UGFExtensions.Timer
         /// <returns></returns>
         public K[] GetAll(T t)
         {
-            List<K> list;
-            this.TryGetValue(t, out list);
+            TryGetValue(t, out var list);
             if (list == null)
             {
-                return new K[0];
+                return Array.Empty<K>();
             }
             return list.ToArray();
         }
@@ -62,15 +60,14 @@ namespace UGFExtensions.Timer
         {
             get
             {
-                this.TryGetValue(t, out List<K> list);
-                return list ?? Empty;
+                TryGetValue(t, out List<K> list);
+                return list ?? m_Empty;
             }
         }
 
         public K GetOne(T t)
         {
-            List<K> list;
-            this.TryGetValue(t, out list);
+            TryGetValue(t, out var list);
             if (list != null && list.Count > 0)
             {
                 return list[0];
@@ -80,8 +77,7 @@ namespace UGFExtensions.Timer
 
         public bool Contains(T t, K k)
         {
-            List<K> list;
-            this.TryGetValue(t, out list);
+            TryGetValue(t, out var list);
             if (list == null)
             {
                 return false;

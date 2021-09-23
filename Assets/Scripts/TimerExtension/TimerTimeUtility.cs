@@ -4,14 +4,14 @@ namespace UGFExtensions.Timer
 {
     public static class TimerTimeUtility
     {
-        private static readonly long epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).Ticks;
+        private static readonly long Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).Ticks;
         /// <summary>
         /// 当前时间
         /// </summary>
         /// <returns></returns>
         public static long Now()
         {
-            return (DateTime.UtcNow.Ticks - epoch) / 10000;
+            return (DateTime.UtcNow.Ticks - Epoch) / 10000;
         }
     }
 }

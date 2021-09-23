@@ -43,11 +43,11 @@ namespace UGFExtensions.Timer
             /// <summary>
             /// 自增id
             /// </summary>
-            private static int _serialId;
+            private static int m_SerialId;
 
             static Timer()
             {
-                _serialId = 0;
+                m_SerialId = 0;
             }
 
             /// <summary>
@@ -99,7 +99,7 @@ namespace UGFExtensions.Timer
                 int repeatCount = 0, Action<long> updateCallBack = null)
             {
                 Timer timer = ReferencePool.Acquire<Timer>();
-                timer.ID = _serialId++;
+                timer.ID = m_SerialId++;
                 timer.Time = time;
                 timer.StartTime = startTime;
                 timer.TimerType = timerType;
@@ -170,81 +170,81 @@ namespace UGFExtensions.Timer
         /// <summary>
         /// 存储所有的timer
         /// </summary>
-        private readonly Dictionary<int, Timer> _timers = new Dictionary<int, Timer>();
+        private readonly Dictionary<int, Timer> m_Timers = new Dictionary<int, Timer>();
 
         /// <summary>
         /// 根据timer的到期时间存储 对应的 N个timerId
         /// </summary>
-        private readonly MultiMap<long, int> _timeId = new MultiMap<long, int>();
+        private readonly MultiMap<long, int> m_TimeId = new MultiMap<long, int>();
 
         /// <summary>
         /// 需要执行的 到期时间
         /// </summary>
-        private readonly Queue<long> _timeOutTime = new Queue<long>();
+        private readonly Queue<long> m_TimeOutTime = new Queue<long>();
 
         /// <summary>
         /// 到期的所有 timerId
         /// </summary>
-        private readonly Queue<int> _timeOutTimerIds = new Queue<int>();
+        private readonly Queue<int> m_TimeOutTimerIds = new Queue<int>();
 
         /// <summary>
         /// 暂停的计时器
         /// </summary>
-        private readonly Dictionary<int, PausedTimer> _pausedTimer = new Dictionary<int, PausedTimer>();
+        private readonly Dictionary<int, PausedTimer> m_PausedTimer = new Dictionary<int, PausedTimer>();
 
         /// <summary>
         /// 需要每帧回调的计时器
         /// </summary>
-        private readonly Dictionary<int, Timer> _updateTimer = new Dictionary<int, Timer>();
+        private readonly Dictionary<int, Timer> m_UpdateTimer = new Dictionary<int, Timer>();
 
         /// <summary>
         /// 记录最小时间，不用每次都去MultiMap取第一个值
         /// </summary>
-        private long _minTime;
+        private long m_MinTime;
 
         private void Update()
         {
             RunUpdateCallBack();
-            if (_timeId.Count == 0)
+            if (m_TimeId.Count == 0)
             {
                 return;
             }
 
             long timeNow = TimerTimeUtility.Now();
 
-            if (timeNow < _minTime)
+            if (timeNow < m_MinTime)
             {
                 return;
             }
 
-            foreach (KeyValuePair<long, List<int>> kv in _timeId)
+            foreach (KeyValuePair<long, List<int>> kv in m_TimeId)
             {
                 long k = kv.Key;
                 if (k > timeNow)
                 {
-                    _minTime = k;
+                    m_MinTime = k;
                     break;
                 }
 
-                _timeOutTime.Enqueue(k);
+                m_TimeOutTime.Enqueue(k);
             }
 
-            while (_timeOutTime.Count > 0)
+            while (m_TimeOutTime.Count > 0)
             {
-                long time = _timeOutTime.Dequeue();
-                foreach (int timerId in _timeId[time])
+                long time = m_TimeOutTime.Dequeue();
+                foreach (int timerId in m_TimeId[time])
                 {
-                    _timeOutTimerIds.Enqueue(timerId);
+                    m_TimeOutTimerIds.Enqueue(timerId);
                 }
 
-                _timeId.Remove(time);
+                m_TimeId.Remove(time);
             }
 
-            while (_timeOutTimerIds.Count > 0)
+            while (m_TimeOutTimerIds.Count > 0)
             {
-                int timerId = _timeOutTimerIds.Dequeue();
+                int timerId = m_TimeOutTimerIds.Dequeue();
 
-                _timers.TryGetValue(timerId, out Timer timer);
+                m_Timers.TryGetValue(timerId, out Timer timer);
                 if (timer == null)
                 {
                     continue;
@@ -259,13 +259,13 @@ namespace UGFExtensions.Timer
         /// </summary>
         private void RunUpdateCallBack()
         {
-            if (_updateTimer.Count == 0)
+            if (m_UpdateTimer.Count == 0)
             {
                 return;
             }
 
             long timeNow = TimerTimeUtility.Now();
-            foreach (Timer timer in _updateTimer.Values)
+            foreach (Timer timer in m_UpdateTimer.Values)
             {
                 timer.UpdateCallBack?.Invoke(timer.Time + timer.StartTime - timeNow);
             }
@@ -327,10 +327,10 @@ namespace UGFExtensions.Timer
         /// <param name="id">定时器ID</param>
         private void AddTimer(long tillTime, int id)
         {
-            _timeId.Add(tillTime, id);
-            if (tillTime < _minTime)
+            m_TimeId.Add(tillTime, id);
+            if (tillTime < m_MinTime)
             {
-                _minTime = tillTime;
+                m_MinTime = tillTime;
             }
         }
 
@@ -340,20 +340,20 @@ namespace UGFExtensions.Timer
         /// <param name="id">定时器ID</param>
         private void RemoveTimer(int id)
         {
-            _timers.TryGetValue(id, out Timer timer);
+            m_Timers.TryGetValue(id, out Timer timer);
             if (timer == null)
             {
                 Debug.LogError($"删除了不存在的Timer ID:{id}");
                 return;
             }
-            
+
             ReferencePool.Release(timer);
-            _timers.Remove(id);
-            _updateTimer.Remove(id);
-            if (_pausedTimer.ContainsKey(id))
+            m_Timers.Remove(id);
+            m_UpdateTimer.Remove(id);
+            if (m_PausedTimer.ContainsKey(id))
             {
-                ReferencePool.Release(_pausedTimer[id]);
-                _pausedTimer.Remove(id);
+                ReferencePool.Release(m_PausedTimer[id]);
+                m_PausedTimer.Remove(id);
             }
         }
 
@@ -363,11 +363,11 @@ namespace UGFExtensions.Timer
         /// <param name="id">定时器ID</param>
         public void CancelTimer(int id)
         {
-            if (_pausedTimer.ContainsKey(id))
+            if (m_PausedTimer.ContainsKey(id))
             {
-                ReferencePool.Release(_pausedTimer[id].Timer);
-                ReferencePool.Release(_pausedTimer[id]);
-                _pausedTimer.Remove(id);
+                ReferencePool.Release(m_PausedTimer[id].Timer);
+                ReferencePool.Release(m_PausedTimer[id]);
+                m_PausedTimer.Remove(id);
                 return;
             }
 
@@ -380,7 +380,7 @@ namespace UGFExtensions.Timer
         /// <param name="id">定时器ID</param>
         public bool IsExistTimer(int id)
         {
-            return _pausedTimer.ContainsKey(id) || _timers.ContainsKey(id);
+            return m_PausedTimer.ContainsKey(id) || m_Timers.ContainsKey(id);
         }
 
         /// <summary>
@@ -389,18 +389,18 @@ namespace UGFExtensions.Timer
         /// <param name="id">定时器ID</param>
         public void PauseTimer(int id)
         {
-            _timers.TryGetValue(id, out Timer oldTimer);
+            m_Timers.TryGetValue(id, out Timer oldTimer);
             if (oldTimer == null)
             {
                 Debug.LogError($"Timer不存在 ID:{id}");
                 return;
             }
 
-            _timeId.Remove(oldTimer.StartTime + oldTimer.Time, oldTimer.ID);
-            _timers.Remove(id);
-            _updateTimer.Remove(id);
+            m_TimeId.Remove(oldTimer.StartTime + oldTimer.Time, oldTimer.ID);
+            m_Timers.Remove(id);
+            m_UpdateTimer.Remove(id);
             PausedTimer timer = PausedTimer.Create(TimerTimeUtility.Now(), oldTimer);
-            _pausedTimer.Add(id, timer);
+            m_PausedTimer.Add(id, timer);
         }
 
         /// <summary>
@@ -409,24 +409,24 @@ namespace UGFExtensions.Timer
         /// <param name="id">定时器ID</param>
         public void ResumeTimer(int id)
         {
-            _pausedTimer.TryGetValue(id, out PausedTimer timer);
+            m_PausedTimer.TryGetValue(id, out PausedTimer timer);
             if (timer == null)
             {
                 Debug.LogError($"Timer不存在 ID:{id}");
                 return;
             }
 
-            _timers.Add(id, timer.Timer);
+            m_Timers.Add(id, timer.Timer);
             if (timer.Timer.UpdateCallBack != null)
             {
-                _updateTimer.Add(id, timer.Timer);
+                m_UpdateTimer.Add(id, timer.Timer);
             }
 
             long tillTime = TimerTimeUtility.Now() + timer.GetResidueTime();
             timer.Timer.StartTime += TimerTimeUtility.Now() - timer.PausedTime;
             AddTimer(tillTime, timer.Timer.ID);
             ReferencePool.Release(timer);
-            _pausedTimer.Remove(id);
+            m_PausedTimer.Remove(id);
         }
 
         /// <summary>
@@ -437,20 +437,20 @@ namespace UGFExtensions.Timer
         /// <param name="isChangeRepeat">是否修改如果是RepeatTimer每次运行时间</param>
         public void ChangeTime(int id, long time, bool isChangeRepeat = false)
         {
-            _pausedTimer.TryGetValue(id, out PausedTimer pausedTimer);
+            m_PausedTimer.TryGetValue(id, out PausedTimer pausedTimer);
             if (pausedTimer?.Timer != null)
             {
                 pausedTimer.Timer.Time += time;
                 return;
             }
 
-            _timers.TryGetValue(id, out Timer oldTimer);
+            m_Timers.TryGetValue(id, out Timer oldTimer);
             if (oldTimer == null)
             {
                 Debug.LogError($"Timer不存在 ID:{id}");
             }
 
-            _timeId.Remove(oldTimer.StartTime + oldTimer.Time, oldTimer.ID);
+            m_TimeId.Remove(oldTimer.StartTime + oldTimer.Time, oldTimer.ID);
             if (oldTimer.TimerType == TimerType.Repeated && !isChangeRepeat)
             {
                 oldTimer.StartTime += time;
@@ -479,10 +479,10 @@ namespace UGFExtensions.Timer
 
             long nowTime = TimerTimeUtility.Now();
             Timer timer = Timer.Create(time, nowTime, TimerType.Once, callback, 1, updateCallBack);
-            _timers.Add(timer.ID, timer);
+            m_Timers.Add(timer.ID, timer);
             if (updateCallBack != null)
             {
-                _updateTimer.Add(timer.ID, timer);
+                m_UpdateTimer.Add(timer.ID, timer);
             }
 
             AddTimer(nowTime + time, timer.ID);
@@ -502,14 +502,14 @@ namespace UGFExtensions.Timer
             {
                 return true;
             }
-        
+
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             Timer timer = Timer.Create(time, nowTime, TimerType.OnceWait, tcs);
-            _timers.Add(timer.ID, timer);
+            m_Timers.Add(timer.ID, timer);
             int timerId = timer.ID;
-        
+
             AddTimer(nowTime + time, timerId);
-        
+
             void CancelAction()
             {
                 RemoveTimer(timerId);
@@ -526,7 +526,7 @@ namespace UGFExtensions.Timer
             {
                 cancellationToken?.Remove(CancelAction);
             }
-        
+
             return result;
         }
 
@@ -557,10 +557,10 @@ namespace UGFExtensions.Timer
 
             long nowTime = TimerTimeUtility.Now();
             Timer timer = Timer.Create(time, nowTime, TimerType.Repeated, callback, repeatCount, updateCallback);
-            _timers.Add(timer.ID, timer);
+            m_Timers.Add(timer.ID, timer);
             if (updateCallback != null)
             {
-                _updateTimer.Add(timer.ID, timer);
+                m_UpdateTimer.Add(timer.ID, timer);
             }
 
             AddTimer(nowTime + time, timer.ID);
@@ -577,10 +577,10 @@ namespace UGFExtensions.Timer
 
             long nowTime = TimerTimeUtility.Now();
             Timer timer = Timer.Create(time, nowTime, TimerType.Repeated, callback, repeatCount, updateCallback);
-            _timers.Add(timer.ID, timer);
+            m_Timers.Add(timer.ID, timer);
             if (updateCallback != null)
             {
-                _updateTimer.Add(timer.ID, timer);
+                m_UpdateTimer.Add(timer.ID, timer);
             }
 
             id = timer.ID;
@@ -596,7 +596,7 @@ namespace UGFExtensions.Timer
         {
             long nowTime = TimerTimeUtility.Now();
             Timer timer = Timer.Create(1, nowTime, TimerType.Once, callback);
-            _timers.Add(timer.ID, timer);
+            m_Timers.Add(timer.ID, timer);
             AddTimer(nowTime + 1, timer.ID);
             return timer.ID;
         }
