@@ -37,12 +37,18 @@ namespace UGFExtensions
         /// 自定义数据组件
         /// </summary>
         public static BuiltinDataComponent BuiltinData { get; private set; }
+        
+        /// <summary>
+        /// 数据表扩展组件
+        /// </summary>
+        public static DataTableExtensionComponent DataTableExtension { get; private set; }
         private static void InitCustomComponents()
         {
             Timer = UnityGameFramework.Runtime.GameEntry.GetComponent<TimerComponent>();
             BuiltinData = UnityGameFramework.Runtime.GameEntry.GetComponent<BuiltinDataComponent>();
             SpriteCollection = UnityGameFramework.Runtime.GameEntry.GetComponent<SpriteCollectionComponent>();
             TextureSet = UnityGameFramework.Runtime.GameEntry.GetComponent<TextureSetComponent>();
+            DataTableExtension = UnityGameFramework.Runtime.GameEntry.GetComponent<DataTableExtensionComponent>();
         }
     }
 }
