@@ -58,10 +58,7 @@ namespace UGFExtensions
             {
                 filePath = assetName;
             }
-
-
-            Log.Info(filePath);
-
+            
             DataTableRowConfig rowConfig = new DataTableRowConfig
             {
                 Path = filePath

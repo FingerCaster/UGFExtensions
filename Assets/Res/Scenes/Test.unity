@@ -370,27 +370,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_AvailableProcedureTypeNames.Array.size
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_AvailableProcedureTypeNames.Array.data[0]
-      value: UGFExtensions.Texture.ProcedureFileTextureTest
+      value: UGFExtensions.ProcedureCheckVersion
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_EntranceProcedureTypeName
-      value: UGFExtensions.Texture.ProcedureFileTextureTest
+      value: UGFExtensions.ProcedureCheckVersion
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_AvailableProcedureTypeNames.Array.data[1]
-      value: UGFExtensions.ProcedureDataTableTest
+      value: UGFExtensions.ProcedureTest
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_AvailableProcedureTypeNames.Array.data[2]
-      value: UGFExtensions.ProcedureSpriteCollectionTest
+      value: UGFExtensions.ProcedureUpdateResource
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_AvailableProcedureTypeNames.Array.data[3]
-      value: UGFExtensions.ProcedureSpriteCollectionTest
+      value: UGFExtensions.Texture.ProcedureFileTextureTest
       objectReference: {fileID: 0}
     - target: {fileID: 11405216, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_AvailableProcedureTypeNames.Array.data[4]
@@ -426,7 +426,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11497722, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_ResourceMode
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 11499388, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_EditorResourceMode
@@ -495,9 +495,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4c8494330e440299f2f6a0461e36f4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BuildInfoTextAsset: {fileID: 4900000, guid: 86fb627207ad4fd3b5364840b3ff1c27,
+  m_BuildInfoTextAsset: {fileID: 4900000, guid: 99ffb5c4931eb6a4cac90d63e2aa5e6e,
     type: 3}
-  m_DefaultDictionaryTextAsset: {fileID: 4900000, guid: fd17cfb74eca4ce4bc229e4f216c1220,
+  m_DefaultDictionaryTextAsset: {fileID: 4900000, guid: bab96db1a0634e24bb258477bd8f013b,
     type: 3}
 --- !u!1 &892764399
 GameObject:
@@ -573,6 +573,7 @@ Transform:
   - {fileID: 853713483}
   - {fileID: 1943493616}
   - {fileID: 258570482}
+  - {fileID: 1525966142}
   m_Father: {fileID: 1526862584}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -741,6 +742,50 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1525966141
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1525966142}
+  - component: {fileID: 1525966143}
+  m_Layer: 0
+  m_Name: DataTableExtension
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1525966142
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525966141}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1162756258}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1525966143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525966141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5c9de7fd6404c6fac943297e066ec27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_InitBufferLength: 65536
 --- !u!1 &1526862583
 GameObject:
   m_ObjectHideFlags: 0

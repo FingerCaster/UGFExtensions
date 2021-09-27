@@ -1,0 +1,7 @@
+{
+  "CheckVersionUrl": "http://192.168.1.110/{0}/version.txt",
+  "StandaloneAppUrl": "http://???",
+  "IosAppUrl": "http://???",
+  "AndroidAppUrl": "http://???",
+  "END_OF_JSON": ""
+}
