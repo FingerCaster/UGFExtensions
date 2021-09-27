@@ -34,6 +34,10 @@ namespace UGFExtensions
 
         public void LoadDataTableRowConfig<T>(string assetName) where T : class, IDataRow, new()
         {
+            if (m_DataTableRowConfigs.TryGetValue(typeof(T),out _))
+            {
+                return;
+            }
             string filePath;
             if (!GameEntry.Base.EditorResourceMode)
             {
@@ -129,6 +133,21 @@ namespace UGFExtensions
 
                 return dataTableBase.GetAllDataRows();
             }
+        }
+        
+        public bool DestroyDataTable<T>() where T : IDataRow
+        {
+            IDataTable<T> dataTable = GameEntry.DataTable.GetDataTable<T>();
+            if (dataTable==null)
+            {
+                return true;
+            }
+            var result = GameEntry.DataTable.DestroyDataTable(dataTable);
+            if (result)
+            {
+                m_DataTableRowConfigs.Remove(typeof(T));
+            }
+            return result;
         }
 
         /// <summary>
