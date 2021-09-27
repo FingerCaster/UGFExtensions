@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GameFramework;
-using NPOI.XSSF.UserModel;
+using OfficeOpenXml;
 using UnityEditor;
 using UnityEngine;
 
@@ -23,7 +23,7 @@ namespace DE.Editor.DataTableTools
             List<string> types = new List<string>(32);
             if (dataTableType == DataTableType.Txt)
             {
-                foreach (var dataTableFileName in DataTableConfig.DataTablePaths)
+                foreach (var dataTableFileName in DataTableConfig.TxtFilePaths)
                 {
                     var lines = File.ReadAllLines(dataTableFileName, Encoding.UTF8);
                     var rawValue = lines[typeLine].Split('\t');
@@ -33,21 +33,24 @@ namespace DE.Editor.DataTableTools
             }
             else
             {
-                
                 foreach (var excelFile in DataTableConfig.ExcelFilePaths)
                 {
-                    using (FileStream fileStream = new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (FileStream fileStream =
+                        new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
-                        var workbook = new XSSFWorkbook(fileStream);
-                        for (int i = 0; i < workbook.NumberOfSheets; i++)
+                        using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
                         {
-                            var sheet = workbook.GetSheetAt(i);
-                            var row = sheet.GetRow(typeLine);
-                            var rawValue = row.Cells.Select(_ => _.ToString().Trim('\"'));
-                            types.AddRange(rawValue);
+                            for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
+                            {
+                                var sheet = excelPackage.Workbook.Worksheets[i];
+                                var row = sheet.Cells.Where(_ => _.Rows == DataTableConfig.TypeRow).ToArray();
+                                var rawValue = row.Select(_ => _.Value.ToString().Trim('\"'));
+                                types.AddRange(rawValue);
+                            }
                         }
                     }
                 }
+
                 types = types.Distinct().ToList();
             }
 

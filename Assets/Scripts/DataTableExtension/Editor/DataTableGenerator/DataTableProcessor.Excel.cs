@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GameFramework;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
+using OfficeOpenXml;
 using UnityEngine;
 
 namespace DE.Editor.DataTableTools
 {
     public partial class DataTableProcessor
     {
-        public DataTableProcessor(ISheet sheet, int nameRow, int typeRow,
+        public DataTableProcessor(ExcelWorksheet sheet, int nameRow, int typeRow,
             int? defaultValueRow, int? commentRow, int contentStartRow, int idColumn)
         {
             // if (string.IsNullOrEmpty(sheet))
@@ -27,24 +26,32 @@ namespace DE.Editor.DataTableTools
             var rawRowCount = 0;
             var rawColumnCount = 0;
             var rawValues = new List<string[]>();
-            rawRowCount = sheet.LastRowNum + 1;
-            rawColumnCount = sheet.GetRow(sheet.LastRowNum).LastCellNum;
-            for (int i = 0; i <= sheet.LastRowNum; i++)
+            rawColumnCount = sheet.Dimension.End.Column;
+            for (int i = 1; i <= sheet.Dimension.End.Row; i++)
             {
-                var raw = sheet.GetRow(i);
-                var rawValue = new string[rawColumnCount];
-                for (int j = 0; j < rawColumnCount; j++)
+                if (i>DataTableConfig.ContentStartRow)
                 {
-                    if (raw.GetCell(j) == null)
+                    //跳过没有id的空行
+                    if (sheet.Cells[i, DataTableConfig.IdColumn+1].Value == null)
                     {
-                        rawValue[j] = string.Empty;
+                        continue;
+                    }
+                }
+                var rawValue = new string[rawColumnCount];
+                for (int j = 1; j <= rawColumnCount; j++)
+                {
+                    if (sheet.Cells[i,j].Value == null)
+                    {
+                        rawValue[j-1] = string.Empty;
                     }
                     else
                     {
-                        rawValue[j] = raw.GetCell(j).ToString();
+                        rawValue[j-1] = sheet.Cells[i,j].Value.ToString();
                     }
                 }
 
+                rawRowCount++;
+               
                 rawValues.Add(rawValue);
             }
 

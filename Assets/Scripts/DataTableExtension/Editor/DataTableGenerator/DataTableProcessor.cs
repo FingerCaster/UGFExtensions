@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GameFramework;
+using GameFramework.FileSystem;
+using UGFExtensions;
 using UnityEngine;
 
 namespace DE.Editor.DataTableTools
@@ -32,6 +34,7 @@ namespace DE.Editor.DataTableTools
         private DataTableCodeGenerator m_CodeGenerator;
 
         private string m_CodeTemplate;
+        
 
         public DataTableProcessor(string dataTableFileName, Encoding encoding, int nameRow, int typeRow,
             int? defaultValueRow, int? commentRow, int contentStartRow, int idColumn)
@@ -324,7 +327,6 @@ namespace DE.Editor.DataTableTools
 
             return -1;
         }
-
         public bool GenerateDataFile(string outputFileName)
         {
             if (string.IsNullOrEmpty(outputFileName)) throw new GameFrameworkException("Output file name is invalid.");
@@ -338,7 +340,7 @@ namespace DE.Editor.DataTableTools
                         for (var rawRow = ContentStartRow; rawRow < RawRowCount; rawRow++)
                         {
                             if (IsCommentRow(rawRow)) continue;
-
+                            
                             var bytes = GetRowBytes(outputFileName, rawRow);
                             binaryWriter.Write7BitEncodedInt32(bytes.Length);
                             binaryWriter.Write(bytes);
@@ -346,6 +348,57 @@ namespace DE.Editor.DataTableTools
                     }
                 }
 
+                Debug.Log(Utility.Text.Format("Parse data table '{0}' success.", outputFileName));
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(Utility.Text.Format("Parse data table '{0}' failure, exception is '{1}'.",
+                    outputFileName, exception.ToString()));
+                return false;
+            }
+        }
+        
+        public bool GenerateFileSystemFile(string outputFileName)
+        {
+            string tempFile = "~Temp.bytes";
+            if (string.IsNullOrEmpty(outputFileName)) throw new GameFrameworkException("Output file name is invalid.");
+            try
+            {
+                using (var tempStream = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    using (var tempWriter = new BinaryWriter(tempStream, Encoding.UTF8))
+                    {
+                        DataTableRowConfig tableConfig = new DataTableRowConfig();
+                        int lastLength = 0;
+                        tableConfig.DataTableRowSettings = new Dictionary<int, DataTableRowSetting>(RawRowCount - ContentStartRow);
+                        for (var rawRow = ContentStartRow; rawRow < RawRowCount; rawRow++)
+                        {
+                            if (IsCommentRow(rawRow)) continue;
+                            string id = GetValue(rawRow, IdColumn);
+                            var bytes = GetRowBytes(outputFileName, rawRow);
+                            tableConfig.DataTableRowSettings.Add(Int32.Parse(id), new DataTableRowSetting(lastLength, bytes.Length));
+                            lastLength += bytes.Length;
+                            tableConfig.Count++;
+                            tempWriter.Write(bytes);
+                        }
+
+                        using (FileStream fileStream = new FileStream(outputFileName,FileMode.Create,FileAccess.Write))
+                        {
+                            using (var binaryWriter = new BinaryWriter(fileStream))
+                            {
+                                var tableConfigBytes =tableConfig.Serialize();
+                                binaryWriter.Write7BitEncodedInt32(tableConfigBytes.Length);
+                                binaryWriter.Write(tableConfigBytes);
+                                tempStream.Seek(0, SeekOrigin.Begin);
+                                tempStream.CopyTo(fileStream);
+                            }
+                        }
+                    }
+                }
+
+                File.Delete(tempFile);
+                
                 Debug.Log(Utility.Text.Format("Parse data table '{0}' success.", outputFileName));
                 return true;
             }

@@ -20,7 +20,7 @@ namespace DataTableEditor
         [SerializeField] private SearchableData m_Data;
         private SerializedProperty m_DataProperty;
 
-        [MenuItem("DataTable/DataTableEditor &1", priority = 2)]
+        [MenuItem("DataTable/DataTableEditor &1", priority = 0)]
         public static void OpenWindow()
         {
             LauncherEditorWindow window = GetWindow<LauncherEditorWindow>();

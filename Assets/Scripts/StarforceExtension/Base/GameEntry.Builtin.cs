@@ -177,6 +177,14 @@ namespace UGFExtensions
             get;
             private set;
         }
+        /// <summary>
+        /// 获取网络组件。
+        /// </summary>
+        public static FileSystemComponent FileSystem
+        {
+            get;
+            private set;
+        }
 
         private static void InitBuiltinComponents()
         {
@@ -198,7 +206,8 @@ namespace UGFExtensions
             Setting = UnityGameFramework.Runtime.GameEntry.GetComponent<SettingComponent>();
             Sound = UnityGameFramework.Runtime.GameEntry.GetComponent<SoundComponent>();
             UI = UnityGameFramework.Runtime.GameEntry.GetComponent<UIComponent>();
-            WebRequest = UnityGameFramework.Runtime.GameEntry.GetComponent<UnityGameFramework.Runtime.WebRequestComponent>();
+            WebRequest = UnityGameFramework.Runtime.GameEntry.GetComponent<WebRequestComponent>();
+            FileSystem = UnityGameFramework.Runtime.GameEntry.GetComponent<FileSystemComponent>();
         }
     }
 }

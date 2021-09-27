@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using GameFramework;
-using NPOI.SS.UserModel;
+using OfficeOpenXml;
 using UnityEngine;
 
 namespace DE.Editor.DataTableTools
@@ -25,7 +25,7 @@ namespace DE.Editor.DataTableTools
                 null, 3, 4, 1);
         }
         
-        public static DataTableProcessor CreateExcelDataTableProcessor(ISheet sheet)
+        public static DataTableProcessor CreateExcelDataTableProcessor(ExcelWorksheet sheet)
         {
             return new DataTableProcessor(
                 sheet,
@@ -57,6 +57,14 @@ namespace DE.Editor.DataTableTools
                 Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.DataTableFolderPath,
                     dataTableName + ".bytes"));
             if (!dataTableProcessor.GenerateDataFile(binaryDataFileName) && File.Exists(binaryDataFileName))
+                File.Delete(binaryDataFileName);
+        }
+        public static void GenerateFileSystemFile(DataTableProcessor dataTableProcessor, string dataTableName)
+        {
+            var binaryDataFileName =
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.DataTableFolderPath,
+                    dataTableName + ".bytes"));
+            if (!dataTableProcessor.GenerateFileSystemFile(binaryDataFileName) && File.Exists(binaryDataFileName))
                 File.Delete(binaryDataFileName);
         }
 

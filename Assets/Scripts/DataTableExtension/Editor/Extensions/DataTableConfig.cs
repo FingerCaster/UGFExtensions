@@ -8,7 +8,7 @@ namespace DE.Editor
     /// <summary>
     /// 数据表配置类
     /// </summary>
-    public class DataTableConfig
+    public static class DataTableConfig
     {
         /// <summary>
         /// 数据表存放文件夹路径
@@ -58,7 +58,7 @@ namespace DE.Editor
         /// <summary>
         /// 数据表文件路径
         /// </summary>
-        public static string[] DataTablePaths;
+        public static string[] TxtFilePaths;
         /// <summary>
         /// 数据表文件名
         /// </summary>
@@ -71,16 +71,21 @@ namespace DE.Editor
         {
             RefreshDataTables();
         }
+        public static int NameRow = 1;
+        public static int TypeRow = 2;
+        public static int CommentRow = 3;
+        public static int ContentStartRow = 4;
 
+        public static int IdColumn = 1;
         public static void RefreshDataTables()
         {
             var txtFolder = new DirectoryInfo(DataTableFolderPath);
-            DataTablePaths = txtFolder.GetFiles("*.txt").Select(_ => Utility.Path.GetRegularPath(_.FullName))
+            TxtFilePaths = txtFolder.GetFiles("*.txt").Select(_ => Utility.Path.GetRegularPath(_.FullName))
                 .ToArray();
             DataTableNames = txtFolder.GetFiles("*.txt").Select(file => Path.GetFileNameWithoutExtension(file.Name))
                 .ToArray();
             var excelFolder = new DirectoryInfo(ExcelsFolder);
-            ExcelFilePaths = excelFolder.GetFiles("*.xlsx").Select(_ => Utility.Path.GetRegularPath(_.FullName))
+            ExcelFilePaths = excelFolder.GetFiles("*.xlsx").Where(_=>!_.Name.StartsWith("~$")).Select(_ => Utility.Path.GetRegularPath(_.FullName))
                 .ToArray();
         }
     }

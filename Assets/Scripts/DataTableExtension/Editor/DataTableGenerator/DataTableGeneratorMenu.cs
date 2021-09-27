@@ -1,20 +1,21 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using GameFramework;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
+using OfficeOpenXml;
 using UnityEditor;
-using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace DE.Editor.DataTableTools
 {
     public sealed class DataTableGeneratorMenu
     {
-
-        [MenuItem("DataTable/Generate DataTables From Txt")]
-        public static void GenerateDataTables()
+        [MenuItem("DataTable/Generate DataTables/From Txt", priority= 2)]
+        public static void GenerateDataTablesFromTxtNotFileSystem()
         {
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,2);
+            DataTableConfig.RefreshDataTables();
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt, 2);
             foreach (var dataTableName in DataTableConfig.DataTableNames)
             {
                 var dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
@@ -30,32 +31,92 @@ namespace DE.Editor.DataTableTools
 
             AssetDatabase.Refresh();
         }
-        [MenuItem("DataTable/Generate DataTables From Excel")]
-        public static void GenerateDataTablesFormExcel()
-        {
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,2);
 
+        [MenuItem("DataTable/Generate DataTables/From Excel", priority= 2)]
+        public static void GenerateDataTablesFormExcelNotFileSystem()
+        {
+            DataTableConfig.RefreshDataTables();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel, 2);
             foreach (var excelFile in DataTableConfig.ExcelFilePaths)
             {
-                using (FileStream fileStream = new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (FileStream fileStream =
+                    new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    var workbook = new XSSFWorkbook(fileStream);
-                    for (int i = 0; i < workbook.NumberOfSheets; i++)
+                    using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
                     {
-                        ISheet sheet = workbook.GetSheetAt(i);
-                        var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(sheet);
-                        if (!DataTableGenerator.CheckRawData(dataTableProcessor, sheet.SheetName))
+                        for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
                         {
-                            Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'", sheet.SheetName));
-                            break;
-                        }
+                            ExcelWorksheet sheet = excelPackage.Workbook.Worksheets[i];
+                            var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(sheet);
+                            if (!DataTableGenerator.CheckRawData(dataTableProcessor, sheet.Name))
+                            {
+                                Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'",
+                                    sheet.Name));
+                                break;
+                            }
 
-                        DataTableGenerator.GenerateDataFile(dataTableProcessor, sheet.SheetName);
-                        DataTableGenerator.GenerateCodeFile(dataTableProcessor, sheet.SheetName);
+                            DataTableGenerator.GenerateDataFile(dataTableProcessor, sheet.Name);
+                            DataTableGenerator.GenerateCodeFile(dataTableProcessor, sheet.Name);
+                        }
                     }
                 }
             }
 
+            AssetDatabase.Refresh();
+        }
+
+        [MenuItem("DataTable/Generate DataTables/From Txt Use FileSystem", priority= 20)]
+        public static void GenerateDataTablesFromTxtFileSystem()
+        {
+            DataTableConfig.RefreshDataTables();
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt, 2);
+            foreach (var dataTableName in DataTableConfig.DataTableNames)
+            {
+                var dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
+                if (!DataTableGenerator.CheckRawData(dataTableProcessor, dataTableName))
+                {
+                    Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'", dataTableName));
+                    break;
+                }
+
+                DataTableGenerator.GenerateFileSystemFile(dataTableProcessor, dataTableName);
+                DataTableGenerator.GenerateCodeFile(dataTableProcessor, dataTableName);
+            }
+
+            AssetDatabase.Refresh();
+        }
+
+        [MenuItem("DataTable/Generate DataTables/From Excel Use FileSystem", priority= 20)]
+        public static void GenerateDataTablesFormExcelFileSystem()
+        {
+            DataTableConfig.RefreshDataTables();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel, 2);
+            foreach (var excelFile in DataTableConfig.ExcelFilePaths)
+            {
+                using (FileStream fileStream =
+                    new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
+                    {
+                        for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
+                        {
+                            ExcelWorksheet sheet = excelPackage.Workbook.Worksheets[i];
+                            var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(sheet);
+                            if (!DataTableGenerator.CheckRawData(dataTableProcessor, sheet.Name))
+                            {
+                                Debug.LogError(Utility.Text.Format("Check raw data failure. DataTableName='{0}'",
+                                    sheet.Name));
+                                break;
+                            }
+
+                            DataTableGenerator.GenerateFileSystemFile(dataTableProcessor, sheet.Name);
+                            DataTableGenerator.GenerateCodeFile(dataTableProcessor, sheet.Name);
+                        }
+                    }
+                }
+            }
             AssetDatabase.Refresh();
         }
     }
