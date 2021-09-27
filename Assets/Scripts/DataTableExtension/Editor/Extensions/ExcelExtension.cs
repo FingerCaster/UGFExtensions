@@ -77,8 +77,7 @@ namespace DE.Editor
                             {
                                 if (i>DataTableConfig.ContentStartRow)
                                 {
-                                    if (sheet.Cells[i, DataTableConfig.IdColumn+1] == null ||
-                                        string.IsNullOrEmpty(sheet.Cells[i, DataTableConfig.IdColumn+1].Value.ToString()))
+                                    if (sheet.Cells[i, DataTableConfig.IdColumn+1].Value == null)
                                     {
                                         continue;
                                     }

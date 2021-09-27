@@ -31,8 +31,8 @@ namespace DE.Editor.DataTableTools
             {
                 if (i>DataTableConfig.ContentStartRow)
                 {
-                    if (sheet.Cells[i, DataTableConfig.IdColumn+1] == null ||
-                        string.IsNullOrEmpty(sheet.Cells[i, DataTableConfig.IdColumn+1].Value.ToString()))
+                    //跳过没有id的空行
+                    if (sheet.Cells[i, DataTableConfig.IdColumn+1].Value == null)
                     {
                         continue;
                     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using GameFramework;
 using GameFramework.DataTable;
+using GameFramework.FileSystem;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -65,15 +66,21 @@ namespace UGFExtensions
             {
                 Path = filePath
             };
-            using (FileStream fileStream = new FileStream(rowConfig.Path, FileMode.Open, FileAccess.Read))
+
+            using (IFileStream fileStream = FileStreamHelper.CreateFileStream(rowConfig.Path))
             {
-                fileStream.Position = 0;
-                using (BinaryReader binaryReader = new BinaryReader(fileStream))
+                fileStream.Seek(0, SeekOrigin.Begin);
+                fileStream.Read(m_Buffer, 0, 32);
+                using (MemoryStream memoryStream = new MemoryStream(m_Buffer,0,32))
                 {
-                    int count = binaryReader.Read7BitEncodedInt32();
-                    EnsureBufferSize(count);
-                    int configLength = fileStream.Read(m_Buffer, 0, count);
-                    rowConfig.DeSerialize(m_Buffer, 0, configLength, (int)fileStream.Position);
+                    using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                    {
+                        int count = binaryReader.Read7BitEncodedInt32(out int length);
+                        fileStream.Seek(length, SeekOrigin.Begin);
+                        EnsureBufferSize(count);
+                        long configLength = fileStream.Read(m_Buffer, 0, count);
+                        rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length+count);
+                    }
                 }
             }
 
@@ -93,12 +100,12 @@ namespace UGFExtensions
                 return dataTableBase.GetDataRow(id);
             }
 
-            using (FileStream fileStream = new FileStream(config.Path, FileMode.Open, FileAccess.Read))
+            using (IFileStream fileStream = FileStreamHelper.CreateFileStream(config.Path))
             {
                 fileStream.Seek(value.StartIndex, SeekOrigin.Begin);
                 EnsureBufferSize(value.Length);
-                int length = fileStream.Read(m_Buffer, 0, value.Length);
-                dataTableBase.AddDataRow(m_Buffer, 0, length, null);
+                long length = fileStream.Read(m_Buffer, 0, value.Length);
+                dataTableBase.AddDataRow(m_Buffer, 0, (int)length, null);
                 return dataTableBase.GetDataRow(id);
             }
         }
@@ -107,7 +114,7 @@ namespace UGFExtensions
         {
             m_DataTableRowConfigs.TryGetValue(typeof(T), out var config);
             if (config == null) return default;
-            using (FileStream fileStream = new FileStream(config.Path, FileMode.Open, FileAccess.Read))
+            using (IFileStream fileStream = FileStreamHelper.CreateFileStream(config.Path))
             {
                 IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();
                 foreach (var dataTableSetting in config.DataTableRowSettings)
@@ -119,8 +126,8 @@ namespace UGFExtensions
 
                     fileStream.Seek(dataTableSetting.Value.StartIndex, SeekOrigin.Begin);
                     EnsureBufferSize(dataTableSetting.Value.Length);
-                    int length = fileStream.Read(m_Buffer, 0, dataTableSetting.Value.Length);
-                    dataTableBase.AddDataRow(m_Buffer, 0, length, null);
+                    long length = fileStream.Read(m_Buffer, 0, dataTableSetting.Value.Length);
+                    dataTableBase.AddDataRow(m_Buffer, 0, (int)length, null);
                 }
 
                 return dataTableBase.GetAllDataRows();

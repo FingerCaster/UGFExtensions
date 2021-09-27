@@ -11,7 +11,7 @@ namespace DE.Editor.DataTableTools
 {
     public sealed class DataTableGeneratorMenu
     {
-        [MenuItem("DataTable/Generate DataTables/From Txt", false, 1)]
+        [MenuItem("DataTable/Generate DataTables/From Txt", priority= 2)]
         public static void GenerateDataTablesFromTxtNotFileSystem()
         {
             DataTableConfig.RefreshDataTables();
@@ -32,7 +32,7 @@ namespace DE.Editor.DataTableTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("DataTable/Generate DataTables/From Excel", false, 1)]
+        [MenuItem("DataTable/Generate DataTables/From Excel", priority= 2)]
         public static void GenerateDataTablesFormExcelNotFileSystem()
         {
             DataTableConfig.RefreshDataTables();
@@ -66,7 +66,7 @@ namespace DE.Editor.DataTableTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("DataTable/Generate DataTables/From Txt Use FileSystem", false, 20)]
+        [MenuItem("DataTable/Generate DataTables/From Txt Use FileSystem", priority= 20)]
         public static void GenerateDataTablesFromTxtFileSystem()
         {
             DataTableConfig.RefreshDataTables();
@@ -87,13 +87,12 @@ namespace DE.Editor.DataTableTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("DataTable/Generate DataTables/From Excel Use FileSystem", false, 20)]
+        [MenuItem("DataTable/Generate DataTables/From Excel Use FileSystem", priority= 20)]
         public static void GenerateDataTablesFormExcelFileSystem()
         {
             DataTableConfig.RefreshDataTables();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel, 2);
-
             foreach (var excelFile in DataTableConfig.ExcelFilePaths)
             {
                 using (FileStream fileStream =
@@ -118,26 +117,7 @@ namespace DE.Editor.DataTableTools
                     }
                 }
             }
-
             AssetDatabase.Refresh();
-        }
-        
-        [MenuItem("DataTable/Test Open Excel Time EPPlus", false, 20)]
-        public static void TestLoadExcelEPPlus()
-        {
-            string path = @"G:\Github\UGFExtensions\Excels\TestEnum.xlsx";
-            // System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            // ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            using (FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
-                {
-                    Debug.Log($"OpenExcel time :{stopwatch.ElapsedMilliseconds}");
-                }
-            }
-
-            stopwatch.Stop();
         }
     }
 }

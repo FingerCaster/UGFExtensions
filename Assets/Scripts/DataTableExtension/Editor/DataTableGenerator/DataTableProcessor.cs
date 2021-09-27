@@ -361,33 +361,43 @@ namespace DE.Editor.DataTableTools
         
         public bool GenerateFileSystemFile(string outputFileName)
         {
+            string tempFile = "~Temp.bytes";
             if (string.IsNullOrEmpty(outputFileName)) throw new GameFrameworkException("Output file name is invalid.");
             try
             {
-                using (var fileStream = new FileStream(outputFileName, FileMode.Create, FileAccess.Write))
+                using (var tempStream = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite))
                 {
-                    using (var binaryWriter = new BinaryWriter(fileStream, Encoding.UTF8))
+                    using (var tempWriter = new BinaryWriter(tempStream, Encoding.UTF8))
                     {
                         DataTableRowConfig tableConfig = new DataTableRowConfig();
                         int lastLength = 0;
-                        List<byte> byteList = new List<byte>(4096);
                         tableConfig.DataTableRowSettings = new Dictionary<int, DataTableRowSetting>(RawRowCount - ContentStartRow);
                         for (var rawRow = ContentStartRow; rawRow < RawRowCount; rawRow++)
                         {
                             if (IsCommentRow(rawRow)) continue;
                             string id = GetValue(rawRow, IdColumn);
                             var bytes = GetRowBytes(outputFileName, rawRow);
-                            byteList.AddRange(bytes);
                             tableConfig.DataTableRowSettings.Add(Int32.Parse(id), new DataTableRowSetting(lastLength, bytes.Length));
                             lastLength += bytes.Length;
                             tableConfig.Count++;
+                            tempWriter.Write(bytes);
                         }
-                        var tableConfigBytes =tableConfig.Serialize();
-                        binaryWriter.Write7BitEncodedInt32(tableConfigBytes.Length);
-                        binaryWriter.Write(tableConfigBytes);
-                        binaryWriter.Write(byteList.ToArray());
+
+                        using (FileStream fileStream = new FileStream(outputFileName,FileMode.Create,FileAccess.Write))
+                        {
+                            using (var binaryWriter = new BinaryWriter(fileStream))
+                            {
+                                var tableConfigBytes =tableConfig.Serialize();
+                                binaryWriter.Write7BitEncodedInt32(tableConfigBytes.Length);
+                                binaryWriter.Write(tableConfigBytes);
+                                tempStream.Seek(0, SeekOrigin.Begin);
+                                tempStream.CopyTo(fileStream);
+                            }
+                        }
                     }
                 }
+
+                File.Delete(tempFile);
                 
                 Debug.Log(Utility.Text.Format("Parse data table '{0}' success.", outputFileName));
                 return true;
