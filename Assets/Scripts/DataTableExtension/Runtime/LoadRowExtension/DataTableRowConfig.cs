@@ -22,6 +22,10 @@ namespace UGFExtensions
         /// 数据表文件路径
         /// </summary>
         public string Path { get; set; }
+        /// <summary>
+        /// 文件流
+        /// </summary>
+        public IFileStream FileStream { get; set; }
 #if UNITY_EDITOR
         /// <summary>
         /// 序列化数据表配置
