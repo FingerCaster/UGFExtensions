@@ -2,6 +2,8 @@
 对[UnityGameFramework](https://github.com/EllanJiang/UnityGameFramework)中DataTable模块的扩展  支持List,数组,字典  不支持嵌套   只支持一维
 新增对枚举的支持
 
+**新增配置表的按需读取**
+
 # 使用教程
 使用本工具需要熟悉[UnityGameFramework](https://github.com/EllanJiang/UnityGameFramework) 框架中DataTable模块 
 
@@ -89,8 +91,8 @@ GF中实现了GenericDataProcessor的类型有22中 为Boolean,Byte,Char,Color,C
 
 扩展类中 [BinaryReaderExtension.cs](./Runtime/Extensions/BinaryReaderExtension.cs) 和 [DataTableExtension.cs](./Runtime/Extensions/DataTableExtension.cs) 为默认解析类 不会自动生成 如更改扩展类路径 请自行拷贝。
 
-1. 使用Unity菜单栏中 `DataTable/Generate DataTables From Txt`  根据Txt 格式Datatable 生成数据实体类及二进制文件
-2. 使用Unity菜单栏中 `DataTable/Generate DataTables From Excel`  根据Excel 格式Datatable 生成数据实体类及二进制文件
+1. 使用Unity菜单栏中 `DataTable/Generate DataTables/From Txt`  根据Txt 格式Datatable 生成数据实体类及二进制文件
+2. 使用Unity菜单栏中 `DataTable/Generate DataTables/From Excel`  根据Excel 格式Datatable 生成数据实体类及二进制文件
 3. 使用Unity菜单栏中 `DataTable/ExcelToTxt`  通过excel生成对应 Txt.
 
 PS: 调用 `Generate DataTables` 方法时会自动调用 `GenerateExtensionByAnalysis` 生成解析扩展类。 
@@ -98,6 +100,19 @@ PS: 调用 `Generate DataTables` 方法时会自动调用 `GenerateExtensionByAn
 ## 加载使用 
 
 请自行查看[UnityGameFramework](https://github.com/EllanJiang/UnityGameFramework) 中DataTable模块使用方法
+
+
+
+## 配置表按需读取说明
+
+1. 使用Unity菜单栏中 `DataTable/Generate DataTables/From Txt Use FileSystem`  根据Txt 格式Datatable 生成数据实体类及二进制文件
+2. 使用Unity菜单栏中 `DataTable/Generate DataTables/From Excel Use FileSystem`  根据Excel 格式Datatable 生成数据实体类及二进制文件
+3. 加载需要使用`DataTableExtensionComponent`   其中接口均为 同步读取。
+   * 按需加载数据表 需要先加载配置 `LoadDataTableRowConfig`  参数为 资源的 Assets全路径
+   * 加载时使用`GetDataRow` 获取对应行数据 
+   * 加载全部数据 使用`GetAllDataRows`
+4. 打包AB 时 数据表加载 必需要设置为 `Load From Binary`
+5. 不支持webgl
 
 # 引用库
 
