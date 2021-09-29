@@ -32,12 +32,14 @@ namespace UGFExtensions
             m_Buffer = new byte[m_InitBufferLength];
         }
 
-        public void LoadDataTableRowConfig<T>(string assetName) where T : class, IDataRow, new()
+        public void LoadDataTableRowConfig<T>(string assetName, bool isCacheFileStream = true)
+            where T : class, IDataRow, new()
         {
-            if (m_DataTableRowConfigs.TryGetValue(typeof(T),out _))
+            if (m_DataTableRowConfigs.TryGetValue(typeof(T), out _))
             {
                 return;
             }
+
             string filePath;
             if (!GameEntry.Base.EditorResourceMode)
             {
@@ -62,27 +64,33 @@ namespace UGFExtensions
             {
                 filePath = assetName;
             }
-            
+
+            IFileStream fileStream = FileStreamHelper.CreateFileStream(filePath);
+
             DataTableRowConfig rowConfig = new DataTableRowConfig
             {
-                Path = filePath
+                Path = filePath,
+                FileStream = fileStream,
             };
 
-            using (IFileStream fileStream = FileStreamHelper.CreateFileStream(rowConfig.Path))
+            fileStream.Seek(0, SeekOrigin.Begin);
+            fileStream.Read(m_Buffer, 0, 32);
+            using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
             {
-                fileStream.Seek(0, SeekOrigin.Begin);
-                fileStream.Read(m_Buffer, 0, 32);
-                using (MemoryStream memoryStream = new MemoryStream(m_Buffer,0,32))
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
-                    using (BinaryReader binaryReader = new BinaryReader(memoryStream))
-                    {
-                        int count = binaryReader.Read7BitEncodedInt32(out int length);
-                        fileStream.Seek(length, SeekOrigin.Begin);
-                        EnsureBufferSize(count);
-                        long configLength = fileStream.Read(m_Buffer, 0, count);
-                        rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length+count);
-                    }
+                    int count = binaryReader.Read7BitEncodedInt32(out int length);
+                    fileStream.Seek(length, SeekOrigin.Begin);
+                    EnsureBufferSize(count);
+                    long configLength = fileStream.Read(m_Buffer, 0, count);
+                    rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
                 }
+            }
+
+            if (!isCacheFileStream)
+            {
+                fileStream.Dispose();
+                rowConfig.FileStream = null;
             }
 
             m_DataTableRowConfigs.Add(typeof(T), rowConfig);
@@ -101,23 +109,39 @@ namespace UGFExtensions
                 return dataTableBase.GetDataRow(id);
             }
 
-            using (IFileStream fileStream = FileStreamHelper.CreateFileStream(config.Path))
+            if (config.FileStream != null)
             {
-                fileStream.Seek(value.StartIndex, SeekOrigin.Begin);
-                EnsureBufferSize(value.Length);
-                long length = fileStream.Read(m_Buffer, 0, value.Length);
-                dataTableBase.AddDataRow(m_Buffer, 0, (int)length, null);
-                return dataTableBase.GetDataRow(id);
+                AddDataRow(dataTableBase, config.FileStream, value.StartIndex, value.Length);
             }
+            else
+            {
+                using (IFileStream fileStream = FileStreamHelper.CreateFileStream(config.Path))
+                {
+                    AddDataRow(dataTableBase, fileStream, value.StartIndex, value.Length);
+                }
+            }
+
+            return dataTableBase.GetDataRow(id);
+        }
+
+        private void AddDataRow<T>(IDataTable<T> dataTable, IFileStream fileStream, int startIndex, int length)
+            where T : class, IDataRow, new()
+        {
+            fileStream.Seek(startIndex, SeekOrigin.Begin);
+            EnsureBufferSize(length);
+            long readLength = fileStream.Read(m_Buffer, 0, length);
+            dataTable.AddDataRow(m_Buffer, 0, (int)readLength, null);
         }
 
         public T[] GetAllDataRows<T>() where T : class, IDataRow, new()
         {
             m_DataTableRowConfigs.TryGetValue(typeof(T), out var config);
             if (config == null) return default;
-            using (IFileStream fileStream = FileStreamHelper.CreateFileStream(config.Path))
+            IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();
+
+            IFileStream fileStream = config.FileStream ?? FileStreamHelper.CreateFileStream(config.Path);
+            using (fileStream)
             {
-                IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();
                 foreach (var dataTableSetting in config.DataTableRowSettings)
                 {
                     if (dataTableBase.HasDataRow(dataTableSetting.Key))
@@ -125,28 +149,33 @@ namespace UGFExtensions
                         continue;
                     }
 
-                    fileStream.Seek(dataTableSetting.Value.StartIndex, SeekOrigin.Begin);
-                    EnsureBufferSize(dataTableSetting.Value.Length);
-                    long length = fileStream.Read(m_Buffer, 0, dataTableSetting.Value.Length);
-                    dataTableBase.AddDataRow(m_Buffer, 0, (int)length, null);
+                    AddDataRow(dataTableBase, fileStream, dataTableSetting.Value.StartIndex,
+                        dataTableSetting.Value.Length);
                 }
 
                 return dataTableBase.GetAllDataRows();
             }
         }
-        
+
         public bool DestroyDataTable<T>() where T : IDataRow
         {
             IDataTable<T> dataTable = GameEntry.DataTable.GetDataTable<T>();
-            if (dataTable==null)
+            if (dataTable == null)
             {
                 return true;
             }
+
             var result = GameEntry.DataTable.DestroyDataTable(dataTable);
             if (result)
             {
-                m_DataTableRowConfigs.Remove(typeof(T));
+                if (m_DataTableRowConfigs.TryGetValue(typeof(T), out var config))
+                {
+                    config.FileStream.Dispose();
+                    config.FileStream = null;
+                    m_DataTableRowConfigs.Remove(typeof(T));
+                }
             }
+
             return result;
         }
 
