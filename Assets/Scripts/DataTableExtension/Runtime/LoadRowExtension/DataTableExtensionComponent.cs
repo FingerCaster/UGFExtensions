@@ -9,7 +9,7 @@ using UnityGameFramework.Runtime;
 
 namespace UGFExtensions
 {
-    public class DataTableExtensionComponent : GameFrameworkComponent
+    public partial class DataTableExtensionComponent : GameFrameworkComponent
     {
         /// <summary>
         /// 初始化Buffer长度
@@ -17,25 +17,49 @@ namespace UGFExtensions
         [SerializeField] private int m_InitBufferLength = 1024 * 64;
 
         /// <summary>
-        /// 图片加载缓存
+        /// 加载缓存
         /// </summary>
         private byte[] m_Buffer;
 
         /// <summary>
-        /// 初始化Buffer长度
+        /// 所有数据表配置
         /// </summary>
-        private Dictionary<Type, DataTableRowConfig> m_DataTableRowConfigs;
+        private Dictionary<TypeNamePair, DataTableRowConfig> m_DataTableRowConfigs;
 
         private void Start()
         {
-            m_DataTableRowConfigs = new Dictionary<Type, DataTableRowConfig>();
+            m_DataTableRowConfigs = new Dictionary<TypeNamePair, DataTableRowConfig>();
             m_Buffer = new byte[m_InitBufferLength];
         }
 
+        /// <summary>
+        /// 加载数据表配置
+        /// </summary>
+        /// <param name="assetName">资源名</param>
+        /// <param name="isCacheFileStream">是否缓存文件流</param>
+        /// <typeparam name="T">数据表类型</typeparam>
+        /// <exception cref="Exception"></exception>
         public void LoadDataTableRowConfig<T>(string assetName, bool isCacheFileStream = true)
+            where T : class, IDataRow, new() =>
+            InternalLoadDataTableRowConfig<T>(assetName, new TypeNamePair(typeof(T)), isCacheFileStream);
+
+        /// <summary>
+        /// 加载数据表配置
+        /// </summary>
+        /// <param name="assetName">资源名</param>
+        /// <param name="dataTable">数据表名</param>
+        /// <param name="isCacheFileStream">是否缓存文件流</param>
+        /// <typeparam name="T">数据表类型</typeparam>
+        /// <exception cref="Exception"></exception>
+        public void LoadDataTableRowConfig<T>(string assetName, string dataTable, bool isCacheFileStream = true)
+            where T : class, IDataRow, new() =>
+            InternalLoadDataTableRowConfig<T>(assetName, new TypeNamePair(typeof(T), dataTable), isCacheFileStream);
+
+        private void InternalLoadDataTableRowConfig<T>(string assetName, TypeNamePair typeNamePair,
+            bool isCacheFileStream = true)
             where T : class, IDataRow, new()
         {
-            if (m_DataTableRowConfigs.TryGetValue(typeof(T), out _))
+            if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out _))
             {
                 return;
             }
@@ -93,17 +117,24 @@ namespace UGFExtensions
                 rowConfig.FileStream = null;
             }
 
-            m_DataTableRowConfigs.Add(typeof(T), rowConfig);
-            GameEntry.DataTable.CreateDataTable<T>();
+            m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
+            GameEntry.DataTable.CreateDataTable<T>(typeNamePair.Name);
         }
 
-        public T GetDataRow<T>(int id) where T : class, IDataRow, new()
+
+        public T GetDataRow<T>(int id) where T : class, IDataRow, new() =>
+            InternalGetDataRow<T>(new TypeNamePair(typeof(T)), id);
+
+        public T GetDataRow<T>(string dataTableName, int id) where T : class, IDataRow, new() =>
+            InternalGetDataRow<T>(new TypeNamePair(typeof(T), dataTableName), id);
+
+        private T InternalGetDataRow<T>(TypeNamePair typeNamePair, int id) where T : class, IDataRow, new()
         {
-            m_DataTableRowConfigs.TryGetValue(typeof(T), out var config);
+            m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config);
             if (config == null) return default;
             config.DataTableRowSettings.TryGetValue(id, out var value);
             if (value == null) return default;
-            IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();
+            IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>(typeNamePair.Name);
             if (dataTableBase.HasDataRow(id))
             {
                 return dataTableBase.GetDataRow(id);
@@ -133,11 +164,17 @@ namespace UGFExtensions
             dataTable.AddDataRow(m_Buffer, 0, (int)readLength, null);
         }
 
-        public T[] GetAllDataRows<T>() where T : class, IDataRow, new()
+        public T[] GetAllDataRows<T>() where T : class, IDataRow, new() =>
+            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T)));
+
+        public T[] GetAllDataRows<T>(string dataTableName) where T : class, IDataRow, new() =>
+            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T), dataTableName));
+
+        private T[] InternalGetAllDataRows<T>(TypeNamePair typeNamePair) where T : class, IDataRow, new()
         {
-            m_DataTableRowConfigs.TryGetValue(typeof(T), out var config);
+            m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config);
             if (config == null) return default;
-            IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();
+            IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>(typeNamePair.Name);
 
             IFileStream fileStream = config.FileStream ?? FileStreamHelper.CreateFileStream(config.Path);
             using (fileStream)
@@ -157,7 +194,13 @@ namespace UGFExtensions
             }
         }
 
-        public bool DestroyDataTable<T>() where T : IDataRow
+        public bool InternalDestroyDataTable<T>() where T : IDataRow =>
+            InternalDestroyDataTable<T>(new TypeNamePair(typeof(T)));
+
+        public bool InternalDestroyDataTable<T>(string dataTableName) where T : IDataRow =>
+            InternalDestroyDataTable<T>(new TypeNamePair(typeof(T), dataTableName));
+
+        private bool InternalDestroyDataTable<T>(TypeNamePair typeNamePair) where T : IDataRow
         {
             IDataTable<T> dataTable = GameEntry.DataTable.GetDataTable<T>();
             if (dataTable == null)
@@ -168,16 +211,17 @@ namespace UGFExtensions
             var result = GameEntry.DataTable.DestroyDataTable(dataTable);
             if (result)
             {
-                if (m_DataTableRowConfigs.TryGetValue(typeof(T), out var config))
+                if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config))
                 {
                     config.FileStream.Dispose();
                     config.FileStream = null;
-                    m_DataTableRowConfigs.Remove(typeof(T));
+                    m_DataTableRowConfigs.Remove(typeNamePair);
                 }
             }
 
             return result;
         }
+
 
         /// <summary>
         /// 保证缓存大小

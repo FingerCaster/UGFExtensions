@@ -18,12 +18,12 @@ namespace DE.Editor.DataTableTools
             Excel
         }
 
-        public static void GenerateExtensionByAnalysis(DataTableType dataTableType, int typeLine)
+        public static void GenerateExtensionByAnalysis(DataTableType dataTableType,string[] filePath ,int typeLine)
         {
             List<string> types = new List<string>(32);
             if (dataTableType == DataTableType.Txt)
             {
-                foreach (var dataTableFileName in DataTableConfig.TxtFilePaths)
+                foreach (var dataTableFileName in filePath)
                 {
                     var lines = File.ReadAllLines(dataTableFileName, Encoding.UTF8);
                     var rawValue = lines[typeLine].Split('\t');
@@ -33,7 +33,7 @@ namespace DE.Editor.DataTableTools
             }
             else
             {
-                foreach (var excelFile in DataTableConfig.ExcelFilePaths)
+                foreach (var excelFile in filePath)
                 {
                     using (FileStream fileStream =
                         new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))

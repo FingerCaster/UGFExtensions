@@ -15,7 +15,7 @@ namespace DE.Editor.DataTableTools
         public static void GenerateDataTablesFromTxtNotFileSystem()
         {
             DataTableConfig.RefreshDataTables();
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt, 2);
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,DataTableConfig.TxtFilePaths, 2);
             foreach (var dataTableName in DataTableConfig.DataTableNames)
             {
                 var dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
@@ -37,7 +37,7 @@ namespace DE.Editor.DataTableTools
         {
             DataTableConfig.RefreshDataTables();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel, 2);
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,DataTableConfig.ExcelFilePaths, 2);
             foreach (var excelFile in DataTableConfig.ExcelFilePaths)
             {
                 using (FileStream fileStream =
@@ -70,7 +70,7 @@ namespace DE.Editor.DataTableTools
         public static void GenerateDataTablesFromTxtFileSystem()
         {
             DataTableConfig.RefreshDataTables();
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt, 2);
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,DataTableConfig.TxtFilePaths, 2);
             foreach (var dataTableName in DataTableConfig.DataTableNames)
             {
                 var dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
@@ -92,7 +92,7 @@ namespace DE.Editor.DataTableTools
         {
             DataTableConfig.RefreshDataTables();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel, 2);
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,DataTableConfig.ExcelFilePaths, 2);
             foreach (var excelFile in DataTableConfig.ExcelFilePaths)
             {
                 using (FileStream fileStream =
