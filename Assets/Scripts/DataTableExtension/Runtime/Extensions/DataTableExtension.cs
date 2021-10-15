@@ -5,8 +5,8 @@ namespace UGFExtensions
 {
     public static partial class DataTableExtension
     {
-        internal static readonly char[] DataSplitSeparators = {'\t'};
-        internal static readonly char[] DataTrimSeparators = {'\"'};
+        public static readonly char[] DataSplitSeparators = {'\t'};
+        public static readonly char[] DataTrimSeparators = {'\"'};
 
         public static Color32 ParseColor32(string value)
         {

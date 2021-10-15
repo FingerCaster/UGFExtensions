@@ -11,7 +11,7 @@ using UnityGameFramework.Runtime;
 
 namespace UGFExtensions.Await
 {
-    public static class AwaitableExtension
+    public static partial class AwaitableExtension
     {
         private static Dictionary<int, TaskCompletionSource<UIForm>> s_UIFormTcs =
             new Dictionary<int, TaskCompletionSource<UIForm>>();
@@ -96,9 +96,10 @@ namespace UGFExtensions.Await
             return await Task.FromResult(dataTable);
         }
 
+
         private static void OnLoadDataTableSuccess(object sender, GameEventArgs e)
         {
-            var ne = (LoadDataTableSuccessEventArgs) e;
+            var ne = (LoadDataTableSuccessEventArgs)e;
             s_DataTableTcs.TryGetValue(ne.DataTableAssetName, out TaskCompletionSource<bool> tcs);
             if (tcs != null)
             {
@@ -110,7 +111,7 @@ namespace UGFExtensions.Await
 
         private static void OnLoadDataTableFailure(object sender, GameEventArgs e)
         {
-            var ne = (LoadDataTableFailureEventArgs) e;
+            var ne = (LoadDataTableFailureEventArgs)e;
             s_DataTableTcs.TryGetValue(ne.DataTableAssetName, out TaskCompletionSource<bool> tcs);
             if (tcs != null)
             {
@@ -133,7 +134,7 @@ namespace UGFExtensions.Await
             int? serialId = uiComponent.OpenUIForm(uiFormId, userData);
             if (serialId == null)
             {
-                return Task.FromResult((UIForm) null);
+                return Task.FromResult((UIForm)null);
             }
 
             var tcs = new TaskCompletionSource<UIForm>();
@@ -153,7 +154,7 @@ namespace UGFExtensions.Await
             int? serialId = uiComponent.OpenUIForm(uiFormId, userData);
             if (serialId == null)
             {
-                return Task.FromResult((UIForm) null);
+                return Task.FromResult((UIForm)null);
             }
 
             var tcs = new TaskCompletionSource<UIForm>();
@@ -163,7 +164,7 @@ namespace UGFExtensions.Await
 
         private static void OnOpenUIFormSuccess(object sender, GameEventArgs e)
         {
-            OpenUIFormSuccessEventArgs ne = (OpenUIFormSuccessEventArgs) e;
+            OpenUIFormSuccessEventArgs ne = (OpenUIFormSuccessEventArgs)e;
             s_UIFormTcs.TryGetValue(ne.UIForm.SerialId, out TaskCompletionSource<UIForm> tcs);
             if (tcs != null)
             {
@@ -174,7 +175,7 @@ namespace UGFExtensions.Await
 
         private static void OnOpenUIFormFailure(object sender, GameEventArgs e)
         {
-            OpenUIFormFailureEventArgs ne = (OpenUIFormFailureEventArgs) e;
+            OpenUIFormFailureEventArgs ne = (OpenUIFormFailureEventArgs)e;
             s_UIFormTcs.TryGetValue(ne.SerialId, out TaskCompletionSource<UIForm> tcs);
             if (tcs != null)
             {
@@ -201,8 +202,8 @@ namespace UGFExtensions.Await
 
         private static void OnShowEntitySuccess(object sender, GameEventArgs e)
         {
-            ShowEntitySuccessEventArgs ne = (ShowEntitySuccessEventArgs) e;
-            EntityData data = (EntityData) ne.UserData;
+            ShowEntitySuccessEventArgs ne = (ShowEntitySuccessEventArgs)e;
+            EntityData data = (EntityData)ne.UserData;
             s_EntityTcs.TryGetValue(data.Id, out var tcs);
             if (tcs != null)
             {
@@ -213,7 +214,7 @@ namespace UGFExtensions.Await
 
         private static void OnShowEntityFailure(object sender, GameEventArgs e)
         {
-            ShowEntityFailureEventArgs ne = (ShowEntityFailureEventArgs) e;
+            ShowEntityFailureEventArgs ne = (ShowEntityFailureEventArgs)e;
             s_EntityTcs.TryGetValue(ne.EntityId, out var tcs);
             if (tcs != null)
             {
@@ -239,7 +240,7 @@ namespace UGFExtensions.Await
 
         private static void OnLoadSceneSuccess(object sender, GameEventArgs e)
         {
-            LoadSceneSuccessEventArgs ne = (LoadSceneSuccessEventArgs) e;
+            LoadSceneSuccessEventArgs ne = (LoadSceneSuccessEventArgs)e;
             s_SceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
             if (tcs != null)
             {
@@ -250,7 +251,7 @@ namespace UGFExtensions.Await
 
         private static void OnLoadSceneFailure(object sender, GameEventArgs e)
         {
-            LoadSceneFailureEventArgs ne = (LoadSceneFailureEventArgs) e;
+            LoadSceneFailureEventArgs ne = (LoadSceneFailureEventArgs)e;
             s_SceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
             if (tcs != null)
             {
@@ -269,7 +270,7 @@ namespace UGFExtensions.Await
             TipsSubscribeEvent();
 #endif
             TaskCompletionSource<T> loadAssetTcs = new TaskCompletionSource<T>();
-            GameEntry.Resource.LoadAsset(assetName,typeof(T), new LoadAssetCallbacks(
+            GameEntry.Resource.LoadAsset(assetName, typeof(T), new LoadAssetCallbacks(
                 (tempAssetName, asset, duration, userdata) =>
                 {
                     var source = loadAssetTcs;
@@ -281,7 +282,8 @@ namespace UGFExtensions.Await
                     }
                     else
                     {
-                        source.SetException(new GameFrameworkException($"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}."));
+                        source.SetException(new GameFrameworkException(
+                            $"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}."));
                     }
                 },
                 (tempAssetName, status, errorMessage, userdata) =>
@@ -289,15 +291,15 @@ namespace UGFExtensions.Await
                     loadAssetTcs.SetException(new GameFrameworkException(errorMessage));
                 }
             ));
-            
-            return loadAssetTcs.Task;
 
+            return loadAssetTcs.Task;
         }
 
         /// <summary>
         /// 加载多个资源（可等待）
         /// </summary>
-        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent, [NotNull] string[] assetName) where T : UnityEngine.Object
+        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent,
+            [NotNull] string[] assetName) where T : UnityEngine.Object
         {
 #if UNITY_EDITOR
             TipsSubscribeEvent();
@@ -353,7 +355,7 @@ namespace UGFExtensions.Await
 
         private static void OnWebRequestSuccess(object sender, GameEventArgs e)
         {
-            WebRequestSuccessEventArgs ne = (WebRequestSuccessEventArgs) e;
+            WebRequestSuccessEventArgs ne = (WebRequestSuccessEventArgs)e;
             if (s_WebSerialIDs.Contains(ne.SerialId))
             {
                 if (ne.UserData is AwaitDataWrap<WebResult> webRequestUserdata)
@@ -380,7 +382,7 @@ namespace UGFExtensions.Await
 
         private static void OnWebRequestFailure(object sender, GameEventArgs e)
         {
-            WebRequestFailureEventArgs ne = (WebRequestFailureEventArgs) e;
+            WebRequestFailureEventArgs ne = (WebRequestFailureEventArgs)e;
             if (s_WebSerialIDs.Contains(ne.SerialId))
             {
                 if (ne.UserData is AwaitDataWrap<WebResult> webRequestUserdata)
@@ -424,7 +426,7 @@ namespace UGFExtensions.Await
 
         private static void OnDownloadSuccess(object sender, GameEventArgs e)
         {
-            DownloadSuccessEventArgs ne = (DownloadSuccessEventArgs) e;
+            DownloadSuccessEventArgs ne = (DownloadSuccessEventArgs)e;
             if (s_DownloadSerialIds.Contains(ne.SerialId))
             {
                 if (ne.UserData is AwaitDataWrap<DownLoadResult> awaitDataWrap)
@@ -450,7 +452,7 @@ namespace UGFExtensions.Await
 
         private static void OnDownloadFailure(object sender, GameEventArgs e)
         {
-            DownloadFailureEventArgs ne = (DownloadFailureEventArgs) e;
+            DownloadFailureEventArgs ne = (DownloadFailureEventArgs)e;
             if (s_DownloadSerialIds.Contains(ne.SerialId))
             {
                 if (ne.UserData is AwaitDataWrap<DownLoadResult> awaitDataWrap)

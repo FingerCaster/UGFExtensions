@@ -11,7 +11,7 @@ using UnityGameFramework.Runtime;
 
 namespace UGFExtensions
 {
-    public static class EntityExtension
+    public static partial class EntityExtension
     {
         // 关于 EntityId 的约定：
         // 0 为无效
