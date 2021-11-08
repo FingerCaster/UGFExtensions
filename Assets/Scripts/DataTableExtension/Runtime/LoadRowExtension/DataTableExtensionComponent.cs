@@ -33,6 +33,30 @@ namespace UGFExtensions
         }
 
         /// <summary>
+        /// 获取数据表数据数量
+        /// </summary>
+        /// <param name="dataTable">数据表名</param>
+        /// <typeparam name="T">数据表类型</typeparam>
+        /// <returns>数据表数据数量</returns>
+        public int GetCount<T>(string dataTable) where T : class, IDataRow, new()=>InternalGetCount(new TypeNamePair(typeof(T),dataTable));
+        /// <summary>
+        /// 获取数据表数据数量
+        /// </summary>
+        /// <typeparam name="T">数据表类型</typeparam>
+        /// <returns>数据表数据数量</returns>
+        public int GetCount<T>() => InternalGetCount(new TypeNamePair(typeof(T)));
+
+        private int InternalGetCount(TypeNamePair typeNamePair)
+        {
+            if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config))
+            {
+                throw new Exception("GetCount must be load datatable row config !");
+            }
+            
+            return config.DataTableRowSettings.Count;
+        }
+
+        /// <summary>
         /// 加载数据表配置
         /// </summary>
         /// <param name="assetName">资源名</param>
