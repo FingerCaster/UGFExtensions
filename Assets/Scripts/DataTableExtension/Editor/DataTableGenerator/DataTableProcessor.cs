@@ -20,8 +20,8 @@ namespace DE.Editor.DataTableTools
     public sealed partial class DataTableProcessor
     {
         private const string CommentLineSeparator = "#";
-        private static readonly char[] DataSplitSeparators = {'\t'};
-        private static readonly char[] DataTrimSeparators = {'\"'};
+        private static readonly char[] DataSplitSeparators = { '\t' };
+        private static readonly char[] DataTrimSeparators = { '\"' };
         private readonly string[] m_CommentRow;
 
         private readonly DataProcessor[] m_DataProcessor;
@@ -34,7 +34,7 @@ namespace DE.Editor.DataTableTools
         private DataTableCodeGenerator m_CodeGenerator;
 
         private string m_CodeTemplate;
-        
+
 
         public DataTableProcessor(string dataTableFileName, Encoding encoding, int nameRow, int typeRow,
             int? defaultValueRow, int? commentRow, int contentStartRow, int idColumn)
@@ -188,6 +188,7 @@ namespace DE.Editor.DataTableTools
 
             return m_DataProcessor[rawColumn].GetTypeStrings()[0].Equals("{0}[]");
         }
+
         public bool IsEnumrColumn(int rawColumn)
         {
             if (rawColumn < 0 || rawColumn >= RawColumnCount)
@@ -270,6 +271,7 @@ namespace DE.Editor.DataTableTools
 
             return m_DataProcessor[rawColumn].LanguageKeyword;
         }
+
         public string[] GetTypeStrings(int rawColumn)
         {
             if (rawColumn < 0 || rawColumn >= RawColumnCount)
@@ -327,6 +329,7 @@ namespace DE.Editor.DataTableTools
 
             return -1;
         }
+
         public bool GenerateDataFile(string outputFileName)
         {
             if (string.IsNullOrEmpty(outputFileName)) throw new GameFrameworkException("Output file name is invalid.");
@@ -340,7 +343,7 @@ namespace DE.Editor.DataTableTools
                         for (var rawRow = ContentStartRow; rawRow < RawRowCount; rawRow++)
                         {
                             if (IsCommentRow(rawRow)) continue;
-                            
+
                             var bytes = GetRowBytes(outputFileName, rawRow);
                             binaryWriter.Write7BitEncodedInt32(bytes.Length);
                             binaryWriter.Write(bytes);
@@ -358,7 +361,7 @@ namespace DE.Editor.DataTableTools
                 return false;
             }
         }
-        
+
         public bool GenerateFileSystemFile(string outputFileName)
         {
             string tempFile = "~Temp.bytes";
@@ -371,34 +374,38 @@ namespace DE.Editor.DataTableTools
                     {
                         DataTableRowConfig tableConfig = new DataTableRowConfig();
                         int lastLength = 0;
-                        tableConfig.DataTableRowSettings = new Dictionary<int, DataTableRowSetting>(RawRowCount - ContentStartRow);
+                        tableConfig.DataTableRowSettings =
+                            new Dictionary<int, DataTableRowSetting>(RawRowCount - ContentStartRow);
                         for (var rawRow = ContentStartRow; rawRow < RawRowCount; rawRow++)
                         {
                             if (IsCommentRow(rawRow)) continue;
                             string id = GetValue(rawRow, IdColumn);
                             var bytes = GetRowBytes(outputFileName, rawRow);
-                            tableConfig.DataTableRowSettings.Add(Int32.Parse(id), new DataTableRowSetting(lastLength, bytes.Length));
+                            tableConfig.DataTableRowSettings.Add(Int32.Parse(id),
+                                new DataTableRowSetting(lastLength, bytes.Length));
                             lastLength += bytes.Length;
                             tableConfig.Count++;
                             tempWriter.Write(bytes);
                         }
 
-                        using (FileStream fileStream = new FileStream(outputFileName,FileMode.Create,FileAccess.Write))
+                        using (FileStream fileStream =
+                            new FileStream(outputFileName, FileMode.Create, FileAccess.Write))
                         {
                             using (var binaryWriter = new BinaryWriter(fileStream))
                             {
-                                var tableConfigBytes =tableConfig.Serialize();
+                                var tableConfigBytes = tableConfig.Serialize();
                                 binaryWriter.Write7BitEncodedInt32(tableConfigBytes.Length);
                                 binaryWriter.Write(tableConfigBytes);
                                 tempStream.Seek(0, SeekOrigin.Begin);
                                 tempStream.CopyTo(fileStream);
+                                Debug.Log(fileStream.Length);
                             }
                         }
                     }
                 }
 
                 File.Delete(tempFile);
-                
+
                 Debug.Log(Utility.Text.Format("Parse data table '{0}' success.", outputFileName));
                 return true;
             }
@@ -516,9 +523,9 @@ namespace DE.Editor.DataTableTools
         {
             return m_DataProcessor[rawColumn];
         }
+
         public string GetNameSpace(int rawColumn)
         {
-            
             return m_DataProcessor[rawColumn].GetType().GetProperty("NameSpace")
                 ?.GetValue(m_DataProcessor[rawColumn]) as string;
         }
