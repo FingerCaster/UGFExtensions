@@ -316,6 +316,14 @@ namespace UGFExtensions.Texture
             return m_TextureFileSystem.WriteFile(file, bytes);
         }
 
+        /// <summary>检查是否存在指定文件。</summary>
+        /// <param name="file">文件路径</param>
+        /// <returns></returns>
+        public bool HasFile(string file)
+        {
+            return m_TextureFileSystem.HasFile(file);
+        }
+
         /// <summary>
         /// 保存图片
         /// </summary>
