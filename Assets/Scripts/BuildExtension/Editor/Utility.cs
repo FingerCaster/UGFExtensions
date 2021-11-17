@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 
 namespace UGFExtensions.Build.Editor

@@ -18,7 +18,7 @@ namespace UGFExtensions.Build.Editor
 
         public void OnPreprocessAllPlatforms(string productName, string companyName, string gameIdentifier,
             string gameFrameworkVersion, string unityVersion, string applicableGameVersion, int internalResourceVersion,
-            Platform platforms, AssetBundleCompressionType assetBundleCompression, string compressionHelperTypeName,
+            UnityGameFramework.Editor.ResourceTools.Platform platforms, AssetBundleCompressionType assetBundleCompression, string compressionHelperTypeName,
             bool additionalCompressionSelected, bool forceRebuildAssetBundleSelected, string buildEventHandlerTypeName,
             string outputDirectory, BuildAssetBundleOptions buildAssetBundleOptions, string workingPath,
             bool outputPackageSelected, string outputPackagePath, bool outputFullSelected, string outputFullPath,
@@ -26,19 +26,19 @@ namespace UGFExtensions.Build.Editor
         {
         }
 
-        public void OnPreprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected,
+        public void OnPreprocessPlatform(UnityGameFramework.Editor.ResourceTools.Platform platform, string workingPath, bool outputPackageSelected,
             string outputPackagePath,
             bool outputFullSelected, string outputFullPath, bool outputPackedSelected, string outputPackedPath)
         {
         }
 
-        public void OnBuildAssetBundlesComplete(Platform platform, string workingPath, bool outputPackageSelected,
+        public void OnBuildAssetBundlesComplete(UnityGameFramework.Editor.ResourceTools.Platform platform, string workingPath, bool outputPackageSelected,
             string outputPackagePath, bool outputFullSelected, string outputFullPath, bool outputPackedSelected,
             string outputPackedPath, AssetBundleManifest assetBundleManifest)
         {
         }
 
-        public void OnOutputUpdatableVersionListData(Platform platform, string versionListPath, int versionListLength,
+        public void OnOutputUpdatableVersionListData(UnityGameFramework.Editor.ResourceTools.Platform platform, string versionListPath, int versionListLength,
             int versionListHashCode, int versionListZipLength, int versionListZipHashCode)
         {
             Type resourceBuilderType =
@@ -68,21 +68,24 @@ namespace UGFExtensions.Build.Editor
             VersionInfoData versionInfoData = versionInfoEditorData.GetActiveVersionInfoData();
             versionInfoData.AutoIncrementInternalGameVersion();
             versionInfoData.ForceUpdateGame = false;
+            versionInfoData.ResourceVersion = builderController.ApplicableGameVersion.Replace('.', '_')+ "_"+builderController.InternalResourceVersion;
+            versionInfoData.Platform = platform;
             versionInfoData.LatestGameVersion = builderController.ApplicableGameVersion;
             versionInfoData.InternalResourceVersion = builderController.InternalResourceVersion;
             versionInfoData.VersionListLength = versionListLength;
             versionInfoData.VersionListHashCode = versionListHashCode;
             versionInfoData.VersionListCompressedLength = versionListZipLength;
             versionInfoData.VersionListCompressedHashCode = versionListZipHashCode;
+            EditorUtility.SetDirty(versionInfoEditorData);
             AssetDatabase.SaveAssets();
 
             if (versionInfoEditorData.IsGenerateToFullPath)
             {
-                versionInfoEditorData.Generate(Path.Combine(builderController.OutputFullPath, platform.ToString(), "version.txt"));
+                versionInfoEditorData.Generate(Path.Combine(builderController.OutputFullPath, platform.ToString(), $"{platform}Version.txt"));
             }
         }
 
-        public void OnPostprocessPlatform(Platform platform, string workingPath, bool outputPackageSelected,
+        public void OnPostprocessPlatform(UnityGameFramework.Editor.ResourceTools.Platform platform, string workingPath, bool outputPackageSelected,
             string outputPackagePath,
             bool outputFullSelected, string outputFullPath, bool outputPackedSelected, string outputPackedPath,
             bool isSuccess)
@@ -91,12 +94,14 @@ namespace UGFExtensions.Build.Editor
 
         public void OnPostprocessAllPlatforms(string productName, string companyName, string gameIdentifier,
             string gameFrameworkVersion, string unityVersion, string applicableGameVersion, int internalResourceVersion,
-            Platform platforms, AssetBundleCompressionType assetBundleCompression, string compressionHelperTypeName,
+            UnityGameFramework.Editor.ResourceTools.Platform platforms, AssetBundleCompressionType assetBundleCompression, string compressionHelperTypeName,
             bool additionalCompressionSelected, bool forceRebuildAssetBundleSelected, string buildEventHandlerTypeName,
             string outputDirectory, BuildAssetBundleOptions buildAssetBundleOptions, string workingPath,
             bool outputPackageSelected, string outputPackagePath, bool outputFullSelected, string outputFullPath,
             bool outputPackedSelected, string outputPackedPath, string buildReportPath)
         {
         }
+        
+        
     }
 }
