@@ -1,15 +1,27 @@
 using System;
+using System.IO;
 using UnityEngine;
+using UnityGameFramework.Editor.ResourceTools;
 
 namespace UGFExtensions.Build.Editor
 {
+    // [Serializable]
+    // public enum Platform
+    // {
+    //     Windows,
+    //     Ios,
+    //     Android,
+    // }
+
     [Serializable]
     public class VersionInfoData
     {
         [SerializeField] private bool m_ForceUpdateGame;
         [SerializeField] private string m_LatestGameVersion;
         [SerializeField] private int m_InternalGameVersion;
-        [SerializeField] private string m_UpdatePrefixUri;
+        [SerializeField] private string m_ServerPath;
+        [SerializeField] private string m_ResourceVersion;
+        [SerializeField] private Platform m_Platform;
         [SerializeField] private int m_VersionListLength;
         [SerializeField] private int m_InternalResourceVersion;
         [SerializeField] private int m_VersionListHashCode;
@@ -17,6 +29,17 @@ namespace UGFExtensions.Build.Editor
         [SerializeField] private int m_VersionListCompressedHashCode;
         [SerializeField] private bool m_IsShowCanNotChangeProperty;
 
+        public string ResourceVersion
+        {
+            get => m_ResourceVersion;
+            set => m_ResourceVersion = value;
+        }
+
+        public Platform Platform
+        {
+            get => m_Platform;
+            set => m_Platform = value;
+        }
         /// <summary>
         /// 是否展示无法修改的属性
         /// </summary>
@@ -67,8 +90,7 @@ namespace UGFExtensions.Build.Editor
         /// </summary>
         public string UpdatePrefixUri
         {
-            get => m_UpdatePrefixUri;
-            set => m_UpdatePrefixUri = value;
+            get => GameFramework.Utility.Path.GetRegularPath(Path.Combine(m_ServerPath,m_ResourceVersion,m_Platform.ToString())) ;
         }
 
         /// <summary>
@@ -114,7 +136,7 @@ namespace UGFExtensions.Build.Editor
                 InternalGameVersion = m_InternalGameVersion,
                 ForceUpdateGame = m_ForceUpdateGame,
                 LatestGameVersion = m_LatestGameVersion,
-                UpdatePrefixUri = m_UpdatePrefixUri,
+                UpdatePrefixUri = UpdatePrefixUri,
                 InternalResourceVersion = m_InternalResourceVersion,
                 VersionListLength = m_VersionListLength,
                 VersionListHashCode = m_VersionListHashCode,
@@ -126,7 +148,7 @@ namespace UGFExtensions.Build.Editor
         }
         public string ToVersionInfoJson()
         {
-            return LitJson.JsonMapper.ToJson(ToVersionInfo());
+            return CatJson.JsonParser.ToJson(ToVersionInfo());
         }
 
         public void AutoIncrementInternalGameVersion()

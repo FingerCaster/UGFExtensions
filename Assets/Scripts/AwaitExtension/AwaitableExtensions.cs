@@ -5,31 +5,30 @@ using GameFramework;
 using GameFramework.DataTable;
 using GameFramework.Event;
 using GameFramework.Resource;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
 namespace UGFExtensions.Await
 {
-    public static partial class AwaitableExtension
+    public static partial class AwaitableExtensions
     {
-        private static Dictionary<int, TaskCompletionSource<UIForm>> s_UIFormTcs =
+        private static readonly Dictionary<int, TaskCompletionSource<UIForm>> s_UIFormTcs =
             new Dictionary<int, TaskCompletionSource<UIForm>>();
 
-        private static Dictionary<int, TaskCompletionSource<Entity>> s_EntityTcs =
+        private static readonly Dictionary<int, TaskCompletionSource<Entity>> s_EntityTcs =
             new Dictionary<int, TaskCompletionSource<Entity>>();
 
-        private static Dictionary<string, TaskCompletionSource<bool>> s_DataTableTcs =
+        private static readonly Dictionary<string, TaskCompletionSource<bool>> s_DataTableTcs =
             new Dictionary<string, TaskCompletionSource<bool>>();
 
-        private static Dictionary<string, TaskCompletionSource<bool>> s_SceneTcs =
+        private static readonly Dictionary<string, TaskCompletionSource<bool>> s_SceneTcs =
             new Dictionary<string, TaskCompletionSource<bool>>();
 
-        private static HashSet<int> s_WebSerialIDs = new HashSet<int>();
-        private static List<WebResult> s_DelayReleaseWebResult = new List<WebResult>();
+        private static readonly HashSet<int> s_WebSerialIDs = new HashSet<int>();
+        private static readonly List<WebResult> s_DelayReleaseWebResult = new List<WebResult>();
 
-        private static HashSet<int> s_DownloadSerialIds = new HashSet<int>();
-        private static List<DownLoadResult> s_DelayReleaseDownloadResult = new List<DownLoadResult>();
+        private static readonly HashSet<int> s_DownloadSerialIds = new HashSet<int>();
+        private static readonly List<DownLoadResult> s_DelayReleaseDownloadResult = new List<DownLoadResult>();
 
 #if UNITY_EDITOR
         private static bool s_IsSubscribeEvent = false;
@@ -40,23 +39,24 @@ namespace UGFExtensions.Await
         /// </summary>
         public static void SubscribeEvent()
         {
-            GameEntry.Event.Subscribe(OpenUIFormSuccessEventArgs.EventId, OnOpenUIFormSuccess);
-            GameEntry.Event.Subscribe(OpenUIFormFailureEventArgs.EventId, OnOpenUIFormFailure);
+            EventComponent eventComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<EventComponent>();
+            eventComponent.Subscribe(OpenUIFormSuccessEventArgs.EventId, OnOpenUIFormSuccess);
+            eventComponent.Subscribe(OpenUIFormFailureEventArgs.EventId, OnOpenUIFormFailure);
 
-            GameEntry.Event.Subscribe(ShowEntitySuccessEventArgs.EventId, OnShowEntitySuccess);
-            GameEntry.Event.Subscribe(ShowEntityFailureEventArgs.EventId, OnShowEntityFailure);
+            eventComponent.Subscribe(ShowEntitySuccessEventArgs.EventId, OnShowEntitySuccess);
+            eventComponent.Subscribe(ShowEntityFailureEventArgs.EventId, OnShowEntityFailure);
 
-            GameEntry.Event.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadSceneSuccess);
-            GameEntry.Event.Subscribe(LoadSceneFailureEventArgs.EventId, OnLoadSceneFailure);
+            eventComponent.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadSceneSuccess);
+            eventComponent.Subscribe(LoadSceneFailureEventArgs.EventId, OnLoadSceneFailure);
 
-            GameEntry.Event.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
-            GameEntry.Event.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
+            eventComponent.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
+            eventComponent.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
 
-            GameEntry.Event.Subscribe(WebRequestSuccessEventArgs.EventId, OnWebRequestSuccess);
-            GameEntry.Event.Subscribe(WebRequestFailureEventArgs.EventId, OnWebRequestFailure);
+            eventComponent.Subscribe(WebRequestSuccessEventArgs.EventId, OnWebRequestSuccess);
+            eventComponent.Subscribe(WebRequestFailureEventArgs.EventId, OnWebRequestFailure);
 
-            GameEntry.Event.Subscribe(DownloadSuccessEventArgs.EventId, OnDownloadSuccess);
-            GameEntry.Event.Subscribe(DownloadFailureEventArgs.EventId, OnDownloadFailure);
+            eventComponent.Subscribe(DownloadSuccessEventArgs.EventId, OnDownloadSuccess);
+            eventComponent.Subscribe(DownloadFailureEventArgs.EventId, OnDownloadFailure);
 #if UNITY_EDITOR
             s_IsSubscribeEvent = true;
 #endif
@@ -122,43 +122,18 @@ namespace UGFExtensions.Await
             }
         }
 
+        
         /// <summary>
         /// 打开界面（可等待）
         /// </summary>
-        public static Task<UIForm> OpenUIFormAsync(this UIComponent uiComponent, UIFormId uiFormId,
-            object userData = null)
+        public static Task<UIForm> OpenUIFormAsync(this UIComponent uiComponent,string uiFormAssetName, string uiGroupName, int priority, bool pauseCoveredUIForm, object userData)
         {
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
-            int? serialId = uiComponent.OpenUIForm(uiFormId, userData);
-            if (serialId == null)
-            {
-                return Task.FromResult((UIForm)null);
-            }
-
+            int serialId = uiComponent.OpenUIForm(uiFormAssetName, uiGroupName, priority, pauseCoveredUIForm, userData);
             var tcs = new TaskCompletionSource<UIForm>();
-            s_UIFormTcs.Add(serialId.Value, tcs);
-            return tcs.Task;
-        }
-
-        /// <summary>
-        /// 打开界面（可等待）
-        /// </summary>
-        public static Task<UIForm> OpenUIFormAsync(this UIComponent uiComponent, int uiFormId,
-            object userData = null)
-        {
-#if UNITY_EDITOR
-            TipsSubscribeEvent();
-#endif
-            int? serialId = uiComponent.OpenUIForm(uiFormId, userData);
-            if (serialId == null)
-            {
-                return Task.FromResult((UIForm)null);
-            }
-
-            var tcs = new TaskCompletionSource<UIForm>();
-            s_UIFormTcs.Add(serialId.Value, tcs);
+            s_UIFormTcs.Add(serialId, tcs);
             return tcs.Task;
         }
 
@@ -187,18 +162,18 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 显示实体（可等待）
         /// </summary>
-        public static Task<Entity> ShowEntityAsync(this EntityComponent entityComponent, Type logicType,
-            int priority,
-            EntityData data)
+        public static Task<Entity> ShowEntityAsync(this EntityComponent entityComponent, int entityId,
+            Type entityLogicType, string entityAssetName, string entityGroupName, int priority,object userData)
         {
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
             var tcs = new TaskCompletionSource<Entity>();
-            s_EntityTcs.Add(data.Id, tcs);
-            entityComponent.ShowEntity(logicType, priority, data);
+            s_EntityTcs.Add(entityId, tcs);
+            entityComponent.ShowEntity(entityId, entityLogicType, entityAssetName, entityGroupName, priority, userData);
             return tcs.Task;
         }
+
 
         private static void OnShowEntitySuccess(object sender, GameEventArgs e)
         {
@@ -234,7 +209,7 @@ namespace UGFExtensions.Await
 #endif
             var tcs = new TaskCompletionSource<bool>();
             s_SceneTcs.Add(sceneAssetName, tcs);
-            GameEntry.Scene.LoadScene(sceneAssetName);
+            sceneComponent.LoadScene(sceneAssetName);
             return tcs.Task;
         }
 
@@ -270,7 +245,7 @@ namespace UGFExtensions.Await
             TipsSubscribeEvent();
 #endif
             TaskCompletionSource<T> loadAssetTcs = new TaskCompletionSource<T>();
-            GameEntry.Resource.LoadAsset(assetName, typeof(T), new LoadAssetCallbacks(
+            resourceComponent.LoadAsset(assetName, typeof(T), new LoadAssetCallbacks(
                 (tempAssetName, asset, duration, userdata) =>
                 {
                     var source = loadAssetTcs;
@@ -298,12 +273,15 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 加载多个资源（可等待）
         /// </summary>
-        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent,
-            [NotNull] string[] assetName) where T : UnityEngine.Object
+        public static async Task<T[]> LoadAssetsAsync<T>(this ResourceComponent resourceComponent, string[] assetName) where T : UnityEngine.Object
         {
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
+            if (assetName == null)
+            {
+                return null;
+            }
             T[] assets = new T[assetName.Length];
             Task<T>[] tasks = new Task<T>[assets.Length];
             for (int i = 0; i < tasks.Length; i++)

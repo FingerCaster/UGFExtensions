@@ -64,7 +64,7 @@ namespace UGFExtensions.Build.Editor
                 EditorGUILayout.LabelField("文件生成地址:", m_OutPath.stringValue);
                 if (GUILayout.Button("选择路径"))
                 {
-                    m_OutPath.stringValue = EditorUtility.SaveFilePanel("选择生成地址", String.Empty, "version", "txt");
+                    m_OutPath.stringValue = EditorUtility.SaveFilePanel("选择生成地址", String.Empty, $"{m_VersionInfoEditorData.VersionInfos[m_ActiveIndex.intValue].Value.Platform}Version", "txt");
                 }
                 EditorGUILayout.EndHorizontal();
                 if (string.IsNullOrEmpty(m_OutPath.stringValue))

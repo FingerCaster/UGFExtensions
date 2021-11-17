@@ -39,7 +39,10 @@
    2. 设置VersionInfoData
       * VersionInfoData配置在VersionInfo List.
       * 添加VersionInfoData   `Key`为 Version 环境名 比如（测试服1,测试服2,正式服,xxx渠道）
-        `value` 为VersionInfo 其中需要配置UpdatePrefixUri  不同环境下 uri可能不一样 所以需要自己配置
+        `value` 为VersionInfo 其中需要配置`ServerPath` 不同环境下 资源地址可能不一样 所以需要自己配置
+      * `ResourcesVersion` 是根据 `ApplicableGameVersion` 和 `InternalResourceVersion`  替换其中`.`为`_`   例如`1_0_1` 
+      * `Platform` 是当前打包平台 
+      * 最终的`UpdatePrefixUri` 是根据 前面三项 合并而成 例如`http://127.0.0.1/resources/1_1_1/Windows`
       * VersionInfo 中 `InternalGameVersion` 每次打包自增 也可以自己手动设置后 手动生成version.txt
       * `Active` 是当前处于激活的环境  生成时根据当前激活的配置进行生成。
    3. 两种生成version的模式 
@@ -54,5 +57,5 @@
 
 4. 打包
 
-   打包前如果没有配置 `VersionInfoEditorData` 会自动生成 `VersionInfoEditorData`.  生成位置配置在 [BuildEventHandle](./Editor/BuildEventHandle.cs)  87 行
+   打包前如果没有配置 `VersionInfoEditorData` 会自动生成 `VersionInfoEditorData`.  生成位置配置在 [BuildEventHandle](./Editor/BuildEventHandle.cs)  56行
    会自动生成一个名为Normal 的VersionInfoData 可以自行修改。
