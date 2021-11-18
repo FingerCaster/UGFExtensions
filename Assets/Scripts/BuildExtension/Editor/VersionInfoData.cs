@@ -88,10 +88,9 @@ namespace UGFExtensions.Build.Editor
         /// <summary>
         /// 资源更新下载地址
         /// </summary>
-        public string UpdatePrefixUri
-        {
-            get => GameFramework.Utility.Path.GetRegularPath(Path.Combine(m_ServerPath,m_ResourceVersion,m_Platform.ToString())) ;
-        }
+        public string UpdatePrefixUri =>
+            GameFramework.Utility.Path.GetRegularPath(Path.Combine(m_ServerPath??string.Empty, m_ResourceVersion??string.Empty,
+                m_Platform.ToString()));
 
         /// <summary>
         /// 资源版本列表长度
