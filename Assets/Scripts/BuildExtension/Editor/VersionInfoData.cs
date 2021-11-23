@@ -147,7 +147,7 @@ namespace UGFExtensions.Build.Editor
         }
         public string ToVersionInfoJson()
         {
-            return CatJson.JsonParser.ToJson(ToVersionInfo());
+            return LitJson.JsonMapper.ToJson(ToVersionInfo());
         }
 
         public void AutoIncrementInternalGameVersion()
