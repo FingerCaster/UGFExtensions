@@ -14,6 +14,7 @@ namespace UGFExtensions.Texture.Editor
         private SerializedProperty m_FileSystemMaxFileLength;
         private SerializedProperty m_InitBufferLength;
         private SerializedProperty m_AutoReleaseInterval;
+        private SerializedProperty m_CheckCanReleaseInterval;
         private TextureSetComponent Target => target as TextureSetComponent;
         private List<TextureSetComponent.LoadTextureObject> m_List;
         private List<TextureSetComponent.LoadTextureObject> m_TempList;
@@ -26,6 +27,7 @@ namespace UGFExtensions.Texture.Editor
             m_Page = 1;
             m_FileSystemMaxFileLength = serializedObject.FindProperty("m_FileSystemMaxFileLength");
             m_InitBufferLength = serializedObject.FindProperty("m_InitBufferLength");
+            m_CheckCanReleaseInterval = serializedObject.FindProperty("m_CheckCanReleaseInterval");
             m_AutoReleaseInterval = serializedObject.FindProperty("m_AutoReleaseInterval");
             m_TempList = new List<TextureSetComponent.LoadTextureObject>();
             m_List = new List<TextureSetComponent.LoadTextureObject>();
@@ -56,6 +58,7 @@ namespace UGFExtensions.Texture.Editor
             serializedObject.Update();
             EditorGUILayout.PropertyField(m_FileSystemMaxFileLength);
             EditorGUILayout.PropertyField(m_InitBufferLength);
+            EditorGUILayout.PropertyField(m_CheckCanReleaseInterval);
             EditorGUILayout.PropertyField(m_AutoReleaseInterval);
             DrawLoadSpriteObjectsLinkedList();
             if (GUILayout.Button("Release Unused"))

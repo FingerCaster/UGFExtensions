@@ -1,12 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using GameFramework;
+using GameFramework.Event;
 using GameFramework.FileSystem;
 using GameFramework.ObjectPool;
-using UGFExtensions.Await;
-using UGFExtensions.Timer;
+using GameFramework.Resource;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 #if ODIN_INSPECTOR
@@ -28,9 +28,16 @@ namespace UGFExtensions.Texture
         [SerializeField] private int m_InitBufferLength = 1024 * 64;
 
         /// <summary>
-        /// 自动释放时间间隔
+        /// 检查是否可以释放间隔
         /// </summary>
-        [SerializeField] private int m_AutoReleaseInterval = 60;
+        [SerializeField] private float m_CheckCanReleaseInterval = 30;
+
+        private float m_CheckCanReleaseTime = 0.0f;
+
+        /// <summary>
+        /// 对象池自动释放时间间隔
+        /// </summary>
+        [SerializeField] private float m_AutoReleaseInterval = 30;
 
         /// <summary>
         /// 图片文件系统
@@ -60,6 +67,16 @@ namespace UGFExtensions.Texture
         /// </summary>
         private IObjectPool<TextureItemObject> m_TexturePool;
 
+        
+        /// <summary>
+        /// 文件系统组件
+        /// </summary>
+        private FileSystemComponent m_FileSystemComponent;
+        /// <summary>
+        /// 资源组件
+        /// </summary>
+        private ResourceComponent m_ResourceComponent;
+        private WebRequestComponent m_WebRequestComponent;
 
 #if UNITY_EDITOR
         public LinkedList<LoadTextureObject> LoadTextureObjectsLinkedList
@@ -68,35 +85,72 @@ namespace UGFExtensions.Texture
             set => m_LoadTextureObjectsLinkedList = value;
         }
 #endif
-        private async void Start()
+        private IEnumerator Start()
         {
-            FileSystemComponent fileSystemComponent =
-                UnityGameFramework.Runtime.GameEntry.GetComponent<FileSystemComponent>();
+            m_FileSystemComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<FileSystemComponent>();
             SettingComponent settingComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<SettingComponent>();
-            TimerComponent timerComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<TimerComponent>();
-            ObjectPoolComponent objectPoolComponent =
-                UnityGameFramework.Runtime.GameEntry.GetComponent<ObjectPoolComponent>();
-            await GameEntry.Timer.FrameAsync();
-            timerComponent.AddRepeatedTimer(m_AutoReleaseInterval * 1000, -1, ReleaseUnused);
-            m_Buffer = new byte[m_InitBufferLength];
+            ObjectPoolComponent objectPoolComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<ObjectPoolComponent>();
+            EventComponent eventComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<EventComponent>();
+            WebRequestComponent webRequestComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<WebRequestComponent>();
+            m_ResourceComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<ResourceComponent>();
+            yield return new WaitForEndOfFrame();
+            eventComponent.Subscribe(WebRequestSuccessEventArgs.EventId,OnWebGetTextureSuccess);
+            eventComponent.Subscribe(WebRequestFailureEventArgs.EventId,OnWebGetTextureFailure);
+                m_Buffer = new byte[m_InitBufferLength];
             string fileName = settingComponent.GetString("TextureFileSystemFullPath", "TextureFileSystem");
             m_FullPath = Utility.Path.GetRegularPath(Path.Combine(Application.persistentDataPath, $"{fileName}.dat"));
             if (File.Exists(m_FullPath))
             {
-                m_TextureFileSystem = fileSystemComponent.LoadFileSystem(m_FullPath, FileSystemAccess.ReadWrite);
-            }
-            else
-            {
-                m_TextureFileSystem = fileSystemComponent.CreateFileSystem(m_FullPath, FileSystemAccess.ReadWrite,
-                    m_FileSystemMaxFileLength, m_FileSystemMaxFileLength * 8);
-                //写入一字节 避免空VSF 加载报错
-                m_TextureFileSystem.WriteFile("KeepByte.dat", new byte[] { 1 });
+                m_TextureFileSystem = m_FileSystemComponent.LoadFileSystem(m_FullPath, FileSystemAccess.ReadWrite);
             }
 
             m_TexturePool = objectPoolComponent.CreateMultiSpawnObjectPool<TextureItemObject>(
                 "TexturePool",
-                60.0f, 16, 60, 0);
+                m_AutoReleaseInterval, 16, 60, 0);
+
             m_LoadTextureObjectsLinkedList = new LinkedList<LoadTextureObject>();
+        }
+
+        private void OnWebGetTextureFailure(object sender, GameEventArgs e)
+        {
+            WebRequestFailureEventArgs webRequestSuccessEventArgs = (WebRequestFailureEventArgs)e;
+            WebGetTextureData webGetTextureData = webRequestSuccessEventArgs.UserData as WebGetTextureData;
+            if (webGetTextureData == null || webGetTextureData.UserData != this)
+            {
+                return;
+            }
+            Log.Error("Can not download Texture2D from '{1}' with error message '{2}'.",webRequestSuccessEventArgs.WebRequestUri,webRequestSuccessEventArgs.ErrorMessage);
+            ReferencePool.Release(webGetTextureData);
+        }
+
+        private void OnWebGetTextureSuccess(object sender, GameEventArgs e)
+        {
+            WebRequestSuccessEventArgs webRequestSuccessEventArgs = (WebRequestSuccessEventArgs)e;
+            WebGetTextureData webGetTextureData = webRequestSuccessEventArgs.UserData as WebGetTextureData;
+            if (webGetTextureData == null || webGetTextureData.UserData != this)
+            {
+                return;
+            }
+            Texture2D tex = new Texture2D(0, 0, TextureFormat.RGBA32, false);
+            var bytes = webRequestSuccessEventArgs.GetWebResponseBytes();
+            tex.LoadImage(bytes);
+            if (!string.IsNullOrEmpty(webGetTextureData.FilePath))
+            {
+                SaveTexture(webGetTextureData.FilePath, bytes);
+            }
+            m_TexturePool.Register(TextureItemObject.Create(webGetTextureData.SetTexture2dObject.Texture2dFilePath, tex, TextureLoad.FromNet), true);
+            SetTexture(webGetTextureData.SetTexture2dObject, tex);
+            ReferencePool.Release(webGetTextureData);
+        }
+        
+      
+
+        private void Update()
+        {
+            m_CheckCanReleaseTime += Time.unscaledDeltaTime;
+            if (m_CheckCanReleaseTime < (double)m_AutoReleaseInterval)
+                return;
+            ReleaseUnused();
         }
 
         /// <summary>
@@ -120,8 +174,9 @@ namespace UGFExtensions.Texture
 
                 current = next;
             }
-        }
 
+            m_CheckCanReleaseTime = 0f;
+        }
         /// <summary>
         /// 从文件系统加载图片
         /// </summary>
@@ -129,6 +184,10 @@ namespace UGFExtensions.Texture
         /// <returns></returns>
         private Texture2D GetTextureFromFileSystem(string file)
         {
+            if (m_TextureFileSystem == null)
+            {
+                return null;
+            }
             bool hasFile = m_TextureFileSystem.HasFile(file);
             if (!hasFile) return null;
             CheckBuffer(file);
@@ -147,22 +206,9 @@ namespace UGFExtensions.Texture
         /// <param name="fileUrl">图片网络路径</param>
         /// <param name="filePath">保存图片到文件系统的路径</param>
         /// <returns></returns>
-        private async Task<Texture2D> GetTextureFromNetwork(string fileUrl, string filePath)
+        private void GetTextureFromNetwork(string fileUrl, string filePath,ISetTexture2dObject setTexture2dObject)
         {
-            var data = await GameEntry.WebRequest.AddWebRequestAsync(fileUrl);
-            if (!data.IsError)
-            {
-                Texture2D tex = new Texture2D(0, 0, TextureFormat.RGBA32, false);
-                tex.LoadImage(data.Bytes);
-                if (!string.IsNullOrEmpty(filePath))
-                {
-                    SaveTexture(filePath, data.Bytes);
-                }
-
-                return tex;
-            }
-
-            return null;
+            m_WebRequestComponent.AddWebRequest(fileUrl, WebGetTextureData.Create(setTexture2dObject,this,filePath));
         }
 
         /// <summary>
@@ -170,9 +216,27 @@ namespace UGFExtensions.Texture
         /// </summary>
         /// <param name="assetPath">资源路径</param>
         /// <returns></returns>
-        private async Task<Texture2D> GetTextureFromResource(string assetPath)
+        private void GetTextureFromResource(string assetPath,ISetTexture2dObject setTexture2dObject)
         {
-            return await GameEntry.Resource.LoadAssetAsync<Texture2D>(assetPath);
+            m_ResourceComponent.LoadAsset(assetPath, typeof(Texture2D), new LoadAssetCallbacks(
+                (tempAssetName, asset, duration, userdata) =>
+                {
+                    Texture2D texture =  asset as Texture2D;
+                    if (texture != null)
+                    {
+                        m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromNet), true);
+                        SetTexture(setTexture2dObject,asset as Texture2D);
+                    }
+                    else
+                    {
+                        Log.Error(new GameFrameworkException($"Load Texture2D failure asset type is {asset.GetType()}."));
+                    }
+                },
+                (tempAssetName, status, errorMessage, userdata) =>
+                {
+                    Log.Error("Can not load Texture2D from '{1}' with error message '{2}'.",tempAssetName,errorMessage);
+                }
+            ));
         }
 
         /// <summary>
@@ -189,15 +253,12 @@ namespace UGFExtensions.Texture
             else
             {
                 texture = GetTextureFromFileSystem(setTexture2dObject.Texture2dFilePath);
-                m_TexturePool.Register(
-                    TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromFileSystem),
-                    true);
+                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromFileSystem), true);
             }
 
             if (texture != null)
             {
-                setTexture2dObject.SetTexture(texture);
-                m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
+                SetTexture(setTexture2dObject, texture);
             }
         }
 
@@ -206,24 +267,16 @@ namespace UGFExtensions.Texture
         /// </summary>
         /// <param name="setTexture2dObject">需要设置图片的对象</param>
         /// <param name="saveFilePath">保存网络图片到本地的路径</param>
-        public async void SetTextureByNetwork(ISetTexture2dObject setTexture2dObject, string saveFilePath = null)
+        public void SetTextureByNetwork(ISetTexture2dObject setTexture2dObject, string saveFilePath = null)
         {
-            Texture2D texture;
             if (m_TexturePool.CanSpawn(setTexture2dObject.Texture2dFilePath))
             {
-                texture = (Texture2D)m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath).Target;
+                var texture = (Texture2D)m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath).Target;
+                SetTexture(setTexture2dObject, texture);
             }
             else
             {
-                texture = await GetTextureFromNetwork(setTexture2dObject.Texture2dFilePath, saveFilePath);
-            }
-
-            if (texture != null)
-            {
-                m_TexturePool.Register(
-                    TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromNet), true);
-                m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
-                setTexture2dObject.SetTexture(texture);
+                GetTextureFromNetwork(setTexture2dObject.Texture2dFilePath, saveFilePath,setTexture2dObject);
             }
         }
 
@@ -231,26 +284,23 @@ namespace UGFExtensions.Texture
         /// 通过资源系统设置图片
         /// </summary>
         /// <param name="setTexture2dObject">需要设置图片的对象</param>
-        public async void SetTextureByResources(ISetTexture2dObject setTexture2dObject)
+        public void SetTextureByResources(ISetTexture2dObject setTexture2dObject)
         {
-            Texture2D texture;
             if (m_TexturePool.CanSpawn(setTexture2dObject.Texture2dFilePath))
             {
-                texture = (Texture2D)m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath).Target;
+                var texture = (Texture2D)m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath).Target;
+                SetTexture(setTexture2dObject, texture);
             }
             else
             {
-                texture = await GetTextureFromResource(setTexture2dObject.Texture2dFilePath);
+                GetTextureFromResource(setTexture2dObject.Texture2dFilePath,setTexture2dObject);
             }
+        }
 
-            if (texture != null)
-            {
-                m_TexturePool.Register(
-                    TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromResource),
-                    true);
-                m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
-                setTexture2dObject.SetTexture(texture);
-            }
+        private void SetTexture(ISetTexture2dObject setTexture2dObject,Texture2D texture)
+        {
+            m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
+            setTexture2dObject.SetTexture(texture);
         }
 
         /// <summary>
@@ -277,6 +327,12 @@ namespace UGFExtensions.Texture
         /// </summary>
         private void CheckFileSystem()
         {
+            if (m_TextureFileSystem == null)
+            {
+                m_TextureFileSystem = m_FileSystemComponent.CreateFileSystem(m_FullPath, FileSystemAccess.ReadWrite,
+                    m_FileSystemMaxFileLength, m_FileSystemMaxFileLength * 8);
+            }
+
             if (m_TextureFileSystem.FileCount < m_TextureFileSystem.MaxFileCount) return;
             FileSystemComponent fileSystemComponent =
                 UnityGameFramework.Runtime.GameEntry.GetComponent<FileSystemComponent>();
