@@ -17,7 +17,7 @@ namespace UGFExtensions
         {
             base.OnEnter(procedureOwner);
             // 提前注册事件
-            AwaitableExtension.SubscribeEvent();
+            AwaitableExtensions.SubscribeEvent();
 
             var task1 = GameEntry.DataTable.LoadDataTableAsync<DRTestEnum>("TestEnum", true);
             var task2 = GameEntry.DataTable.LoadDataTableAsync<DRTestDictionary>("TestDictionary", true);
