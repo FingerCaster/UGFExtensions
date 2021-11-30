@@ -30,8 +30,8 @@ namespace UGFExtensions.Texture
             Texture2D texture =  asset as Texture2D;
             if (texture != null)
             {
-                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromNet), true);
-                SetTexture(setTexture2dObject,asset as Texture2D);
+                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromResource,m_ResourceComponent), true);
+                SetTexture(setTexture2dObject,texture);
             }
             else
             {

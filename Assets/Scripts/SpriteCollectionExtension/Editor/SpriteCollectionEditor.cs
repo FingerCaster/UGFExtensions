@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using GameFramework;
 using UnityEditor;
 using UnityEditor.U2D;
 using UnityEditorInternal;
@@ -11,13 +7,13 @@ using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 
-namespace UGFExtensions.Editor
+namespace UGFExtensions.SpriteCollection
 {
 #if !ODIN_INSPECTOR
-    [CustomEditor(typeof(SpriteCollection.SpriteCollection))]
+    [CustomEditor(typeof(SpriteCollection))]
     public class SpriteCollectionEditor : UnityEditor.Editor
     {
-        private SpriteCollection.SpriteCollection Target => target as SpriteCollection.SpriteCollection;
+        private SpriteCollection Target => target as SpriteCollection;
         private SerializedProperty m_Sprites;
         private SerializedProperty m_Objects;
         private SerializedProperty m_AtlasFolder;

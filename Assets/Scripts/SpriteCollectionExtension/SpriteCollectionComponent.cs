@@ -19,12 +19,18 @@ namespace UGFExtensions.SpriteCollection
         /// 散图集合对象池
         /// </summary>
         private IObjectPool<SpriteCollectionItemObject> m_SpriteCollectionPool;
+        
+        /// <summary>
+        /// 检查是否可以释放间隔
+        /// </summary>
+        [SerializeField] private float m_CheckCanReleaseInterval = 30f;
+
+        private float m_CheckCanReleaseTime = 0.0f;
 
         /// <summary>
-        /// 自动释放时间间隔
+        /// 对象池自动释放时间间隔
         /// </summary>
-        [SerializeField] private int m_AutoReleaseInterval = 60;
-
+        [SerializeField] private float m_AutoReleaseInterval = 60f;
 #if ODIN_INSPECTOR
         [ReadOnly] [ShowInInspector]
 #endif
@@ -41,18 +47,24 @@ namespace UGFExtensions.SpriteCollection
 #endif
         private void Start()
         {
-            ObjectPoolComponent objectPoolComponent =
-                UnityGameFramework.Runtime.GameEntry.GetComponent<ObjectPoolComponent>();
+            ObjectPoolComponent objectPoolComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<ObjectPoolComponent>();
             m_SpriteCollectionPool = objectPoolComponent.CreateMultiSpawnObjectPool<SpriteCollectionItemObject>(
                 "SpriteCollection",
-                60.0f, 16, 60, 0);
-            TimerComponent timerComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<TimerComponent>();
-            timerComponent.AddRepeatedTimer(m_AutoReleaseInterval * 1000, -1, ReleaseUnused);
+                m_AutoReleaseInterval, 16, 60, 0);
             m_LoadSpriteObjectsLinkedList = new LinkedList<LoadSpriteObject>();
             m_SpriteCollectionBeingLoaded = new HashSet<string>();
             m_WaitSetObjects = new Dictionary<string, LinkedList<ISetSpriteObject>>();
-        }
 
+            InitializedResources();
+        }
+        
+        private void Update()
+        {
+            m_CheckCanReleaseTime += Time.unscaledDeltaTime;
+            if (m_CheckCanReleaseTime < (double)m_CheckCanReleaseInterval)
+                return;
+            ReleaseUnused();
+        }
         /// <summary>
         /// 回收无引用的 Image 对应图集。
         /// </summary>
@@ -73,56 +85,6 @@ namespace UGFExtensions.SpriteCollection
                 }
 
                 current = next;
-            }
-        }
-
-        /// <summary>
-        /// 设置精灵
-        /// </summary>
-        /// <param name="setSpriteObject">需要设置精灵的对象</param>
-        public async void SetSprite(ISetSpriteObject setSpriteObject)
-        {
-            if (m_SpriteCollectionPool.CanSpawn(setSpriteObject.CollectionPath))
-            {
-                SpriteCollection collectionItem =
-                    (SpriteCollection)m_SpriteCollectionPool.Spawn(setSpriteObject.CollectionPath).Target;
-                setSpriteObject.SetSprite(collectionItem.GetSprite(setSpriteObject.SpritePath));
-                m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(setSpriteObject, collectionItem));
-                return;
-            }
-
-            if (m_WaitSetObjects.ContainsKey(setSpriteObject.CollectionPath))
-            {
-                var loadSp = m_WaitSetObjects[setSpriteObject.CollectionPath];
-                loadSp.AddLast(setSpriteObject);
-            }
-            else
-            {
-                var loadSp = new LinkedList<ISetSpriteObject>();
-                loadSp.AddFirst(setSpriteObject);
-                m_WaitSetObjects.Add(setSpriteObject.CollectionPath, loadSp);
-            }
-
-            if (m_SpriteCollectionBeingLoaded.Contains(setSpriteObject.CollectionPath))
-            {
-                return;
-            }
-
-            m_SpriteCollectionBeingLoaded.Add(setSpriteObject.CollectionPath);
-            SpriteCollection collection =
-                await GameEntry.Resource.LoadAssetAsync<SpriteCollection>(setSpriteObject.CollectionPath);
-            m_SpriteCollectionPool.Register(
-                SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection), false);
-            m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
-            m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath,
-                out LinkedList<ISetSpriteObject> awaitSetImages);
-            LinkedListNode<ISetSpriteObject> current = awaitSetImages?.First;
-            while (current != null)
-            {
-                m_SpriteCollectionPool.Spawn(setSpriteObject.CollectionPath);
-                current.Value.SetSprite(collection.GetSprite(current.Value.SpritePath));
-                m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(current.Value, collection));
-                current = current.Next;
             }
         }
     }

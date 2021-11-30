@@ -19,7 +19,7 @@ namespace UGFExtensions.Texture
             else
             {
                 texture = await GameEntry.Resource.LoadAssetAsync<Texture2D>(setTexture2dObject.Texture2dFilePath);
-                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,TextureLoad.FromResource), true);
+                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,TextureLoad.FromResource,m_ResourceComponent), true);
             }
 
             SetTexture(setTexture2dObject, texture);
