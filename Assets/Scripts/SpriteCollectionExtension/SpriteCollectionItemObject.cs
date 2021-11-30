@@ -6,10 +6,13 @@ namespace UGFExtensions.SpriteCollection
 {
     public class SpriteCollectionItemObject : ObjectBase
     {
-        public static SpriteCollectionItemObject Create(string collectionPath ,SpriteCollection target)
+        private ResourceComponent m_ResourceComponent;
+
+        public static SpriteCollectionItemObject Create(string collectionPath ,SpriteCollection target,ResourceComponent resourceComponent)
         {
             SpriteCollectionItemObject item = ReferencePool.Acquire<SpriteCollectionItemObject>();
             item.Initialize(collectionPath, target);
+            item.m_ResourceComponent = resourceComponent;
             return item;
         }
         protected override void Release(bool isShutdown)
@@ -19,7 +22,8 @@ namespace UGFExtensions.SpriteCollection
             {
                 return;
             }
-            GameEntry.Resource.UnloadAsset(spriteCollection);
+            m_ResourceComponent.UnloadAsset(spriteCollection);
+            m_ResourceComponent = null;
         }
     }
 }

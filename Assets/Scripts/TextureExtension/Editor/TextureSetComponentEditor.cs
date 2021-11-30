@@ -1,4 +1,4 @@
-#if !ODIN_INSPECTOR 
+#if !ODIN_INSPECTOR
 
 
 using System.Collections.Generic;
@@ -14,6 +14,8 @@ namespace UGFExtensions.Texture.Editor
         private SerializedProperty m_FileSystemMaxFileLength;
         private SerializedProperty m_InitBufferLength;
         private SerializedProperty m_AutoReleaseInterval;
+        private SerializedProperty m_CheckCanReleaseInterval;
+        private bool m_IsShowFileSystemSettings;
         private TextureSetComponent Target => target as TextureSetComponent;
         private List<TextureSetComponent.LoadTextureObject> m_List;
         private List<TextureSetComponent.LoadTextureObject> m_TempList;
@@ -26,6 +28,7 @@ namespace UGFExtensions.Texture.Editor
             m_Page = 1;
             m_FileSystemMaxFileLength = serializedObject.FindProperty("m_FileSystemMaxFileLength");
             m_InitBufferLength = serializedObject.FindProperty("m_InitBufferLength");
+            m_CheckCanReleaseInterval = serializedObject.FindProperty("m_CheckCanReleaseInterval");
             m_AutoReleaseInterval = serializedObject.FindProperty("m_AutoReleaseInterval");
             m_TempList = new List<TextureSetComponent.LoadTextureObject>();
             m_List = new List<TextureSetComponent.LoadTextureObject>();
@@ -54,9 +57,21 @@ namespace UGFExtensions.Texture.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            EditorGUILayout.PropertyField(m_FileSystemMaxFileLength);
-            EditorGUILayout.PropertyField(m_InitBufferLength);
+            EditorGUILayout.PropertyField(m_CheckCanReleaseInterval);
             EditorGUILayout.PropertyField(m_AutoReleaseInterval);
+            m_IsShowFileSystemSettings = EditorGUILayout.Foldout(m_IsShowFileSystemSettings, "FileSystem Settings");
+            if (m_IsShowFileSystemSettings)
+            {
+                Rect rect = EditorGUILayout.GetControlRect();
+                rect.x += 10f;
+                rect.width -= 10f;
+                EditorGUI.PropertyField(rect, m_FileSystemMaxFileLength);
+                rect = EditorGUILayout.GetControlRect();
+                rect.x += 10f;
+                rect.width -= 10f;
+                EditorGUI.PropertyField(rect, m_InitBufferLength);
+            }
+
             DrawLoadSpriteObjectsLinkedList();
             if (GUILayout.Button("Release Unused"))
             {

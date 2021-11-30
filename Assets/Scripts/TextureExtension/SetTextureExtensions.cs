@@ -5,7 +5,7 @@ namespace UGFExtensions.Texture
     /// <summary>
     /// 设置图片扩展
     /// </summary>
-    public static class SetTextureExtensions
+    public static partial class SetTextureExtensions
     {
         public static void SetTextureByFileSystem(this RawImage rawImage, string file)
         {

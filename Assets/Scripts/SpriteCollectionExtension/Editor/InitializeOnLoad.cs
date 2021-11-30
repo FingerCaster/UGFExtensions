@@ -1,9 +1,7 @@
 using System;
-using UGFExtensions.SpriteCollection.Editor;
 using UnityEditor;
-using UnityEngine;
 
-namespace UGFExtensions.SpriteCollection.Editor
+namespace UGFExtensions.SpriteCollection
 {
     [InitializeOnLoadAttribute]
     public static class InitializeOnLoad

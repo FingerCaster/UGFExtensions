@@ -237,9 +237,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7ee647bae594d45864b3af677f21947, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_CheckCanReleaseInterval: 30
+  m_AutoReleaseInterval: 60
   m_FileSystemMaxFileLength: 64
   m_InitBufferLength: 65536
-  m_AutoReleaseInterval: 60
 --- !u!1 &496986989
 GameObject:
   m_ObjectHideFlags: 0

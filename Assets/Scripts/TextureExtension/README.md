@@ -22,8 +22,11 @@
 
 `m_InitBufferLength`  通过文件系统加载图片的缓存，用于消除GC。默认64k（1024*64） 如果加载文件大小超过 BufferLength 会扩容为当前的两倍。 
 
- `m_AutoReleaseInterval` 用于配置自动释放时间间隔  默认60s回收一次 可以自行在检视面板调整
+`m_CheckCanReleaseInterval` 配置检查可以释放对象的时间间隔 默认30s检查一次 可以自行在检视面板调整
 
+`m_AutoReleaseInterval` 用于配置对象池自动释放时间间隔  默认60s回收一次 可以自行在检视面板调整
+
+`m_CheckCanReleaseInterval`和`m_AutoReleaseInterval` 配合使用 检查到可回收对象会调用对象池 回收。 对象池到达释放时间会自动清理。
 ## Texture 的加载 与卸载
 
 加载Texture 通过 `TextureSetComponent` 的`SetTextureByFileSystem` `SetTextureByNetwork` `SetTextureByResources`方法

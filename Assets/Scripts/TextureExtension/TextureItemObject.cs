@@ -1,17 +1,20 @@
 using GameFramework;
 using GameFramework.ObjectPool;
 using UnityEngine;
+using UnityGameFramework.Runtime;
 
 namespace UGFExtensions.Texture
 {
     public class TextureItemObject : ObjectBase
     {
         private TextureLoad m_TextureLoad;
-        public static TextureItemObject Create(string collectionPath, UnityEngine.Texture target,TextureLoad textureLoad)
+        private ResourceComponent m_ResourceComponent;
+        public static TextureItemObject Create(string collectionPath, UnityEngine.Texture target,TextureLoad textureLoad,ResourceComponent resourceComponent = null)
         {
             TextureItemObject item = ReferencePool.Acquire<TextureItemObject>();
             item.Initialize(collectionPath, target);
             item.m_TextureLoad = textureLoad;
+            item.m_ResourceComponent = resourceComponent;
             return item;
         }
 
@@ -26,7 +29,8 @@ namespace UGFExtensions.Texture
             switch (m_TextureLoad)
             {
                 case TextureLoad.FromResource:
-                    GameEntry.Resource.UnloadAsset(texture);
+                    m_ResourceComponent.UnloadAsset(texture);
+                    m_ResourceComponent = null;
                     break;
                 case TextureLoad.FromNet:
                 case TextureLoad.FromFileSystem:

@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using UGFExtensions.SpriteCollection;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
-namespace UGFExtensions.Editor
+namespace UGFExtensions.SpriteCollection
 {
 #if !ODIN_INSPECTOR
     [CustomEditor(typeof(SpriteCollectionComponent))]
@@ -84,7 +81,7 @@ namespace UGFExtensions.Editor
                             rect = loadSpriteObject.SpriteObject.DrawSetSpriteObject(rect);
                             rect.y += EditorGUIUtility.singleLineHeight;
                             EditorGUI.ObjectField(rect,"Collection", loadSpriteObject.Collection,
-                                typeof(SpriteCollection.SpriteCollection), false);
+                                typeof(SpriteCollection), false);
                         }
                     }
                     rect.y += EditorGUIUtility.singleLineHeight*2;
