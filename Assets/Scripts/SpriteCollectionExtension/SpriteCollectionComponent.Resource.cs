@@ -51,6 +51,7 @@ namespace UGFExtensions.SpriteCollection
                 SpriteCollection collectionItem = (SpriteCollection)m_SpriteCollectionPool.Spawn(setSpriteObject.CollectionPath).Target;
                 setSpriteObject.SetSprite(collectionItem.GetSprite(setSpriteObject.SpritePath));
                 m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(setSpriteObject, collectionItem));
+                return;
             }
             
             if (m_WaitSetObjects.ContainsKey(setSpriteObject.CollectionPath))
