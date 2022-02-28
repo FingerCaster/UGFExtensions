@@ -4,6 +4,7 @@ using System.Linq;
 using GameFramework;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEditorInternal;
 using UnityGameFramework.Editor.ResourceTools;
 using GFResource = UnityGameFramework.Editor.ResourceTools.Resource;
@@ -15,7 +16,7 @@ namespace UGFExtensions.Editor.ResourceTools
     /// </summary>
     public class ResourceRuleEditor : EditorWindow
     {
-        private readonly string m_ConfigurationPath = "Assets/Res/Configs/ResourceRuleEditor.asset";
+        private readonly string m_NormalConfigurationPath = "Assets/Res/Configs/ResourceRuleEditor.asset";
         private ResourceRuleEditorData m_Configuration;
         private ResourceCollection m_ResourceCollection;
 
@@ -33,6 +34,31 @@ namespace UGFExtensions.Editor.ResourceTools
         {
             ResourceRuleEditor window = GetWindow<ResourceRuleEditor>(true, "Resource Rule Editor", true);
             window.minSize = new Vector2(1555f, 420f);
+        }
+
+        [OnOpenAsset]
+        public static bool OnOpenAsset (int instanceID, int line)
+        {
+            var config = EditorUtility.InstanceIDToObject (instanceID) as ResourceRuleEditorData;
+            if (config != null)
+            {
+                ResourceRuleEditor window = GetWindow<ResourceRuleEditor>(true, "Resource Rule Editor", true);
+                window.minSize = new Vector2(1555f, 420f);
+                window.m_CurrentConfigPath = AssetDatabase.GetAssetPath(config);
+                window.Load();
+                return true;
+            }
+            return false; // we did not handle the open
+        }
+        void OnSelectionChange ()
+        {
+            var config = Selection.activeObject as ResourceRuleEditorData;
+            if (config != null && config != m_Configuration)
+            {
+                m_CurrentConfigPath = AssetDatabase.GetAssetPath(config);
+                Load();
+                GetWindow<ResourceRuleEditor>().Focus();
+            }
         }
 
         private void OnGUI()
@@ -92,11 +118,30 @@ namespace UGFExtensions.Editor.ResourceTools
 
         private void Load()
         {
-            m_Configuration = LoadAssetAtPath<ResourceRuleEditorData>(m_ConfigurationPath);
+            m_AllConfigPaths = AssetDatabase.FindAssets("t:ResourceRuleEditorData").Select(AssetDatabase.GUIDToAssetPath).ToList();
+            m_ConfigNames = m_AllConfigPaths.Select(Path.GetFileNameWithoutExtension).ToArray();
+            
+            m_Configuration = LoadAssetAtPath<ResourceRuleEditorData>(m_CurrentConfigPath);
             if (m_Configuration == null)
             {
-                m_Configuration = ScriptableObject.CreateInstance<ResourceRuleEditorData>();
+                if (m_AllConfigPaths.Count == 0)
+                {
+                    m_Configuration = ScriptableObject.CreateInstance<ResourceRuleEditorData>();
+                    m_CurrentConfigPath = m_NormalConfigurationPath;
+                    m_AllConfigPaths = new List<string>() { m_NormalConfigurationPath };
+                    m_ConfigNames = new [] { Path.GetFileNameWithoutExtension(m_NormalConfigurationPath) };
+                }
+                else
+                {
+                    m_Configuration = LoadAssetAtPath<ResourceRuleEditorData>(m_AllConfigPaths[m_CurrentConfigIndex]);
+                }
+                m_CurrentConfigIndex = 0;
             }
+            else
+            {
+                m_CurrentConfigIndex = m_AllConfigPaths.ToList().FindIndex(0, _ => string.Equals(m_CurrentConfigPath, _));
+            }
+            m_RuleList = null;
         }
 
         private T LoadAssetAtPath<T>(string path) where T : Object
@@ -131,6 +176,10 @@ namespace UGFExtensions.Editor.ResourceTools
 
         private void OnListElementGUI(Rect rect, int index, bool isactive, bool isfocused)
         {
+            if (index>=m_Configuration.rules.Count)
+            {
+                return;
+            }
             const float GAP = 5;
 
             ResourceRule rule = m_Configuration.rules[index];
@@ -217,9 +266,31 @@ namespace UGFExtensions.Editor.ResourceTools
             return null;
         }
 
+        private int m_CurrentConfigIndex;
+        [SerializeField] private string m_CurrentConfigPath;
+        private List<string> m_AllConfigPaths;
+        private string[] m_ConfigNames;
+
         private void OnListHeaderGUI(Rect rect)
         {
-            EditorGUI.LabelField(rect, "Rules");
+            Rect rules = new Rect(rect.x, rect.y, 100, rect.height);
+            EditorGUI.LabelField(rules, "Rules");
+            Rect configLabel = new Rect(rect.x + rules.width, rect.y, 90, rect.height);
+            EditorGUI.LabelField(configLabel, "CurrentConfig:");
+            Rect configs = new Rect(rect.x + rules.width + configLabel.width, rect.y, 200, rect.height);
+            m_CurrentConfigIndex = EditorGUI.Popup(configs, m_CurrentConfigIndex, m_ConfigNames);
+            if (m_CurrentConfigPath != m_AllConfigPaths[m_CurrentConfigIndex])
+            {
+                m_CurrentConfigPath = m_AllConfigPaths[m_CurrentConfigIndex];
+                m_Configuration = LoadAssetAtPath<ResourceRuleEditorData>(m_CurrentConfigPath);
+                m_RuleList = null;
+            }
+            
+            Rect reload = new Rect(rect.width-100, rect.y, 100, rect.height);
+            if (GUI.Button(reload,"Reload"))
+            {
+                Load();
+            }
         }
 
         private void OnListElementLabelGUI()
@@ -274,9 +345,9 @@ namespace UGFExtensions.Editor.ResourceTools
 
         private void Save()
         {
-            if (LoadAssetAtPath<ResourceRuleEditorData>(m_ConfigurationPath) == null)
+            if (LoadAssetAtPath<ResourceRuleEditorData>(m_CurrentConfigPath) == null)
             {
-                AssetDatabase.CreateAsset(m_Configuration, m_ConfigurationPath);
+                AssetDatabase.CreateAsset(m_Configuration, m_CurrentConfigPath);
             }
             else
             {
@@ -290,6 +361,26 @@ namespace UGFExtensions.Editor.ResourceTools
         {
             if (m_Configuration == null)
             {
+                Load();
+            }
+
+            m_SourceAssetExceptTypeFilterGUIDArray = AssetDatabase.FindAssets(m_SourceAssetExceptTypeFilter);
+            m_SourceAssetExceptLabelFilterGUIDArray = AssetDatabase.FindAssets(m_SourceAssetExceptLabelFilter);
+            AnalysisResourceFilters();
+            if (SaveCollection())
+            {
+                Debug.Log("Refresh ResourceCollection.xml success");
+            }
+            else
+            {
+                Debug.Log("Refresh ResourceCollection.xml fail");
+            }
+        }
+        public void RefreshResourceCollection(string configPath)
+        {
+            if (m_Configuration == null || !m_CurrentConfigPath.Equals(configPath))
+            {
+                m_CurrentConfigPath = configPath;
                 Load();
             }
 
