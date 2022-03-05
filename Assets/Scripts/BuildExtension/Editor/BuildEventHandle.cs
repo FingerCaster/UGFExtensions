@@ -69,7 +69,7 @@ namespace UGFExtensions.Build.Editor
             versionInfoData.AutoIncrementInternalGameVersion();
             versionInfoData.ForceUpdateGame = false;
             versionInfoData.ResourceVersion = builderController.ApplicableGameVersion.Replace('.', '_')+ "_"+builderController.InternalResourceVersion;
-            versionInfoData.Platform = platform;
+            versionInfoData.Platform = (Platform)(int)platform;
             versionInfoData.LatestGameVersion = builderController.ApplicableGameVersion;
             versionInfoData.InternalResourceVersion = builderController.InternalResourceVersion;
             versionInfoData.VersionListLength = versionListLength;
