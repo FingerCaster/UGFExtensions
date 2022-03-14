@@ -3,7 +3,9 @@
 基于`猫仙人`的项目扩展  去掉繁杂的绑定前缀  **改为根据自定义的前缀和组件列表匹配** 大体功能不变 但是修改了部分编辑器代码 
 
 将绑定方法 和属性设置方法抽出 到[ComponentAutoBindToolExtensions](./Editor/ComponentAutoBindToolExtensions.cs) 
+
 将代码生成部分抽出 提供工具类[ComponentAutoBindToolUtility](./Editor/ComponentAutoBindToolUtility.cs)  
+
 可以和其他自己的UI编辑器代码生成等工具 结合使用
 
 ## 使用方法
