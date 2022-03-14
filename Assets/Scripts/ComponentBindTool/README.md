@@ -17,6 +17,7 @@
 ## 扩展
 1. 在扩展基础上增加前缀 
 	继承`IBindRule` 接口  并实现属性 详情可以参考默认[DefaultAuToBindRuleHelper](./DefaultAuToBindRuleHelper.cs)
+	
 2.自定义方式扩展
 	继承[IAutoBindRuleHelper](./IAutoBindRuleHelper.cs)  实现`GetBindData` 接口 自定义绑定规则
 
