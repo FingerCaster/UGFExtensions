@@ -241,7 +241,7 @@ public class ComponentAutoBindToolInspector : Editor
 
         EditorGUILayout.BeginVertical();
         int i = m_CurrentPage * m_ShowCount;
-        int count = i + 10;
+        int count = i + m_ShowCount;
         if (count > m_Target.BindDatas.Count)
         {
             count = m_Target.BindDatas.Count;
