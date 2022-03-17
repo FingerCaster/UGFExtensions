@@ -17,7 +17,7 @@
 
 ## 7.[SpriteCollection扩展](./Assets/Scripts/SpriteCollectionExtension)
 
-## 8.[ComponentAutoBindTool](https://github.com/CatImmortal/ComponentAutoBindTool)
+## 8.[ComponentAutoBindTool](./Assets/Scripts/ComponentBindTool)
 
 ## 9.[TextureExtension](./Assets/Scripts/TextureExtension)
 
