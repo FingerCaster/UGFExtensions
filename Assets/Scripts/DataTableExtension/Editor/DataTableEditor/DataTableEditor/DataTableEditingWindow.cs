@@ -89,7 +89,7 @@ namespace DataTableEditor
                 return;
             
             LightMode = EditorPrefs.GetInt("DataTableEditor_" + Application.productName + "_LightMode", 0);
-
+            m_ShowCount = (int)((this.position.height - 60) / 21);
             RowDataShowList = new List<DataTableRowData>();
             SetPage();
             SkipToPage(0);
