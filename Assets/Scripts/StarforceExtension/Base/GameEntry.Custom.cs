@@ -42,6 +42,15 @@ namespace UGFExtensions
         /// 数据表扩展组件
         /// </summary>
         public static DataTableExtensionComponent DataTableExtension { get; private set; }
+        
+        /// <summary>
+        /// 获取时间轮组件。
+        /// </summary>
+        public static TimingWheelComponent TimingWheel
+        {
+            get;
+            private set;
+        }
         private static void InitCustomComponents()
         {
             Timer = UnityGameFramework.Runtime.GameEntry.GetComponent<TimerComponent>();
@@ -49,6 +58,7 @@ namespace UGFExtensions
             SpriteCollection = UnityGameFramework.Runtime.GameEntry.GetComponent<SpriteCollectionComponent>();
             TextureSet = UnityGameFramework.Runtime.GameEntry.GetComponent<TextureSetComponent>();
             DataTableExtension = UnityGameFramework.Runtime.GameEntry.GetComponent<DataTableExtensionComponent>();
+            TimingWheel = UnityGameFramework.Runtime.GameEntry.GetComponent<TimingWheelComponent>();
         }
     }
 }
