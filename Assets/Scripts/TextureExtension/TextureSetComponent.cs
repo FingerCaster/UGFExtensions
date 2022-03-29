@@ -88,7 +88,6 @@ namespace UGFExtensions.Texture
                 {
                     m_TexturePool.Unspawn(current.Value.Texture2D);
                     ReferencePool.Release(current.Value.Texture2dObject);
-                    ReferencePool.Release(current.Value);
                     m_LoadTextureObjectsLinkedList.Remove(current);
                 }
 
@@ -100,7 +99,7 @@ namespace UGFExtensions.Texture
 
         private void SetTexture(ISetTexture2dObject setTexture2dObject, Texture2D texture)
         {
-            m_LoadTextureObjectsLinkedList.AddLast(LoadTextureObject.Create(setTexture2dObject, texture));
+            m_LoadTextureObjectsLinkedList.AddLast(new LoadTextureObject(setTexture2dObject, texture));
             setTexture2dObject.SetTexture(texture);
         }
     }

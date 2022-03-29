@@ -168,7 +168,7 @@ namespace DataTableEditor
 
 #else
                 reorderableList =
-                    new ReorderableList(RowDataShowList, typeof(List<DataTableRowData>), true, false, true, true);
+                    new ReorderableList(RowDatas, typeof(List<DataTableRowData>), true, false, true, true);
 
 #endif
                 reorderableList.drawElementCallback = (Rect rect, int index, bool selected, bool focused) =>

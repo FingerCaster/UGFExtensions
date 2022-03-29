@@ -64,7 +64,7 @@ namespace ComponentBindTool
         }
     }
 
-    public class DefaultAutoBindRuleHelper : IAutoBindRuleHelper
+    public class DefaultAuToBindRuleHelper : IAutoBindRuleHelper
     {
         private List<IBindRule> m_BindRules = new List<IBindRule>()
         {
