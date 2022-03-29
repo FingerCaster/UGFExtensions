@@ -1,3 +1,5 @@
+using System.Threading;
+using ET;
 using GameFramework.Fsm;
 using GameFramework.Procedure;
 using UGFExtensions.Timer;
@@ -9,7 +11,7 @@ namespace UGFExtensions
     {
         private int m_TimerId;
         private int m_AwaitTimerId;
-        private CancellationToken m_CancellationToken;
+        private ETCancellationToken m_CancellationToken;
         protected override async void OnEnter(IFsm<IProcedureManager> procedureOwner)
         {
             base.OnEnter(procedureOwner);
@@ -23,7 +25,7 @@ namespace UGFExtensions
                 Debug.Log($"剩余时间：{l}");
             });
 
-            m_CancellationToken = new CancellationToken();
+            m_CancellationToken = new ETCancellationToken();
             Debug.Log(TimerTimeUtility.Now());
              bool result =  await GameEntry.Timer.OnceTimerAsync(5000,m_CancellationToken);
              if (result)
