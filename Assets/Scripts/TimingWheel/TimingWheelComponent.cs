@@ -107,16 +107,16 @@ namespace UGFExtensions
         private void Update()
         {
             Loom.Instance.Update();
-            for (int i = m_UpdateFrameTimeTasks.Count - 1; i >= 0; i--)
+            for (int i = m_LoopTasks.Count - 1; i >= 0; i--)
             {
-                if (m_UpdateFrameTimeTasks[i] == null || !m_UpdateFrameTimeTasks[i].IsLoop)
+                if (m_LoopTasks[i] == null || !m_LoopTasks[i].IsLoop)
                 {
-                    ReferencePool.Release(m_UpdateFrameTimeTasks[i]);
-                    m_UpdateFrameTimeTasks.RemoveAt(i);
+                    ReferencePool.Release(m_LoopTasks[i]);
+                    m_LoopTasks.RemoveAt(i);
                     continue;
                 }
 
-                m_UpdateFrameTimeTasks[i].Update();
+                m_LoopTasks[i].Update();
             }
         }
 
@@ -127,7 +127,6 @@ namespace UGFExtensions
         /// <returns>定时器 ID</returns>
         public void AddFrameTask(Action callback)
         {
-            // StartCoroutine(FrameTask(callback));
             Loom.Instance.PostNext(callback);
         }
 
@@ -148,7 +147,7 @@ namespace UGFExtensions
             await task;
         }
 
-        private List<LoopTask> m_UpdateFrameTimeTasks = new List<LoopTask>();
+        private readonly List<LoopTask> m_LoopTasks = new List<LoopTask>();
 
         /// <summary>
         /// 添加循环调用任务
@@ -160,7 +159,7 @@ namespace UGFExtensions
         public LoopTask AddLoopTask(Action callback, LoopType loopType, int rateCount)
         {
             LoopTask task = LoopTask.Create(callback, loopType, rateCount);
-            m_UpdateFrameTimeTasks.Add(task);
+            m_LoopTasks.Add(task);
             return task;
         }
     }
@@ -192,9 +191,12 @@ namespace UGFExtensions
         /// </summary>
         private LoopType LoopType { get; set; }
         /// <summary>
-        /// 循环速率
+        /// 循环频率
         /// </summary>
         private int RateCount { get; set; }
+        /// <summary>
+        /// 最新次数
+        /// </summary>
         private int LastCount { get; set; }
 
         public static LoopTask Create(Action callback, LoopType loopType, int rateCount)
