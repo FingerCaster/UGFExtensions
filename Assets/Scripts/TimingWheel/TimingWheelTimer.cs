@@ -246,7 +246,7 @@ namespace TimingWheel
             if (m_TimingWheel.AddTask(timeTask)) return;
             if (timeTask.IsWaiting)
             {
-                Loom.Instance.PostNext(timeTask.Run);
+                Loom.Instance.Post(timeTask.Run);
             }
         }
     }
