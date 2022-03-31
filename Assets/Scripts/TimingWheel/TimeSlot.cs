@@ -18,18 +18,16 @@ namespace TimingWheel
         /// <summary>
         /// 总任务数
         /// </summary>
-        private readonly AtomicInt _taskCount;
-
-        private readonly object _lock = new object();
+        private readonly AtomicInt m_TaskCount;
 
         /// <summary>
         /// 任务队列
         /// </summary>
-        private readonly LinkedList<TimeTask> _tasks = new LinkedList<TimeTask>();
+        private readonly LinkedList<TimeTask> m_Tasks = new LinkedList<TimeTask>();
 
         public TimeSlot(AtomicInt taskCount)
         {
-            _taskCount = taskCount;
+            m_TaskCount = taskCount;
         }
 
         /// <summary>
@@ -39,24 +37,10 @@ namespace TimingWheel
         /// <returns></returns>
         public void AddTask(TimeTask task)
         {
-            var done = false;
-            while (!done)
-            {
-                // 先从其它队列移除掉
-                // 在lock之外操作，避免死锁
-                task.Remove();
-
-                lock (_lock)
-                {
-                    if (task.TimeSlot == null)
-                    {
-                        _tasks.AddLast(task);
-                        task.TimeSlot = this;
-                        _taskCount.Increment();
-                        done = true;
-                    }
-                }
-            }
+            task.Remove();
+            m_Tasks.AddLast(task);
+            task.TimeSlot = this;
+            m_TaskCount.Increment();
         }
 
         /// <summary>
@@ -66,19 +50,16 @@ namespace TimingWheel
         /// <returns></returns>
         public bool RemoveTask(TimeTask task)
         {
-            lock (_lock)
+            if (task.TimeSlot == this)
             {
-                if (task.TimeSlot == this)
+                if (m_Tasks.Remove(task))
                 {
-                    if (_tasks.Remove(task))
-                    {
-                        task.TimeSlot = null;
-                        _taskCount.Decrement();
-                        return true;
-                    }
-
-                    return false;
+                    task.TimeSlot = null;
+                    m_TaskCount.Decrement();
+                    return true;
                 }
+
+                return false;
             }
 
             return false;
@@ -90,18 +71,15 @@ namespace TimingWheel
         /// <param name="func"></param>
         public void Flush(Action<TimeTask> func)
         {
-            lock (_lock)
+            while (m_Tasks.Count > 0 && m_Tasks.First != null)
             {
-                while (_tasks.Count > 0 && _tasks.First != null)
-                {
-                    var task = _tasks.First.Value;
-                    RemoveTask(task);
-                    func(task);
-                }
-
-                // 重置过期时间，标识该时间槽已出队
-                TimeoutMs.Set(default);
+                var task = m_Tasks.First.Value;
+                RemoveTask(task);
+                func(task);
             }
+
+            // 重置过期时间，标识该时间槽已出队
+            TimeoutMs.Set(default);
         }
 
         /// <summary>

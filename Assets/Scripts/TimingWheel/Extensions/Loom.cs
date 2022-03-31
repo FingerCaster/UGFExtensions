@@ -46,7 +46,6 @@ namespace ET
             {
                 try
                 {
-                    Debug.Log("主线程调用");
                     action();
                 }
                 catch (Exception e)
