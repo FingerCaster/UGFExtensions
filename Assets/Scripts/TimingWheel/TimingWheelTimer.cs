@@ -5,6 +5,7 @@ using DelayQueue;
 using ET;
 using TimingWheel.Extensions;
 using TimingWheel.Interfaces;
+using UGFExtensions;
 
 namespace TimingWheel
 {

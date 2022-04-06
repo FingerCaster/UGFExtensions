@@ -4,11 +4,11 @@ using System.Threading;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
-namespace ET
+namespace UGFExtensions
 {
     public class Loom
     {
-        public static Loom Instance { get; } = new(Thread.CurrentThread.ManagedThreadId);
+        public static Loom Instance { get; } = new Loom(Thread.CurrentThread.ManagedThreadId);
         private readonly int m_ThreadId;
 
         private readonly ConcurrentQueue<Action> m_Queue = new ConcurrentQueue<Action>();
