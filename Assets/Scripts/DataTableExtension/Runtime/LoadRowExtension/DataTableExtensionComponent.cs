@@ -90,6 +90,7 @@ namespace UGFExtensions
         public void LoadDataTableRowConfig<T>(string assetName, string dataTable, bool isCache = true)
             where T : class, IDataRow, new() =>
             InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T), dataTable), isCache);
+
         /// <summary>
         /// 加载数据表配置
         /// </summary>
@@ -110,7 +111,8 @@ namespace UGFExtensions
         /// <param name="isCache">是否缓存文件流</param>
         /// <typeparam name="T">数据表类型</typeparam>
         /// <exception cref="Exception"></exception>
-        public void LoadDataTableRowConfig<T>(string assetName, string dataTable,string fileSystem, bool isCache = true)
+        public void LoadDataTableRowConfig<T>(string assetName, string dataTable, string fileSystem,
+            bool isCache = true)
             where T : class, IDataRow, new() =>
             InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T), dataTable), fileSystem, isCache);
 
@@ -123,23 +125,32 @@ namespace UGFExtensions
         /// <param name="fileSystem"></param>
         /// <param name="isCache">是否缓存文件流</param>
         /// <exception cref="Exception"></exception>
-        public void LoadDataTableRowConfig(Type type, string assetName, string dataTable,string fileSystem, bool isCache = true)
-            => InternalLoadDataTableRowConfig(assetName, new TypeNamePair(type, dataTable),fileSystem, isCache);
-        private bool GetFilePath(string assetName, out string filePath)
+        public void LoadDataTableRowConfig(Type type, string assetName, string dataTable, string fileSystem,
+            bool isCache = true)
+            => InternalLoadDataTableRowConfig(assetName, new TypeNamePair(type, dataTable), fileSystem, isCache);
+
+        /// <summary>
+        /// 获取文件路径
+        /// </summary>
+        /// <param name="assetPath">资源路径</param>
+        /// <param name="filePath">文件路径(如果在文件系统那么返回assetPath,否则返回具体文件路径)</param>
+        /// <returns>返回二进制资源是否存在于文件系统</returns>
+        /// <exception cref="Exception">不存在二进制文件</exception>
+        private bool GetFilePath(string assetPath, out string filePath)
         {
             if (!GameEntry.Base.EditorResourceMode)
             {
-                bool isSuccess = GameEntry.Resource.GetBinaryPath(assetName,
+                bool isSuccess = GameEntry.Resource.GetBinaryPath(assetPath,
                     out var isStorageInReadOnly, out var isStorageInFileSystem,
-                    out var relativePath, out var fileName);
+                    out var relativePath, out _);
                 if (!isSuccess)
                 {
-                    throw new Exception($"DataTable binary asset {assetName} is not exist.");
+                    throw new Exception($"DataTable binary asset {assetPath} is not exist.");
                 }
 
                 if (isStorageInFileSystem)
                 {
-                    filePath = assetName;
+                    filePath = assetPath;
                     return true;
                 }
 
@@ -149,7 +160,7 @@ namespace UGFExtensions
             }
             else
             {
-                filePath = assetName;
+                filePath = assetPath;
             }
 
             return false;
@@ -175,31 +186,33 @@ namespace UGFExtensions
             {
                 rowConfig.DataProvider = new FileStreamProvider(filePath, isCache);
             }
+
             rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
             using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
                     int count = binaryReader.Read7BitEncodedInt32(out int length);
-                    long configLength = rowConfig.DataProvider.ReadFileSegment(length,ref m_Buffer, 0, count);
+                    long configLength = rowConfig.DataProvider.ReadFileSegment(length, ref m_Buffer, 0, count);
                     rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
                 }
             }
+
             m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
             GameEntry.DataTable.CreateDataTable(typeNamePair.Type, typeNamePair.Name);
         }
 
-        private void InternalLoadDataTableRowConfig(string assetName, TypeNamePair typeNamePair,string fileSystem,
+        private void InternalLoadDataTableRowConfig(string assetName, TypeNamePair typeNamePair, string fileSystem,
             bool isCache = true)
         {
             if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out _))
             {
                 return;
             }
-            
+
             DataTableRowConfig rowConfig = new DataTableRowConfig();
 
-            rowConfig.DataProvider = new CustomVirtualFileSystemDataProvider(fileSystem,assetName,isCache);
+            rowConfig.DataProvider = new CustomVirtualFileSystemDataProvider(fileSystem, assetName, isCache);
 
             rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
             using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
@@ -207,20 +220,30 @@ namespace UGFExtensions
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
                     int count = binaryReader.Read7BitEncodedInt32(out int length);
-                    long configLength = rowConfig.DataProvider.ReadFileSegment(length,ref m_Buffer, 0, count);
+                    long configLength = rowConfig.DataProvider.ReadFileSegment(length, ref m_Buffer, 0, count);
                     rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
                 }
             }
+
             m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
             GameEntry.DataTable.CreateDataTable(typeNamePair.Type, typeNamePair.Name);
         }
-        public T GetDataRow<T>(int id, object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetDataRow<T>(new TypeNamePair(typeof(T)), id, userdata);
 
-        public T GetDataRow<T>(string dataTableName, int id, object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetDataRow<T>(new TypeNamePair(typeof(T), dataTableName), id, userdata);
 
-        private T InternalGetDataRow<T>(TypeNamePair typeNamePair, int id, object userdata = null)
+        /// <summary>获取数据表行。</summary>
+        /// <param name="id">数据表行的编号。</param>
+        /// <returns>数据表行。</returns>
+        public T GetDataRow<T>(int id) where T : class, IDataRow, new() =>
+            InternalGetDataRow<T>(new TypeNamePair(typeof(T)), id);
+
+        /// <summary>获取数据表行。</summary>
+        /// <param name="dataTableName">数据表名</param>
+        /// <param name="id">数据表行的编号。</param>
+        /// <returns>数据表行。</returns>
+        public T GetDataRow<T>(string dataTableName, int id) where T : class, IDataRow, new() =>
+            InternalGetDataRow<T>(new TypeNamePair(typeof(T), dataTableName), id);
+
+        private T InternalGetDataRow<T>(TypeNamePair typeNamePair, int id)
             where T : class, IDataRow, new()
         {
             m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config);
@@ -235,17 +258,20 @@ namespace UGFExtensions
 
             var realLength = config.DataProvider.ReadFileSegment(value.StartIndex, ref m_Buffer, 0,
                 value.Length);
-            dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, userdata);
+            dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, null);
             return dataTableBase.GetDataRow(id);
         }
-        
-        public T[] GetAllDataRows<T>(object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T)), userdata);
 
-        public T[] GetAllDataRows<T>(string dataTableName, object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T), dataTableName), userdata);
+        /// <summary>获取所有数据表行。</summary>
+        public T[] GetAllDataRows<T>() where T : class, IDataRow, new() =>
+            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T)));
 
-        private T[] InternalGetAllDataRows<T>(TypeNamePair typeNamePair, object userdata = null)
+        /// <summary>获取所有数据表行。</summary>
+        /// <param name="dataTableName">数据表名称</param>
+        public T[] GetAllDataRows<T>(string dataTableName) where T : class, IDataRow, new() =>
+            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T), dataTableName));
+
+        private T[] InternalGetAllDataRows<T>(TypeNamePair typeNamePair)
             where T : class, IDataRow, new()
         {
             m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config);
@@ -260,8 +286,9 @@ namespace UGFExtensions
 
                 var realLength = config.DataProvider.ReadFileSegment(dataTableSetting.Value.StartIndex, ref m_Buffer, 0,
                     dataTableSetting.Value.Length);
-                dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, userdata);
+                dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, null);
             }
+
             return dataTableBase.GetAllDataRows();
         }
 
@@ -293,12 +320,17 @@ namespace UGFExtensions
             return result;
         }
 
+        /// <summary>获取符合条件的数据表行。</summary>
+        /// <param name="dataTableName">数据表名</param>
+        /// <param name="condition">要检查的条件。</param>
         public T GetDataRow<T>(string dataTableName, Predicate<T> condition) where T : class, IDataRow, new()
         {
             IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>(dataTableName);
             return dataTableBase.GetDataRow(condition);
         }
 
+        /// <summary>获取符合条件的数据表行。</summary>
+        /// <param name="condition">要检查的条件。</param>
         public T GetDataRow<T>(Predicate<T> condition) where T : class, IDataRow, new()
         {
             IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();

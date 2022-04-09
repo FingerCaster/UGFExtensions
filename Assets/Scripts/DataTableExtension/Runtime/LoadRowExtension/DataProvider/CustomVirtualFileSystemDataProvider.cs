@@ -19,7 +19,7 @@ namespace UGFExtensions
             m_IsCached = isCached;
         }
 
-        public IFileSystem GetOrCreateFileSystem()
+        private IFileSystem GetOrCreateFileSystem()
         {
             if (m_FileSystem != null)
             {

@@ -17,7 +17,7 @@ namespace UGFExtensions
             m_IsCached = isCached;
         }
 
-        public IFileStream GetOrCreateFileSystem()
+        private IFileStream GetOrCreateFileSystem()
         {
             if (m_FileStream != null)
             {
