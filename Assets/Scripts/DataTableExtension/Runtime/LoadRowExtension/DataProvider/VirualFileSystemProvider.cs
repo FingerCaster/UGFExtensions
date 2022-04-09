@@ -1,5 +1,8 @@
 ﻿namespace UGFExtensions
 {
+    /// <summary>
+    /// 虚拟文件系统数据提供方(打包设置FileSystem 系统合并文件)
+    /// </summary>
     public class VirtualFileSystemDataProvider : IDataProvider
     {
         private string m_AssetPath = null;

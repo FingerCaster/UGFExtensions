@@ -2,6 +2,9 @@
 
 namespace UGFExtensions
 {
+    /// <summary>
+    /// 文件流数据提供
+    /// </summary>
     public class FileStreamProvider : IDataProvider
     {
         private IFileStream m_FileStream = null;

@@ -2,6 +2,9 @@
 
 namespace UGFExtensions
 {
+    /// <summary>
+    /// 自定义虚拟文件系统数据提供(mergeAsset扩展合并的vfs文件  或者自行合并的vfs文件)
+    /// </summary>
     public class CustomVirtualFileSystemDataProvider : IDataProvider
     {
         private string m_FilePath = null;
