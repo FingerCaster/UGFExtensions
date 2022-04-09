@@ -31,13 +31,16 @@ namespace UGFExtensions
             m_DataTableRowConfigs = new Dictionary<TypeNamePair, DataTableRowConfig>();
             m_Buffer = new byte[m_InitBufferLength];
         }
+
         /// <summary>
         /// 获取数据表数据数量
         /// </summary>
         /// <param name="dataTable">数据表名</param>
         /// <typeparam name="T">数据表类型</typeparam>
         /// <returns>数据表数据数量</returns>
-        public int GetCount<T>(string dataTable) where T : class, IDataRow, new()=>InternalGetCount(new TypeNamePair(typeof(T),dataTable));
+        public int GetCount<T>(string dataTable) where T : class, IDataRow, new() =>
+            InternalGetCount(new TypeNamePair(typeof(T), dataTable));
+
         /// <summary>
         /// 获取数据表数据数量
         /// </summary>
@@ -51,7 +54,7 @@ namespace UGFExtensions
             {
                 throw new Exception("GetCount must be load datatable row config !");
             }
-            
+
             return config.DataTableRowSettings.Count;
         }
 
@@ -59,57 +62,85 @@ namespace UGFExtensions
         /// 加载数据表配置
         /// </summary>
         /// <param name="assetName">资源名</param>
-        /// <param name="isCacheFileStream">是否缓存文件流</param>
+        /// <param name="isCache">是否缓存文件流</param>
         /// <typeparam name="T">数据表类型</typeparam>
         /// <exception cref="Exception"></exception>
-        public void LoadDataTableRowConfig<T>(string assetName, bool isCacheFileStream = true)
+        public void LoadDataTableRowConfig<T>(string assetName, bool isCache = true)
             where T : class, IDataRow, new() =>
-            InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T)), isCacheFileStream);
+            InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T)), isCache);
 
         /// <summary>
         /// 加载数据表配置
         /// </summary>
         /// <param name="type">数据表类型</param>
         /// <param name="assetName">资源名</param>
-        /// <param name="isCacheFileStream">是否缓存文件流</param>
+        /// <param name="isCache">是否缓存文件流</param>
         /// <exception cref="Exception"></exception>
-        public void LoadDataTableRowConfig(Type type, string assetName, bool isCacheFileStream = true)
-            => InternalLoadDataTableRowConfig(assetName, new TypeNamePair(type), isCacheFileStream);
+        public void LoadDataTableRowConfig(Type type, string assetName, bool isCache = true)
+            => InternalLoadDataTableRowConfig(assetName, new TypeNamePair(type), isCache);
 
         /// <summary>
         /// 加载数据表配置
         /// </summary>
         /// <param name="assetName">资源名</param>
         /// <param name="dataTable">数据表名</param>
-        /// <param name="isCacheFileStream">是否缓存文件流</param>
+        /// <param name="isCache">是否缓存文件流</param>
         /// <typeparam name="T">数据表类型</typeparam>
         /// <exception cref="Exception"></exception>
-        public void LoadDataTableRowConfig<T>(string assetName, string dataTable, bool isCacheFileStream = true)
+        public void LoadDataTableRowConfig<T>(string assetName, string dataTable, bool isCache = true)
             where T : class, IDataRow, new() =>
-            InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T), dataTable), isCacheFileStream);
+            InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T), dataTable), isCache);
+        /// <summary>
+        /// 加载数据表配置
+        /// </summary>
+        /// <param name="type">数据表类型</param>
+        /// <param name="assetName">资源名</param>
+        /// <param name="dataTable"></param>
+        /// <param name="isCache">是否缓存文件流</param>
+        /// <exception cref="Exception"></exception>
+        public void LoadDataTableRowConfig(Type type, string assetName, string dataTable, bool isCache = true)
+            => InternalLoadDataTableRowConfig(assetName, new TypeNamePair(type, dataTable), isCache);
 
-        private void InternalLoadDataTableRowConfig(string assetName, TypeNamePair typeNamePair,
-            bool isCacheFileStream = true)
+        /// <summary>
+        /// 加载数据表配置
+        /// </summary>
+        /// <param name="assetName">资源名</param>
+        /// <param name="dataTable">数据表名</param>
+        /// <param name="fileSystem"></param>
+        /// <param name="isCache">是否缓存文件流</param>
+        /// <typeparam name="T">数据表类型</typeparam>
+        /// <exception cref="Exception"></exception>
+        public void LoadDataTableRowConfig<T>(string assetName, string dataTable,string fileSystem, bool isCache = true)
+            where T : class, IDataRow, new() =>
+            InternalLoadDataTableRowConfig(assetName, new TypeNamePair(typeof(T), dataTable), fileSystem, isCache);
+
+        /// <summary>
+        /// 加载数据表配置
+        /// </summary>
+        /// <param name="type">数据表类型</param>
+        /// <param name="assetName">资源名</param>
+        /// <param name="dataTable"></param>
+        /// <param name="fileSystem"></param>
+        /// <param name="isCache">是否缓存文件流</param>
+        /// <exception cref="Exception"></exception>
+        public void LoadDataTableRowConfig(Type type, string assetName, string dataTable,string fileSystem, bool isCache = true)
+            => InternalLoadDataTableRowConfig(assetName, new TypeNamePair(type, dataTable),fileSystem, isCache);
+        private bool GetFilePath(string assetName, out string filePath)
         {
-            if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out _))
-            {
-                return;
-            }
-
-            string filePath;
             if (!GameEntry.Base.EditorResourceMode)
             {
                 bool isSuccess = GameEntry.Resource.GetBinaryPath(assetName,
                     out var isStorageInReadOnly, out var isStorageInFileSystem,
-                    out var relativePath, out var filename);
+                    out var relativePath, out var fileName);
                 if (!isSuccess)
                 {
-                    throw new Exception("DataTable binary asset is not exist.");
+                    throw new Exception($"DataTable binary asset {assetName} is not exist.");
                 }
 
                 if (isStorageInFileSystem)
                 {
-                    throw new Exception("DataTable binary asset can not in filesystem.");
+                    filePath = assetName;
+                    return true;
                 }
 
                 filePath = Utility.Path.GetRegularPath(isStorageInReadOnly
@@ -121,46 +152,76 @@ namespace UGFExtensions
                 filePath = assetName;
             }
 
-            IFileStream fileStream = FileStreamHelper.CreateFileStream(filePath);
+            return false;
+        }
 
-            DataTableRowConfig rowConfig = new DataTableRowConfig
+        private void InternalLoadDataTableRowConfig(string assetName, TypeNamePair typeNamePair,
+            bool isCache = true)
+        {
+            if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out _))
             {
-                Path = filePath,
-                FileStream = fileStream,
-            };
+                return;
+            }
 
-            fileStream.Seek(0, SeekOrigin.Begin);
-            fileStream.Read(m_Buffer, 0, 32);
+            bool isStorageInFileSystem = GetFilePath(assetName, out var filePath);
+
+            DataTableRowConfig rowConfig = new DataTableRowConfig();
+
+            if (isStorageInFileSystem)
+            {
+                rowConfig.DataProvider = new VirtualFileSystemDataProvider(assetName);
+            }
+            else
+            {
+                rowConfig.DataProvider = new FileStreamProvider(filePath, isCache);
+            }
+            rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
             using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
             {
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream))
                 {
                     int count = binaryReader.Read7BitEncodedInt32(out int length);
-                    fileStream.Seek(length, SeekOrigin.Begin);
-                    EnsureBufferSize(count);
-                    long configLength = fileStream.Read(m_Buffer, 0, count);
+                    long configLength = rowConfig.DataProvider.ReadFileSegment(length,ref m_Buffer, 0, count);
                     rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
                 }
             }
-
-            if (!isCacheFileStream)
-            {
-                fileStream.Dispose();
-                rowConfig.FileStream = null;
-            }
-
             m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
             GameEntry.DataTable.CreateDataTable(typeNamePair.Type, typeNamePair.Name);
         }
 
+        private void InternalLoadDataTableRowConfig(string assetName, TypeNamePair typeNamePair,string fileSystem,
+            bool isCache = true)
+        {
+            if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out _))
+            {
+                return;
+            }
+            
+            DataTableRowConfig rowConfig = new DataTableRowConfig();
 
-        public T GetDataRow<T>(int id,object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetDataRow<T>(new TypeNamePair(typeof(T)), id,userdata);
+            rowConfig.DataProvider = new CustomVirtualFileSystemDataProvider(fileSystem,assetName,isCache);
 
-        public T GetDataRow<T>(string dataTableName, int id,object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetDataRow<T>(new TypeNamePair(typeof(T), dataTableName), id,userdata);
+            rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
+            using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                {
+                    int count = binaryReader.Read7BitEncodedInt32(out int length);
+                    long configLength = rowConfig.DataProvider.ReadFileSegment(length,ref m_Buffer, 0, count);
+                    rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
+                }
+            }
+            m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
+            GameEntry.DataTable.CreateDataTable(typeNamePair.Type, typeNamePair.Name);
+        }
+        public T GetDataRow<T>(int id, object userdata = null) where T : class, IDataRow, new() =>
+            InternalGetDataRow<T>(new TypeNamePair(typeof(T)), id, userdata);
 
-        private T InternalGetDataRow<T>(TypeNamePair typeNamePair, int id,object userdata = null) where T : class, IDataRow, new()
+        public T GetDataRow<T>(string dataTableName, int id, object userdata = null) where T : class, IDataRow, new() =>
+            InternalGetDataRow<T>(new TypeNamePair(typeof(T), dataTableName), id, userdata);
+
+        private T InternalGetDataRow<T>(TypeNamePair typeNamePair, int id, object userdata = null)
+            where T : class, IDataRow, new()
         {
             m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config);
             if (config == null) return default;
@@ -172,58 +233,36 @@ namespace UGFExtensions
                 return dataTableBase.GetDataRow(id);
             }
 
-            if (config.FileStream != null)
-            {
-                AddDataRow(dataTableBase, config.FileStream, value.StartIndex, value.Length,userdata);
-            }
-            else
-            {
-                using (IFileStream fileStream = FileStreamHelper.CreateFileStream(config.Path))
-                {
-                    AddDataRow(dataTableBase, fileStream, value.StartIndex, value.Length,userdata);
-                }
-            }
-
+            var realLength = config.DataProvider.ReadFileSegment(value.StartIndex, ref m_Buffer, 0,
+                value.Length);
+            dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, userdata);
             return dataTableBase.GetDataRow(id);
         }
-
-        private void AddDataRow<T>(IDataTable<T> dataTable, IFileStream fileStream, int startIndex, int length,object userdata = null)
-            where T : class, IDataRow, new()
-        {
-            fileStream.Seek(startIndex, SeekOrigin.Begin);
-            EnsureBufferSize(length);
-            long readLength = fileStream.Read(m_Buffer, 0, length);
-            dataTable.AddDataRow(m_Buffer, 0, (int)readLength, userdata);
-        }
-
+        
         public T[] GetAllDataRows<T>(object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T)),userdata);
+            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T)), userdata);
 
-        public T[] GetAllDataRows<T>(string dataTableName,object userdata = null) where T : class, IDataRow, new() =>
-            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T), dataTableName),userdata);
+        public T[] GetAllDataRows<T>(string dataTableName, object userdata = null) where T : class, IDataRow, new() =>
+            InternalGetAllDataRows<T>(new TypeNamePair(typeof(T), dataTableName), userdata);
 
-        private T[] InternalGetAllDataRows<T>(TypeNamePair typeNamePair,object userdata = null) where T : class, IDataRow, new()
+        private T[] InternalGetAllDataRows<T>(TypeNamePair typeNamePair, object userdata = null)
+            where T : class, IDataRow, new()
         {
             m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config);
             if (config == null) return default;
             IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>(typeNamePair.Name);
-
-            IFileStream fileStream = config.FileStream ?? FileStreamHelper.CreateFileStream(config.Path);
-            using (fileStream)
+            foreach (var dataTableSetting in config.DataTableRowSettings)
             {
-                foreach (var dataTableSetting in config.DataTableRowSettings)
+                if (dataTableBase.HasDataRow(dataTableSetting.Key))
                 {
-                    if (dataTableBase.HasDataRow(dataTableSetting.Key))
-                    {
-                        continue;
-                    }
-
-                    AddDataRow(dataTableBase, fileStream, dataTableSetting.Value.StartIndex,
-                        dataTableSetting.Value.Length,userdata);
+                    continue;
                 }
 
-                return dataTableBase.GetAllDataRows();
+                var realLength = config.DataProvider.ReadFileSegment(dataTableSetting.Value.StartIndex, ref m_Buffer, 0,
+                    dataTableSetting.Value.Length);
+                dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, userdata);
             }
+            return dataTableBase.GetAllDataRows();
         }
 
         public bool InternalDestroyDataTable<T>() where T : IDataRow =>
@@ -245,8 +284,8 @@ namespace UGFExtensions
             {
                 if (m_DataTableRowConfigs.TryGetValue(typeNamePair, out var config))
                 {
-                    config.FileStream.Dispose();
-                    config.FileStream = null;
+                    config.DataProvider.Dispose();
+                    config.DataProvider = null;
                     m_DataTableRowConfigs.Remove(typeNamePair);
                 }
             }
@@ -254,11 +293,12 @@ namespace UGFExtensions
             return result;
         }
 
-        public T GetDataRow<T>(string dataTableName,Predicate<T> condition) where T : class, IDataRow, new()
+        public T GetDataRow<T>(string dataTableName, Predicate<T> condition) where T : class, IDataRow, new()
         {
             IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>(dataTableName);
             return dataTableBase.GetDataRow(condition);
         }
+
         public T GetDataRow<T>(Predicate<T> condition) where T : class, IDataRow, new()
         {
             IDataTable<T> dataTableBase = GameEntry.DataTable.GetDataTable<T>();
@@ -269,29 +309,11 @@ namespace UGFExtensions
         {
             foreach (KeyValuePair<TypeNamePair, DataTableRowConfig> item in m_DataTableRowConfigs)
             {
-                item.Value.FileStream.Dispose();
-                item.Value.FileStream = null;
+                item.Value.DataProvider.Dispose();
+                item.Value.DataProvider = null;
             }
 
             m_DataTableRowConfigs = null;
-        }
-
-        /// <summary>
-        /// 保证缓存大小
-        /// </summary>
-        /// <param name="count">读取文件大小</param>
-        private void EnsureBufferSize(int count)
-        {
-            int length = m_Buffer.Length;
-            while (length < count)
-            {
-                length *= 2;
-            }
-
-            if (length != m_Buffer.Length)
-            {
-                m_Buffer = new byte[length];
-            }
         }
     }
 }

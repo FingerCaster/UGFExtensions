@@ -398,7 +398,6 @@ namespace DE.Editor.DataTableTools
                                 binaryWriter.Write(tableConfigBytes);
                                 tempStream.Seek(0, SeekOrigin.Begin);
                                 tempStream.CopyTo(fileStream);
-                                Debug.Log(fileStream.Length);
                             }
                         }
                     }
