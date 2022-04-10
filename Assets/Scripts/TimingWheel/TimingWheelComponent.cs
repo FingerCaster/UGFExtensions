@@ -155,10 +155,11 @@ namespace UGFExtensions
         /// <param name="callback">回调</param>
         /// <param name="loopType">循环类型 0帧  1 毫秒 </param>
         /// <param name="rateCount"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public LoopTask AddLoopTask(Action callback, LoopType loopType, int rateCount)
+        public LoopTask AddLoopTask(Action<long,LoopTask> callback, LoopType loopType, int rateCount,ETCancellationToken cancellationToken = null)
         {
-            LoopTask task = LoopTask.Create(callback, loopType, rateCount);
+            LoopTask task = LoopTask.Create(DateTimeHelper.GetTimestamp(),callback, loopType, rateCount,cancellationToken);
             m_LoopTasks.Add(task);
             return task;
         }
@@ -183,9 +184,9 @@ namespace UGFExtensions
         /// </summary>
         public bool IsLoop { get; private set; }
         /// <summary>
-        /// 回调
+        /// 回调(起始时间和当前任务)
         /// </summary>
-        private Action CallBack { get; set; }
+        private Action<long,LoopTask> CallBack { get; set; }
         /// <summary>
         /// 循环类型
         /// </summary>
@@ -198,14 +199,25 @@ namespace UGFExtensions
         /// 最新次数
         /// </summary>
         private int LastCount { get; set; }
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        private long StarTime { get; set; }
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        private ETCancellationToken CancellationToken { get; set; }
 
-        public static LoopTask Create(Action callback, LoopType loopType, int rateCount)
+        public static LoopTask Create(long startTime,Action<long,LoopTask> callback, LoopType loopType, int rateCount,ETCancellationToken cancellationToken)
         {
             LoopTask loopTask = ReferencePool.Acquire<LoopTask>();
             loopTask.IsLoop = true;
+            loopTask.StarTime = startTime;
             loopTask.CallBack = callback;
             loopTask.LoopType = loopType;
             loopTask.RateCount = rateCount;
+            loopTask.CancellationToken = cancellationToken;
+            cancellationToken?.Add(loopTask.Stop);
             return loopTask;
         }
 
@@ -218,7 +230,7 @@ namespace UGFExtensions
                     LastCount++;
                     if (LastCount == RateCount)
                     {
-                        this.CallBack();
+                        this.CallBack(StarTime,this);
                         LastCount = 0;
                     }
                 }
@@ -237,7 +249,7 @@ namespace UGFExtensions
         private void MillisecondCallBack(bool result)
         {
             LastCount = 0;
-            this.CallBack();
+            this.CallBack(StarTime,this);
         }
         public void Stop()
         {
@@ -250,6 +262,9 @@ namespace UGFExtensions
             CallBack = default;
             LoopType = default;
             RateCount = default;
+            StarTime = default;
+            CancellationToken?.Remove(Stop);
+            CancellationToken = null;
         }
     }
 }

@@ -91,30 +91,31 @@ namespace TimingWheel
         /// <param name="timeoutMs">过期时间戳，绝对时间</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public ETTask<bool> AddTask(long timeoutMs, ETCancellationToken cancellationToken = default)
+        public async ETTask<bool> AddTask(long timeoutMs, ETCancellationToken cancellationToken = default)
         {
             var task = TimeTask.Create(timeoutMs);
             AddTask(task);
-            if (cancellationToken != default)
+            void CancelAction()
             {
-                void CancelAction()
-                {
-                    task.Remove();
-                    ETTask<bool> etTask = (ETTask<bool>) task.DelayTask;
-                    etTask.SetResult(false);
-                    cancellationToken.Remove(CancelAction);
-                }
-
-                cancellationToken.Add(CancelAction);
+                task.Remove();
+                ETTask<bool> etTask = (ETTask<bool>) task.DelayTask;
+                etTask.SetResult(false);
             }
-
+            bool result;
+            try
+            {
+                cancellationToken?.Add(CancelAction);
+                result = await (ETTask<bool>) task.DelayTask;
+            }
+            finally
+            {
+                cancellationToken?.Remove(CancelAction);
+            }
             if (task.TimeSlot == null)
             {
-                ETTask<bool> etTask = ETTask<bool>.Create(true);
-                etTask.SetResult(true);
-                return etTask;
+                return true;
             }
-            return  (ETTask<bool>) task.DelayTask;
+            return result;
         }
 
         /// <summary>
