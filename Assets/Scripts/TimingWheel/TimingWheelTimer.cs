@@ -97,9 +97,7 @@ namespace TimingWheel
             AddTask(task);
             void CancelAction()
             {
-                task.Remove();
-                ETTask<bool> etTask = (ETTask<bool>) task.DelayTask;
-                etTask.SetResult(false);
+                task.Cancel();
             }
             bool result;
             try
