@@ -122,7 +122,7 @@ namespace UGFExtensions
             if (Input.GetKeyDown(KeyCode.A))
             {
                 Log.Info($" 每帧延迟 开始帧：{Time.frameCount}");
-                m_LoopTask = UGFExtensions.GameEntry.TimingWheel.AddLoopTask(() =>
+                m_LoopTask = UGFExtensions.GameEntry.TimingWheel.AddLoopTask((statTime,task) =>
                 {
                     Log.Info($" 每帧延迟 当前时间毫秒:{DateTimeHelper.GetTimestamp(false)}  当前时间秒:{DateTimeHelper.GetTimestamp(true)} 当前帧：{Time.frameCount}");
                 },LoopType.Millisecond,1500);
