@@ -13,7 +13,7 @@ namespace UGFExtensions.Build.Editor
                 {
                     return false;
                 }
-                Regex regex = new Regex(@"^[A-Za-z]+://[A-Za-z0-9-_]+\.[A-Za-z0-9-_%&?/.=]+$");
+                Regex regex = new Regex(@"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$");
                 return regex.IsMatch(uri);
             }
         }
