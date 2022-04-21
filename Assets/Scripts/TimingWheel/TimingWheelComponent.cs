@@ -21,7 +21,6 @@ namespace UGFExtensions
         private ITimer m_Timer;
         private void Start()
         {
-            Loom.Instance.Update();//初始化一下Loom
             m_Timer = TimingWheelTimer.Build(TimeSpan.FromMilliseconds(m_TickSpan), m_SlotCount);
             m_Timer.Start();
         }
@@ -106,7 +105,6 @@ namespace UGFExtensions
 
         private void Update()
         {
-            Loom.Instance.Update();
             for (int i = m_LoopTasks.Count - 1; i >= 0; i--)
             {
                 if (m_LoopTasks[i] == null || !m_LoopTasks[i].IsLoop)
@@ -118,23 +116,38 @@ namespace UGFExtensions
 
                 m_LoopTasks[i].Update();
             }
+
+            int currentFrameCount = Time.frameCount; 
+            for (int i = m_FrameTasks.Count - 1; i >= 0; i--)
+            {
+                if (m_FrameTasks.Count<=currentFrameCount)
+                {
+                    m_FrameTasks[i].CallBack.Invoke();
+                    ReferencePool.Release(m_FrameTasks[i]);
+                    m_FrameTasks.RemoveAt(i);
+                }
+            }
         }
+
+        private readonly List<FrameTask> m_FrameTasks = new List<FrameTask>();
 
         /// <summary>
         /// 添加帧定时任务
         /// </summary>
         /// <param name="callback">回调函数</param>
-        /// <returns>定时器 ID</returns>
-        public void AddFrameTask(Action callback)
+        /// <param name="count">延迟帧数</param>
+        /// <returns></returns>
+        public void AddFrameTask(Action callback,int count = 1)
         {
-            Loom.Instance.PostNext(callback);
+            m_FrameTasks.Add(FrameTask.Create(Time.frameCount+count,callback));
         }
 
         /// <summary>
-        /// 添加帧定时任务
+        /// 添加帧定时任务(默认1帧后执行)
         /// </summary>
-        /// <returns>定时器 ID</returns>
-        public async ETTask AddFrameTaskAsync()
+        /// <param name="count">延迟帧数</param>
+        /// <returns></returns>
+        public async ETTask AddFrameTaskAsync(int count = 1)
         {
             ETTask task = ETTask.Create(true);
 
@@ -143,7 +156,7 @@ namespace UGFExtensions
                 task.SetResult();
             }
 
-            AddFrameTask(CallBack);
+            AddFrameTask(CallBack,count);
             await task;
         }
 
@@ -267,4 +280,25 @@ namespace UGFExtensions
             CancellationToken = null;
         }
     }
+    
+    public class FrameTask : IReference
+    {
+        public int FrameCount { get; set; } 
+        public Action CallBack { get; set; }
+
+        public static FrameTask Create(int frameCount, Action callback)
+        {
+            FrameTask loomTask = ReferencePool.Acquire<FrameTask>();
+            loomTask.FrameCount = frameCount;
+            loomTask.CallBack = callback;
+            return loomTask;
+        }
+
+        public void Clear()
+        {
+            FrameCount = default;
+            CallBack = default;
+        }
+    }
+
 }

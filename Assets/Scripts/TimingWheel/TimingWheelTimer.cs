@@ -109,10 +109,6 @@ namespace TimingWheel
             {
                 cancellationToken?.Remove(CancelAction);
             }
-            if (task.TimeSlot == null)
-            {
-                return true;
-            }
             return result;
         }
 
@@ -246,7 +242,7 @@ namespace TimingWheel
             if (m_TimingWheel.AddTask(timeTask)) return;
             if (timeTask.IsWaiting)
             {
-                Loom.Instance.Post(timeTask.Run);
+                Loom.Post(timeTask.Run);
             }
         }
     }
