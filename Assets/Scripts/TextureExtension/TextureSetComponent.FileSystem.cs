@@ -172,7 +172,7 @@ namespace UGFExtensions.Texture
         /// <returns></returns>
         public bool HasFile(string file)
         {
-            return m_TextureFileSystem.HasFile(file);
+            return m_TextureFileSystem != null && m_TextureFileSystem.HasFile(file);
         }
 
         /// <summary>
