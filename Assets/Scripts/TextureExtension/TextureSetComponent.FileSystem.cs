@@ -64,17 +64,16 @@ namespace UGFExtensions.Texture
             {
                 return null;
             }
+
             bool hasFile = m_TextureFileSystem.HasFile(file);
             if (!hasFile) return null;
             CheckBuffer(file);
-            int byteRead = m_TextureFileSystem.ReadFile(file, m_Buffer);
-            Debug.Log(byteRead);
+            m_TextureFileSystem.ReadFile(file, m_Buffer);
             Texture2D tex = new Texture2D(0, 0, TextureFormat.RGBA32, false);
-            byte[] bytes = new byte[byteRead];
-            Array.Copy(m_Buffer, bytes, byteRead);
-            tex.LoadImage(bytes);
+            tex.LoadImage(m_Buffer);
             return tex;
         }
+
         /// <summary>
         /// 通过文件系统设置图片
         /// </summary>
@@ -172,7 +171,15 @@ namespace UGFExtensions.Texture
         /// <returns></returns>
         public bool HasFile(string file)
         {
-            return m_TextureFileSystem.HasFile(file);
+            return m_TextureFileSystem != null && m_TextureFileSystem.HasFile(file);
+        }
+
+        /// <summary>删除指定的文件。</summary>
+        /// <param name="file">文件路径</param>
+        /// <returns></returns>
+        public bool DeleteFile(string file)
+        {
+            return m_TextureFileSystem == null || m_TextureFileSystem.DeleteFile(file);
         }
 
         /// <summary>

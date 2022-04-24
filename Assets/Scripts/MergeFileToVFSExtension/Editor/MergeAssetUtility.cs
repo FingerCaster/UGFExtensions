@@ -40,11 +40,7 @@ namespace UGFExtensions
                     }
 
                     string[] patterns = searchPatterns.Split(';', ',', '|');
-                    if (patterns.Length == 0)
-                    {
-                        patterns = new[] {"*.*"};
-                    }
-
+                    
                     foreach (var pattern in patterns)
                     {
                         var assetPaths = files.Where(_ =>
