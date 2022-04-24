@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ET;
 using GameFramework;
 using UnityEngine;
 using UnityGameFramework.Runtime;
@@ -495,7 +496,7 @@ namespace UGFExtensions.Timer
         /// <param name="time">定时时间</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<bool> OnceTimerAsync(long time, CancellationToken cancellationToken = null)
+        public async Task<bool> OnceTimerAsync(long time, ETCancellationToken cancellationToken = null)
         {
             long nowTime = TimerTimeUtility.Now();
             if (time <= 0)
@@ -534,7 +535,7 @@ namespace UGFExtensions.Timer
         /// 可等待的帧定时器
         /// </summary>
         /// <returns>定时器 ID</returns>
-        public async Task<bool> FrameAsync(CancellationToken cancellationToken = null)
+        public async Task<bool> FrameAsync(ETCancellationToken cancellationToken = null)
         {
             return await OnceTimerAsync(1, cancellationToken);
         }

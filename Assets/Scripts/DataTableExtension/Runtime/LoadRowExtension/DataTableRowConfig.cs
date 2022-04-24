@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using GameFramework.FileSystem;
 
 namespace UGFExtensions
 {
@@ -17,15 +18,10 @@ namespace UGFExtensions
         /// 数据表所有行设置
         /// </summary>
         public Dictionary<int, DataTableRowSetting> DataTableRowSettings { get; set; }
-
         /// <summary>
-        /// 数据表文件路径
+        /// 数据提供者
         /// </summary>
-        public string Path { get; set; }
-        /// <summary>
-        /// 文件流
-        /// </summary>
-        public IFileStream FileStream { get; set; }
+        public IDataProvider DataProvider { get; set; }
 #if UNITY_EDITOR
         /// <summary>
         /// 序列化数据表配置

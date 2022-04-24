@@ -21,6 +21,8 @@
 
 ## 9.[TextureExtension](./Assets/Scripts/TextureExtension)
 
+## 10.[时间轮组件](./Assets/Scripts/TimingWheel)
+
 # 引用库 致谢
 
 [EllanJiang/UnityGameFramework: This is literally a game framework, based on Unity game engine. It encapsulates commonly used game modules during development, and, to a large degree, standardises the process, enhances the development speed and ensures the product quality. (github.com)](https://github.com/EllanJiang/UnityGameFramework)
