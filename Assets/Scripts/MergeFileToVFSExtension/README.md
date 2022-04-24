@@ -5,11 +5,15 @@
 ![image](https://tvax2.sinaimg.cn/large/e1b1a94bgy1h1kvsvivspj20fo06xwez.jpg)
 
 ObjectForPacking : 需要打包合并的文件 支持拖放 文件或文件夹。
+
 SearchPatterns :  搜索模式。 根据后缀匹配 支持通过 `(,;|)`分割 例如`bytes,txt`
+
 FileSystemFolder : 存储VFS文件的文件夹地址
+
 FileSystemName: 虚拟文件系统名称
 
 Merge:合并
+
 Save: 保存设置到一个ScriptableObject中 之后可以通过ScriptableObject 配置合并
 
 代码设置 : `MergeAssetUtility.Merge` 方法 传入数据 合并。
