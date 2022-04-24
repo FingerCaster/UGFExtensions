@@ -64,17 +64,16 @@ namespace UGFExtensions.Texture
             {
                 return null;
             }
+
             bool hasFile = m_TextureFileSystem.HasFile(file);
             if (!hasFile) return null;
             CheckBuffer(file);
-            int byteRead = m_TextureFileSystem.ReadFile(file, m_Buffer);
-            Debug.Log(byteRead);
+            m_TextureFileSystem.ReadFile(file, m_Buffer);
             Texture2D tex = new Texture2D(0, 0, TextureFormat.RGBA32, false);
-            byte[] bytes = new byte[byteRead];
-            Array.Copy(m_Buffer, bytes, byteRead);
-            tex.LoadImage(bytes);
+            tex.LoadImage(m_Buffer);
             return tex;
         }
+
         /// <summary>
         /// 通过文件系统设置图片
         /// </summary>
