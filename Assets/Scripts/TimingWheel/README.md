@@ -16,8 +16,9 @@
 ```
 3. 循环调用计时器 
 	可以自行设置  调用类型(帧,毫秒) 调用频率  
+	回调参数为 开始时间和任务。
 ```csharp
-	var loopTask = UGFExtensions.GameEntry.TimingWheel.AddLoopTask(() =>  
+	var loopTask = UGFExtensions.GameEntry.TimingWheel.AddLoopTask((startTime,task) =>  
 	{  
 	    Log.Info($" 每帧延迟 当前时间毫秒:{DateTimeHelper.GetTimestamp(false)} 当前时间秒:{DateTimeHelper.GetTimestamp(true)} 当前帧：{Time.frameCount}");  
 	},LoopType.Millisecond,1500);
