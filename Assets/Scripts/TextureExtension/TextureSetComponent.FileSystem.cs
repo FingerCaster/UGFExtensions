@@ -174,6 +174,14 @@ namespace UGFExtensions.Texture
             return m_TextureFileSystem != null && m_TextureFileSystem.HasFile(file);
         }
 
+        /// <summary>删除指定的文件。</summary>
+        /// <param name="file">文件路径</param>
+        /// <returns></returns>
+        public bool DeleteFile(string file)
+        {
+            return m_TextureFileSystem == null || m_TextureFileSystem.DeleteFile(file);
+        }
+
         /// <summary>
         /// 保存图片
         /// </summary>
