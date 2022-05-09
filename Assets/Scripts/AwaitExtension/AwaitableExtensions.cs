@@ -21,7 +21,9 @@ namespace UGFExtensions.Await
         private static readonly Dictionary<string, TaskCompletionSource<bool>> s_DataTableTcs =
             new Dictionary<string, TaskCompletionSource<bool>>();
 
-        private static readonly Dictionary<string, TaskCompletionSource<bool>> s_SceneTcs =
+        private static readonly Dictionary<string, TaskCompletionSource<bool>> s_LoadSceneTcs =
+            new Dictionary<string, TaskCompletionSource<bool>>();
+        private static readonly Dictionary<string, TaskCompletionSource<bool>> s_UnLoadSceneTcs =
             new Dictionary<string, TaskCompletionSource<bool>>();
 
         private static readonly HashSet<int> s_WebSerialIDs = new HashSet<int>();
@@ -48,6 +50,8 @@ namespace UGFExtensions.Await
 
             eventComponent.Subscribe(LoadSceneSuccessEventArgs.EventId, OnLoadSceneSuccess);
             eventComponent.Subscribe(LoadSceneFailureEventArgs.EventId, OnLoadSceneFailure);
+            eventComponent.Subscribe(UnloadSceneSuccessEventArgs.EventId, OnUnloadSceneSuccess);
+            eventComponent.Subscribe(UnloadSceneFailureEventArgs.EventId, OnUnloadSceneFailure);
 
             eventComponent.Subscribe(LoadDataTableSuccessEventArgs.EventId, OnLoadDataTableSuccess);
             eventComponent.Subscribe(LoadDataTableFailureEventArgs.EventId, OnLoadDataTableFailure);
@@ -151,36 +155,101 @@ namespace UGFExtensions.Await
         /// <summary>
         /// 加载场景（可等待）
         /// </summary>
-        public static Task<bool> LoadSceneAsync(this SceneComponent sceneComponent, string sceneAssetName)
+        public static async Task<bool> LoadSceneAsync(this SceneComponent sceneComponent, string sceneAssetName)
         {
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
             var tcs = new TaskCompletionSource<bool>();
-            s_SceneTcs.Add(sceneAssetName, tcs);
-            sceneComponent.LoadScene(sceneAssetName);
-            return tcs.Task;
+            var isUnLoadScene = s_UnLoadSceneTcs.TryGetValue(sceneAssetName, out var unloadSceneTcs);
+            if (isUnLoadScene)
+            {
+                await unloadSceneTcs.Task;
+            }
+            s_LoadSceneTcs.Add(sceneAssetName, tcs);
+
+            try
+            {
+                sceneComponent.LoadScene(sceneAssetName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                tcs.SetException(e);
+                s_LoadSceneTcs.Remove(sceneAssetName);
+            }
+            return await tcs.Task;
         }
 
         private static void OnLoadSceneSuccess(object sender, GameEventArgs e)
         {
             LoadSceneSuccessEventArgs ne = (LoadSceneSuccessEventArgs)e;
-            s_SceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
+            s_LoadSceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
             if (tcs != null)
             {
                 tcs.SetResult(true);
-                s_SceneTcs.Remove(ne.SceneAssetName);
+                s_LoadSceneTcs.Remove(ne.SceneAssetName);
             }
         }
 
         private static void OnLoadSceneFailure(object sender, GameEventArgs e)
         {
             LoadSceneFailureEventArgs ne = (LoadSceneFailureEventArgs)e;
-            s_SceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
+            s_LoadSceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
             if (tcs != null)
             {
                 tcs.SetException(new GameFrameworkException(ne.ErrorMessage));
-                s_SceneTcs.Remove(ne.SceneAssetName);
+                s_LoadSceneTcs.Remove(ne.SceneAssetName);
+            }
+        }
+        
+        /// <summary>
+        /// 卸载场景（可等待）
+        /// </summary>
+        public static async Task<bool> UnLoadSceneAsync(this SceneComponent sceneComponent, string sceneAssetName)
+        {
+#if UNITY_EDITOR
+            TipsSubscribeEvent();
+#endif
+            var tcs = new TaskCompletionSource<bool>();
+            var isLoadSceneTcs = s_LoadSceneTcs.TryGetValue(sceneAssetName, out var loadSceneTcs);
+            if (isLoadSceneTcs)
+            {
+                Debug.Log("Unload  loading scene");
+                await loadSceneTcs.Task;
+            }
+            s_UnLoadSceneTcs.Add(sceneAssetName, tcs);
+            try
+            {
+                sceneComponent.UnloadScene(sceneAssetName);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                tcs.SetException(e);
+                s_UnLoadSceneTcs.Remove(sceneAssetName);
+            }
+            return await tcs.Task;
+        }
+        private static void OnUnloadSceneSuccess(object sender, GameEventArgs e)
+        {
+            UnloadSceneSuccessEventArgs ne = (UnloadSceneSuccessEventArgs)e;
+            s_UnLoadSceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
+            if (tcs != null)
+            {
+                tcs.SetResult(true);
+                s_UnLoadSceneTcs.Remove(ne.SceneAssetName);
+            }
+        }
+
+        private static void OnUnloadSceneFailure(object sender, GameEventArgs e)
+        {
+            UnloadSceneFailureEventArgs ne = (UnloadSceneFailureEventArgs)e;
+            s_UnLoadSceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
+            if (tcs != null)
+            {
+                tcs.SetException(new GameFrameworkException($"Unload scene {ne.SceneAssetName} failure."));
+                s_UnLoadSceneTcs.Remove(ne.SceneAssetName);
             }
         }
 
