@@ -107,6 +107,7 @@ namespace UGFExtensions.Await
             s_UIFormTcs.TryGetValue(ne.SerialId, out TaskCompletionSource<UIForm> tcs);
             if (tcs != null)
             {
+                Debug.LogError(ne.ErrorMessage);
                 tcs.SetException(new GameFrameworkException(ne.ErrorMessage));
                 s_UIFormTcs.Remove(ne.SerialId);
             }
@@ -146,6 +147,7 @@ namespace UGFExtensions.Await
             s_EntityTcs.TryGetValue(ne.EntityId, out var tcs);
             if (tcs != null)
             {
+                Debug.LogError(ne.ErrorMessage);
                 tcs.SetException(new GameFrameworkException(ne.ErrorMessage));
                 s_EntityTcs.Remove(ne.EntityId);
             }
@@ -198,6 +200,7 @@ namespace UGFExtensions.Await
             s_LoadSceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
             if (tcs != null)
             {
+                Debug.LogError(ne.ErrorMessage);
                 tcs.SetException(new GameFrameworkException(ne.ErrorMessage));
                 s_LoadSceneTcs.Remove(ne.SceneAssetName);
             }
@@ -248,6 +251,7 @@ namespace UGFExtensions.Await
             s_UnLoadSceneTcs.TryGetValue(ne.SceneAssetName, out var tcs);
             if (tcs != null)
             {
+                Debug.LogError($"Unload scene {ne.SceneAssetName} failure.");
                 tcs.SetException(new GameFrameworkException($"Unload scene {ne.SceneAssetName} failure."));
                 s_UnLoadSceneTcs.Remove(ne.SceneAssetName);
             }
@@ -275,12 +279,14 @@ namespace UGFExtensions.Await
                     }
                     else
                     {
+                        Debug.LogError($"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}.");
                         source.SetException(new GameFrameworkException(
                             $"Load asset failure load type is {asset.GetType()} but asset type is {typeof(T)}."));
                     }
                 },
                 (tempAssetName, status, errorMessage, userdata) =>
                 {
+                    Debug.LogError(errorMessage);
                     loadAssetTcs.SetException(new GameFrameworkException(errorMessage));
                 }
             ));
