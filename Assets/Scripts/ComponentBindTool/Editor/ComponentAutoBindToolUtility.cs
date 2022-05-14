@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
@@ -48,6 +49,22 @@ public static class ComponentAutoBindToolUtility
         typeNames.Sort();
         return typeNames.ToArray();
     }
+    
+    /// <summary>
+    /// 获取绑定的组件使用到的命名空间
+    /// </summary>
+    /// <param name="target">组件绑定工具</param>
+    /// <returns>绑定的组件使用到的命名空间</returns>
+    private static List<string> GetNameSpaces(ComponentAutoBindTool target)
+    {
+        List<string> nameSpaces = new List<string>();
+        foreach (var bindCom in target.m_BindComs)
+        {
+            nameSpaces.Add(bindCom.GetType().Namespace);
+        }
+        
+        return nameSpaces.Distinct().ToList();
+    }
 
     /// <summary>
     /// 创建辅助器实例
@@ -77,8 +94,11 @@ public static class ComponentAutoBindToolUtility
 
         StringBuilder stringBuilder = new StringBuilder(2048);
 
-        stringBuilder.AppendLine("using UnityEngine;");
-        stringBuilder.AppendLine("using UnityEngine.UI;");
+        List<string> nameSpaces = GetNameSpaces(target);
+        foreach (var nameSpace in nameSpaces)
+        {
+            stringBuilder.AppendLine($"using {nameSpace};");
+        }
         stringBuilder.AppendLine("");
 
         stringBuilder.AppendLine("//自动生成于：" + DateTime.Now);
