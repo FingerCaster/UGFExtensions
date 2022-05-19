@@ -61,6 +61,7 @@ namespace TimingWheel
             timeTask.TimeoutMs = DateTimeHelper.GetTimestamp() + (long) timeout.TotalMilliseconds;
             timeTask.DelayTask = ETTask<bool>.Create(true);
             timeTask.m_TimerType = TimerType.Task;
+            timeTask.TaskStatus = TimeTaskStatus.Wait;
             return timeTask;
         }
 
@@ -75,6 +76,7 @@ namespace TimingWheel
             timeTask.TimeoutMs = DateTimeHelper.GetTimestamp() + (long) timeout.TotalMilliseconds;
             timeTask.DelayTask = action;
             timeTask.m_TimerType = TimerType.Action;
+            timeTask.TaskStatus = TimeTaskStatus.Wait;
             return timeTask;
         }
 
@@ -88,6 +90,7 @@ namespace TimingWheel
             timeTask.TimeoutMs = timeoutMs;
             timeTask.DelayTask = ETTask<bool>.Create(true);
             timeTask.m_TimerType = TimerType.Task;
+            timeTask.TaskStatus = TimeTaskStatus.Wait;
             return timeTask;
         }
 
@@ -102,6 +105,7 @@ namespace TimingWheel
             timeTask.TimeoutMs = timeoutMs;
             timeTask.DelayTask = action;
             timeTask.m_TimerType = TimerType.Action;
+            timeTask.TaskStatus = TimeTaskStatus.Wait;
             return timeTask;
         }
 
@@ -160,7 +164,6 @@ namespace TimingWheel
             {
                 return false;
             }
-
             if (IsWaiting)
             {
                 TaskStatus = TimeTaskStatus.Cancel;
@@ -209,7 +212,7 @@ namespace TimingWheel
 
             TimeSlot = null;
 
-            TaskStatus = TimeTaskStatus.Wait;
+            TaskStatus = TimeTaskStatus.None;
         }
     }
 }
