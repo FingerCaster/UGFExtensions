@@ -119,5 +119,17 @@ namespace DE.Editor.DataTableTools
             }
             AssetDatabase.Refresh();
         }
+        
+        [MenuItem("Tools/DataTable/Generate DataTables/Excel To Txt", priority = 32)]
+        public static void ExcelToTxt()
+        {
+            if (!Directory.Exists(DataTableConfig.ExcelsFolder))
+            {
+                Debug.LogError($"{DataTableConfig.ExcelsFolder} is not exist!");
+                return;
+            }
+            ExcelExtension.ExcelToTxt(DataTableConfig.ExcelsFolder);
+            AssetDatabase.Refresh();
+        }
     }
 }
