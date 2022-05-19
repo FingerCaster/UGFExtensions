@@ -166,6 +166,10 @@ public class ComponentAutoBindToolInspector : Editor
         foreach (GameObject go in Selection.gameObjects)
         {
             ComponentAutoBindTool autoBindTool = go.GetComponent<ComponentAutoBindTool>();
+            if (autoBindTool == null)
+            {
+                continue;
+            }
             if (autoBindTool.RuleHelper == null)
             {
                 IAutoBindRuleHelper helper =
