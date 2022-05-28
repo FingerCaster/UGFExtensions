@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using RoboRyanTron.SearchableEnum;
 using UnityEngine;
+using UnityEngine.Serialization;
+
 /// <summary>
 /// 组件自动绑定工具
 /// </summary>
@@ -30,29 +33,28 @@ public class ComponentAutoBindTool : MonoBehaviour
     private string m_ClassName;
 
     [SerializeField]
-    private string m_Namespace;
-
+    private AutoBindSettingData m_SettingData;
+    
     [SerializeField]
-    private string m_CodePath;
+    private SearchableData m_Searchable;
+
+    public SearchableData Searchable
+    {
+        get => m_Searchable;
+        set => m_Searchable = value;
+    }
+
+    public AutoBindSettingData SettingData
+    {
+        get => m_SettingData;
+        set => m_SettingData = value;
+    }
 
     public string ClassName
     {
         get => m_ClassName;
         set => m_ClassName = value;
     }
-
-    public string Namespace
-    {
-        get => m_Namespace;
-        set => m_Namespace = value;
-    }
-
-    public string CodePath
-    {
-        get => m_CodePath;
-        set => m_CodePath = value;
-    }
-
     public IAutoBindRuleHelper RuleHelper
     {
         get;

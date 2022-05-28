@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using RoboRyanTron.SearchableEnum;
 using UnityEditor;
 using UnityEngine;
 
@@ -103,21 +104,6 @@ public static class ComponentAutoBindToolExtensions
     }
 
     /// <summary>
-    /// 设置命名空间
-    /// </summary>
-    /// <param name="self"></param>
-    /// <param name="nameSpace"></param>
-    public static void SetNameSpace(this ComponentAutoBindTool self, string nameSpace)
-    {
-        if ( self.Namespace == nameSpace)
-        {
-            return;   
-        }
-        self.Namespace = nameSpace;
-        EditorUtility.SetDirty(self);
-    }
-
-    /// <summary>
     /// 设置脚本名称
     /// </summary>
     /// <param name="self"></param>
@@ -131,21 +117,7 @@ public static class ComponentAutoBindToolExtensions
         self.ClassName = className;
         EditorUtility.SetDirty(self);
     }
-    /// <summary>
-    /// 设置脚本生成地址
-    /// </summary>
-    /// <param name="self"></param>
-    /// <param name="codePath"></param>
-    public static void SetCodePath(this ComponentAutoBindTool self, string codePath)
-    {
-        if ( self.CodePath == codePath)
-        {
-            return;   
-        }
-        self.CodePath = codePath;
-        EditorUtility.SetDirty(self);
-    }
-    
+
     /// <summary>
     /// 设置生成规则帮助类
     /// </summary>
@@ -158,6 +130,35 @@ public static class ComponentAutoBindToolExtensions
             return;
         }
         self.RuleHelper = ruleHelper;
+        EditorUtility.SetDirty(self);
+    }
+    
+    /// <summary>
+    /// 设置生成代码配置
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="data"></param>
+    public static void SetSettingData(this ComponentAutoBindTool self, AutoBindSettingData data)
+    {
+        if (self.SettingData == data)
+        {
+            return;
+        }
+        self.SettingData = data;
+        EditorUtility.SetDirty(self);
+    }
+    /// <summary>
+    /// 设置生成代码配置
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="data"></param>
+    public static void SetSearchable(this ComponentAutoBindTool self, SearchableData data)
+    {
+        if (self.Searchable == data)
+        {
+            return;
+        }
+        self.Searchable = data;
         EditorUtility.SetDirty(self);
     }
 }

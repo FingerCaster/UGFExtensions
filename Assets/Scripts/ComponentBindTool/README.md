@@ -12,7 +12,10 @@
 需要绑定的组件物体前添加前缀 默认为`BD_`  可以自行扩展  添加`ComponentAutoBindTool` 组件
 
 ![image](https://tva3.sinaimg.cn/large/e1b1a94bgy1h09cxq1ewbj20bv073aaw.jpg)
+
 点击自动绑定 会自动搜索带有`BD_`前缀的子物体  并根据前缀对应的组件列表进行查找绑定
+
+代码生成配置存在于 `AutoBindSettingConfig` 可以自己增删 修改。
 
 **PS: 默认绑定规则的绑定列表 只有`Transform` 组件 需要自行增加**
 

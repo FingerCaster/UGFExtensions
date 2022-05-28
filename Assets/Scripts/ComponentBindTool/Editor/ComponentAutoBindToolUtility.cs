@@ -11,7 +11,13 @@ using UnityEngine;
 
 public static class ComponentAutoBindToolUtility
 {
-    private static readonly string[] s_AssemblyNames = {"Assembly-CSharp"};
+    private static readonly string[] s_AssemblyNames =
+    {
+#if UNITY_2017_3_OR_NEWER
+        "Main.Runtime",
+#endif
+        "Assembly-CSharp"
+    };
 
     /// <summary>
     /// 获取指定基类在指定程序集中的所有子类名称
@@ -103,10 +109,10 @@ public static class ComponentAutoBindToolUtility
 
         stringBuilder.AppendLine("//自动生成于：" + DateTime.Now);
 
-        if (!string.IsNullOrEmpty(target.Namespace))
+        if (!string.IsNullOrEmpty(target.SettingData.Namespace))
         {
             //命名空间
-            stringBuilder.AppendLine("namespace " + target.Namespace);
+            stringBuilder.AppendLine("namespace " + target.SettingData.Namespace);
             stringBuilder.AppendLine("{");
             stringBuilder.AppendLine("");
         }
@@ -146,7 +152,7 @@ public static class ComponentAutoBindToolUtility
 
         stringBuilder.AppendLine("\t}");
 
-        if (!string.IsNullOrEmpty(target.Namespace))
+        if (!string.IsNullOrEmpty(target.SettingData.Namespace))
         {
             stringBuilder.AppendLine("}");
         }
@@ -157,17 +163,17 @@ public static class ComponentAutoBindToolUtility
     /// <summary>
     /// 生成自动绑定代码
     /// </summary>
-    public static bool GenAutoBindCode(ComponentAutoBindTool target, string className, string codePath)
+    public static bool GenAutoBindCode(ComponentAutoBindTool target, string className, string codeFolderPath)
     {
         GameObject go = target.gameObject;
 
-        if (!Directory.Exists(codePath))
+        if (!Directory.Exists(codeFolderPath))
         {
-            Debug.LogError($"{go.name}的代码保存路径{codePath}无效");
+            Debug.LogError($"{go.name}的代码保存路径{codeFolderPath}无效");
             return false;
         }
 
-        using (StreamWriter sw = new StreamWriter($"{codePath}/{className}.BindComponents.cs"))
+        using (StreamWriter sw = new StreamWriter($"{codeFolderPath}/{className}.BindComponents.cs"))
         {
             sw.WriteLine("using UnityEngine;");
             sw.WriteLine("using UnityEngine.UI;");
@@ -175,10 +181,10 @@ public static class ComponentAutoBindToolUtility
 
             sw.WriteLine("//自动生成于：" + DateTime.Now);
 
-            if (!string.IsNullOrEmpty(target.Namespace))
+            if (!string.IsNullOrEmpty(target.SettingData.Namespace))
             {
                 //命名空间
-                sw.WriteLine("namespace " + target.Namespace);
+                sw.WriteLine("namespace " + target.SettingData.Namespace);
                 sw.WriteLine("{");
                 sw.WriteLine("");
             }
@@ -218,7 +224,7 @@ public static class ComponentAutoBindToolUtility
 
             sw.WriteLine("\t}");
 
-            if (!string.IsNullOrEmpty(target.Namespace))
+            if (!string.IsNullOrEmpty(target.SettingData.Namespace))
             {
                 sw.WriteLine("}");
             }
@@ -275,22 +281,22 @@ public static class ComponentAutoBindToolUtility
     }
 
     /// <summary>
-    /// 设置全局设置
+    /// 设置代码生成配置
     /// </summary>
     /// <param name="nameSpace"></param>
     /// <param name="path"></param>
     /// <param name="isAutoCreateDir"></param>
-    public static void SetAutoBindGlobeSetting(string nameSpace, string path, bool isAutoCreateDir)
+    public static void SetAutoBindSetting(string name,string nameSpace, string path, bool isAutoCreateDir)
     {
-        string[] paths = AssetDatabase.FindAssets("t:AutoBindGlobalSetting");
+        string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
         if (paths.Length == 0)
         {
-            Debug.LogError("不存在AutoBindGlobalSetting");
+            Debug.LogError("不存在AutoBindSettingConfig");
             return;
         }
         if (paths.Length > 1)
         {
-            Debug.LogError("AutoBindGlobalSetting数量大于1");
+            Debug.LogError("AutoBindSettingConfig数量大于1");
             return;
         }
         string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
@@ -300,9 +306,10 @@ public static class ComponentAutoBindToolUtility
             Directory.CreateDirectory(path);
         }
 
-        var setting = AssetDatabase.LoadAssetAtPath<AutoBindGlobalSetting>(settingPath);
-        setting.Namespace = nameSpace;
-        setting.CodePath = path;
+        var setting = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(settingPath);
+        var settingData = setting.GetSettingData(name);
+        settingData.Namespace = nameSpace;
+        settingData.CodePath = path;
 
         EditorUtility.SetDirty(setting);
         AssetDatabase.SaveAssets();
