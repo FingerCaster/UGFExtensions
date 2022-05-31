@@ -8,6 +8,8 @@
 
 可以和其他自己的UI编辑器代码生成等工具 结合使用
 
+本扩展依赖`Common/Searchable` 扩展。
+
 ## 使用方法
 需要绑定的组件物体前添加前缀 默认为`BD_`  可以自行扩展  添加`ComponentAutoBindTool` 组件
 
