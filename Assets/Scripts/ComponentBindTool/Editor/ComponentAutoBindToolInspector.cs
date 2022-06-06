@@ -16,11 +16,12 @@ public class ComponentAutoBindToolInspector : Editor
     private bool m_SettingDataExpanded = true;
     private SerializedProperty m_Searchable;
     private int m_LastSettingDataNameIndex;
+    private bool m_SettingDataError;
     private void OnEnable()
     {
         m_Target = (ComponentAutoBindTool)target;
         m_HelperTypeNames = ComponentAutoBindToolUtility.GetTypeNames();
-
+        m_SettingDataError = false;
         string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
         if (paths.Length == 0)
         {
@@ -54,6 +55,7 @@ public class ComponentAutoBindToolInspector : Editor
             if (data == null)
             {
                 Debug.LogError($"不存在名为‘{m_Target.SettingData.Name}’的AutoBindSettingData");
+                m_SettingDataError = true;
                 return;
             }
             m_Target.SetSettingData(m_SettingConfig.GetSettingData(m_Target.SettingData.Name));
@@ -65,7 +67,6 @@ public class ComponentAutoBindToolInspector : Editor
             Names = settingDataNames
         });
         m_Searchable = serializedObject.FindProperty("m_Searchable");
-       
         m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName) ? m_Target.gameObject.name : m_Target.ClassName);
         serializedObject.ApplyModifiedProperties();
         SetPage();
@@ -227,7 +228,12 @@ public class ComponentAutoBindToolInspector : Editor
         {
             return;
         }
-        
+
+        if (m_SettingDataError)
+        {
+            EditorGUILayout.HelpBox($"不存在名为‘{m_Target.SettingData.Name}’的AutoBindSettingData",MessageType.Error);
+            return;
+        }
         EditorGUILayout.PropertyField(m_Searchable);
         if (m_Target.Searchable.Select!= m_LastSettingDataNameIndex)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RoboRyanTron.SearchableEnum;
 using UnityEditor;
 using UnityEngine;
@@ -145,6 +146,57 @@ public static class ComponentAutoBindToolExtensions
             return;
         }
         self.SettingData = data;
+        if (self.Searchable!= null)
+        {
+            int findIndex = self.Searchable.Names.ToList().FindIndex(_ => _ == data.Name);
+            if (findIndex == -1)
+            {
+                string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+                string path = AssetDatabase.GUIDToAssetPath(paths[0]);
+                var settingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+                var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
+                self.SetSearchable(new SearchableData()
+                {
+                    Select = settingDataNames.FindIndex(_ => _ == data.Name),
+                    Names = settingDataNames.ToArray()
+                });
+            }
+            else
+            {
+                self.Searchable.Select = findIndex;
+            }
+        }
+        EditorUtility.SetDirty(self);
+    }
+    
+    /// <summary>
+    /// 设置生成代码配置
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="data"></param>
+    public static void SetSettingData(this ComponentAutoBindTool self, string name)
+    {
+        self.SettingData = ComponentAutoBindToolUtility.GetAutoBindSetting(name: name);
+        if (self.Searchable!= null)
+        {
+            int findIndex = self.Searchable.Names.ToList().FindIndex(_ => _ == name);
+            if (findIndex == -1)
+            {
+                string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+                string path = AssetDatabase.GUIDToAssetPath(paths[0]);
+                var settingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+                var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
+                self.SetSearchable(new SearchableData()
+                {
+                    Select = settingDataNames.FindIndex(_ => _ == name),
+                    Names = settingDataNames.ToArray()
+                });
+            }
+            else
+            {
+                self.Searchable.Select = findIndex;
+            }
+        }
         EditorUtility.SetDirty(self);
     }
     /// <summary>

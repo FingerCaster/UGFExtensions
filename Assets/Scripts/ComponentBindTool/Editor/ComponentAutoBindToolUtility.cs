@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -55,7 +54,7 @@ public static class ComponentAutoBindToolUtility
         typeNames.Sort();
         return typeNames.ToArray();
     }
-    
+
     /// <summary>
     /// 获取绑定的组件使用到的命名空间
     /// </summary>
@@ -68,7 +67,7 @@ public static class ComponentAutoBindToolUtility
         {
             nameSpaces.Add(bindCom.GetType().Namespace);
         }
-        
+
         return nameSpaces.Distinct().ToList();
     }
 
@@ -105,6 +104,7 @@ public static class ComponentAutoBindToolUtility
         {
             stringBuilder.AppendLine($"using {nameSpace};");
         }
+
         stringBuilder.AppendLine("");
 
         stringBuilder.AppendLine("//自动生成于：" + DateTime.Now);
@@ -239,7 +239,7 @@ public static class ComponentAutoBindToolUtility
     /// </summary>
     /// <param name="target"></param>
     /// <param name="ruleHelper"></param>
-    public static void AutoBindComponents(GameObject target,IAutoBindRuleHelper ruleHelper = null)
+    public static void AutoBindComponents(GameObject target, IAutoBindRuleHelper ruleHelper = null)
     {
         PrefabStage prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
         if (prefabStage == null)
@@ -249,17 +249,19 @@ public static class ComponentAutoBindToolUtility
             {
                 bindTool.RuleHelper = ruleHelper;
             }
+
             if (bindTool.RuleHelper == null)
             {
-                bindTool.RuleHelper = (IAutoBindRuleHelper)CreateHelperInstance(GetTypeNames()[0]);
+                bindTool.RuleHelper = (IAutoBindRuleHelper) CreateHelperInstance(GetTypeNames()[0]);
             }
-            
+
             bindTool.AutoBindComponent();
             PrefabInstanceStatus status = PrefabUtility.GetPrefabInstanceStatus(target);
             if (status == PrefabInstanceStatus.Connected)
             {
                 PrefabUtility.ApplyPrefabInstance(target, InteractionMode.AutomatedAction);
             }
+
             EditorUtility.SetDirty(target);
             AssetDatabase.SaveAssets();
         }
@@ -270,14 +272,15 @@ public static class ComponentAutoBindToolUtility
             {
                 bindTool.RuleHelper = ruleHelper;
             }
+
             if (bindTool.RuleHelper == null)
             {
-                bindTool.RuleHelper = (IAutoBindRuleHelper)CreateHelperInstance(GetTypeNames()[0]);
+                bindTool.RuleHelper = (IAutoBindRuleHelper) CreateHelperInstance(GetTypeNames()[0]);
             }
+
             bindTool.AutoBindComponent();
             EditorSceneManager.MarkSceneDirty(prefabStage.scene);
         }
-
     }
 
     /// <summary>
@@ -286,7 +289,7 @@ public static class ComponentAutoBindToolUtility
     /// <param name="nameSpace"></param>
     /// <param name="path"></param>
     /// <param name="isAutoCreateDir"></param>
-    public static void SetAutoBindSetting(string name,string nameSpace, string path, bool isAutoCreateDir)
+    public static void SetAutoBindSetting(string name, string nameSpace, string path, bool isAutoCreateDir)
     {
         string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
         if (paths.Length == 0)
@@ -294,13 +297,15 @@ public static class ComponentAutoBindToolUtility
             Debug.LogError("不存在AutoBindSettingConfig");
             return;
         }
+
         if (paths.Length > 1)
         {
             Debug.LogError("AutoBindSettingConfig数量大于1");
             return;
         }
+
         string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
-        
+
         if (!Directory.Exists(path) && isAutoCreateDir)
         {
             Directory.CreateDirectory(path);
@@ -313,5 +318,54 @@ public static class ComponentAutoBindToolUtility
 
         EditorUtility.SetDirty(setting);
         AssetDatabase.SaveAssets();
+    }
+
+    /// <summary>
+    ///   获取代码生成配置
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static AutoBindSettingData GetAutoBindSetting(string name)
+    {
+        string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+        if (paths.Length == 0)
+        {
+            throw new Exception("不存在AutoBindSettingConfig");
+        }
+
+        if (paths.Length > 1)
+        {
+            throw new Exception("AutoBindSettingConfig数量大于1");
+        }
+
+        string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
+        var setting = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(settingPath);
+        return setting.GetSettingData(name);
+    }
+
+    /// <summary>
+    ///   获取代码生成配置
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static bool AddAutoBindSetting(string name, string folder, string nameSpace)
+    {
+        string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+        if (paths.Length == 0)
+        {
+            throw new Exception("不存在AutoBindSettingConfig");
+        }
+
+        if (paths.Length > 1)
+        {
+            throw new Exception("AutoBindSettingConfig数量大于1");
+        }
+
+        string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
+        var setting = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(settingPath);
+        bool result =setting.AddSettingData(new AutoBindSettingData(name, folder, nameSpace));
+        EditorUtility.SetDirty(setting);
+        AssetDatabase.SaveAssets();
+        return result;
     }
 }

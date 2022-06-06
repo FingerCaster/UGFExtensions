@@ -1,13 +1,12 @@
 ﻿#if UNITY_EDITOR
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEditor;
 
 /// <summary>
 /// 自动绑定全局设置
 /// </summary>
-public class AutoBindSettingConfig : SerializedScriptableObject
+public class AutoBindSettingConfig : ScriptableObject
 {
     [SerializeField]
     private List<AutoBindSettingData> m_Settings = new List<AutoBindSettingData>();
@@ -24,6 +23,16 @@ public class AutoBindSettingConfig : SerializedScriptableObject
             return null;
         }
         return m_Settings[index];
+    }
+    public bool AddSettingData(AutoBindSettingData data)
+    {
+        int index = m_Settings.FindIndex(_ => _.Name == data.Name);
+        if (index == -1)
+        {
+            m_Settings.Add(data);
+            return true;
+        }
+        return false;
     }
 
     [MenuItem("Tools/AutoBindTools/CreateAutoBindSettingConfig")]
