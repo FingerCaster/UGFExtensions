@@ -175,8 +175,11 @@ public static class ComponentAutoBindToolUtility
 
         using (StreamWriter sw = new StreamWriter($"{codeFolderPath}/{className}.BindComponents.cs"))
         {
-            sw.WriteLine("using UnityEngine;");
-            sw.WriteLine("using UnityEngine.UI;");
+            List<string> nameSpaces = GetNameSpaces(target);
+            foreach (var nameSpace in nameSpaces)
+            {
+                sw.WriteLine($"using {nameSpace};");
+            }
             sw.WriteLine("");
 
             sw.WriteLine("//自动生成于：" + DateTime.Now);
