@@ -128,7 +128,7 @@ namespace DE.Editor.DataTableTools
                 Debug.LogError($"{DataTableConfig.ExcelsFolder} is not exist!");
                 return;
             }
-            ExcelExtension.ExcelToTxt(DataTableConfig.ExcelsFolder);
+            ExcelExtension.ExcelToTxt(DataTableConfig.ExcelsFolder,DataTableConfig.DataTableFolderPath);
             AssetDatabase.Refresh();
         }
     }

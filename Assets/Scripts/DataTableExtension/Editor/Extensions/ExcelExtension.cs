@@ -19,8 +19,8 @@ namespace DE.Editor
     public static class ExcelExtension
     {
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
-        
-        public static void ExcelToTxt(string excelFolder)
+
+        public static void ExcelToTxt(string excelFolder, string txtFolder)
         {
             string[] excelFiles = Directory.GetFiles(excelFolder);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -52,7 +52,7 @@ namespace DE.Editor
                                 continue;
                             }
 
-                            string fileFullPath = $"{DataTableConfig.DataTableFolderPath}/{fileName}.txt";
+                            string fileFullPath = $"{txtFolder}/{fileName}.txt";
                             if (File.Exists(fileFullPath))
                             {
                                 File.Delete(fileFullPath);
