@@ -292,9 +292,10 @@ public class ComponentAutoBindToolInspector : Editor
             EditorGUILayout.LabelField($"[{i}]", GUILayout.Width(50));
             string lastName = m_Target.BindDatas[i].Name;
             Component lastComponent = m_Target.BindDatas[i].BindCom;
-            m_Target.BindDatas[i].Name = EditorGUILayout.TextField(m_Target.BindDatas[i].Name, GUILayout.Width(150));
-            m_Target.BindDatas[i].BindCom =
-                (Component)EditorGUILayout.ObjectField(m_Target.BindDatas[i].BindCom, typeof(Component), true);
+            GUI.enabled = false;
+            EditorGUILayout.TextField(m_Target.BindDatas[i].Name, GUILayout.Width(150));
+            m_Target.BindDatas[i].BindCom = (Component)EditorGUILayout.ObjectField(m_Target.BindDatas[i].BindCom, typeof(Component), true);
+            GUI.enabled = true;
             if (m_Target.BindDatas[i].Name != lastName || m_Target.BindDatas[i].BindCom != lastComponent)
             {
                 EditorUtility.SetDirty(m_Target);
@@ -307,6 +308,10 @@ public class ComponentAutoBindToolInspector : Editor
             }
 
             EditorGUILayout.EndHorizontal();
+            if (m_Target.BindDatas[i].IsRepeatName)
+            {
+                EditorGUILayout.HelpBox("组件命名不能相同 请修改!",MessageType.Error);
+            }
         }
 
         //删除data

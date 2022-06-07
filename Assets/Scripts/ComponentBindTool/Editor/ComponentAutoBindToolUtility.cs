@@ -13,7 +13,7 @@ public static class ComponentAutoBindToolUtility
     private static readonly string[] s_AssemblyNames =
     {
 #if UNITY_2017_3_OR_NEWER
-        "Main.Runtime",
+        //asmdef
 #endif
         "Assembly-CSharp"
     };
@@ -95,6 +95,14 @@ public static class ComponentAutoBindToolUtility
     /// </summary>
     public static string GenAutoBindCode(ComponentAutoBindTool target, string className)
     {
+        if (target.BindDatas.Find(_=>_.IsRepeatName)!= null)
+        {
+            throw new Exception("绑定组件中存在同名组件,请修改后重新生成。");
+        }
+        if (target.BindDatas == null || target.BindDatas.Count == 0)
+        {
+            throw new Exception("没有绑定组件数据。");
+        }
         GameObject go = target.gameObject;
 
         StringBuilder stringBuilder = new StringBuilder(2048);
@@ -165,6 +173,14 @@ public static class ComponentAutoBindToolUtility
     /// </summary>
     public static bool GenAutoBindCode(ComponentAutoBindTool target, string className, string codeFolderPath)
     {
+        if (target.BindDatas.Find(_=>_.IsRepeatName)!= null)
+        {
+            throw new Exception("绑定组件中存在同名组件,请修改后重新生成。");
+        }
+        if (target.BindDatas == null || target.BindDatas.Count == 0)
+        {
+            throw new Exception("没有绑定组件数据。");
+        }
         GameObject go = target.gameObject;
 
         if (!Directory.Exists(codeFolderPath))

@@ -16,13 +16,15 @@ public class ComponentAutoBindTool : MonoBehaviour
         public BindData()
         {
         }
-
-        public BindData(string name, Component bindCom)
+        
+        public BindData(bool isRepeatName, string name, Component bindCom)
         {
+            IsRepeatName = isRepeatName;
             Name = name;
             BindCom = bindCom;
         }
 
+        public bool IsRepeatName;
         public string Name;
         public Component BindCom;
     }

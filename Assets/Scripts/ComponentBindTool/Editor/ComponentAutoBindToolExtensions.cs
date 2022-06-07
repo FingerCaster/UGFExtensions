@@ -27,7 +27,16 @@ public static class ComponentAutoBindToolExtensions
     /// </summary>
     public static void AddBindData(this ComponentAutoBindTool self, string name, Component bindCom)
     {
-        self.BindDatas.Add(new ComponentAutoBindTool.BindData(name, bindCom));
+        bool isRepeat = false;
+        for (int j = 0; j < self.BindDatas.Count; j++)
+        {
+            if (self.BindDatas[j].Name == name)
+            {
+                isRepeat = true;
+                break;
+            }
+        }
+        self.BindDatas.Add(new ComponentAutoBindTool.BindData(isRepeat,name, bindCom));
         EditorUtility.SetDirty(self);
     }
 
@@ -90,7 +99,7 @@ public static class ComponentAutoBindToolExtensions
         List<ComponentAutoBindTool.BindData> tempList = new List<ComponentAutoBindTool.BindData>();
         foreach (ComponentAutoBindTool.BindData data in self.BindDatas)
         {
-            tempList.Add(new ComponentAutoBindTool.BindData(data.Name, data.BindCom));
+            tempList.Add(new ComponentAutoBindTool.BindData(data.IsRepeatName,data.Name, data.BindCom));
         }
 
         tempList.Sort((x, y) => { return string.Compare(x.Name, y.Name, StringComparison.Ordinal); });
