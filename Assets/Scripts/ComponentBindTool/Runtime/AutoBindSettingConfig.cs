@@ -8,11 +8,27 @@ using UnityEditor;
 /// </summary>
 public class AutoBindSettingConfig : ScriptableObject
 {
+    private const string DefaultStr = "Default";
     [SerializeField]
     private List<AutoBindSettingData> m_Settings = new List<AutoBindSettingData>();
     public List<AutoBindSettingData> Settings
     {
         get => m_Settings;
+    }
+
+    public AutoBindSettingData Default
+    {
+        get
+        {
+            var data = GetSettingData(DefaultStr);
+            if (data == null)
+            {
+                data = new AutoBindSettingData(DefaultStr);
+                m_Settings.Add(data);
+            }
+
+            return data;
+        }
     }
 
     public AutoBindSettingData GetSettingData(string settingName)
@@ -45,10 +61,9 @@ public class AutoBindSettingConfig : ScriptableObject
             EditorUtility.DisplayDialog("警告", $"已存在AutoBindSettingConfig，路径:{path}", "确认");
             return;
         }
-
-
         AutoBindSettingConfig settingConfig = CreateInstance<AutoBindSettingConfig>();
-        settingConfig.m_Settings.Add(new AutoBindSettingData("Default"));
+        settingConfig. m_Settings.Add(new AutoBindSettingData(DefaultStr));
+
         AssetDatabase.CreateAsset(settingConfig, "Assets/AutoBindSettingConfig.asset");
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();

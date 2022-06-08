@@ -382,6 +382,10 @@ public static class ComponentAutoBindToolUtility
 
         string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
         var setting = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(settingPath);
+        if (string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
         bool result =setting.AddSettingData(new AutoBindSettingData(name, folder, nameSpace));
         EditorUtility.SetDirty(setting);
         AssetDatabase.SaveAssets();
