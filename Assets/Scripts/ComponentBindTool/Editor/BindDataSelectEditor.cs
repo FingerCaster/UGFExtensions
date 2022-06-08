@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using ComponentBindTool;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 
 [CustomEditor(typeof(BindDataSelect))]
