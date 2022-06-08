@@ -4,6 +4,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
+
 [CustomPropertyDrawer(typeof(AutoBindSettingData))]
 public class AutoBindSettingDataDrawer : PropertyDrawer
 {
@@ -57,7 +58,7 @@ public class AutoBindSettingDataDrawer : PropertyDrawer
         if (IsNullOrWhitespace(parentPath))
             return path;
         if (IsNullOrWhitespace(path))
-            return (string)null;
+            return (string) null;
         parentPath = Path.GetFullPath(parentPath);
         if (!Path.IsPathRooted(path))
         {

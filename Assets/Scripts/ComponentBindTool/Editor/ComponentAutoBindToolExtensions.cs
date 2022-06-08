@@ -129,20 +129,22 @@ public static class ComponentAutoBindToolExtensions
         self.ClassName = className;
         EditorUtility.SetDirty(self);
     }
-
+    
     /// <summary>
     /// 设置生成规则帮助类
     /// </summary>
     /// <param name="self"></param>
     /// <param name="ruleHelper"></param>
-    public static void SetRuleHelper(this ComponentAutoBindTool self, IAutoBindRuleHelper ruleHelper)
+    public static void SetRuleHelperTypeName(this ComponentAutoBindTool self, string ruleHelperName)
     {
-        if (self.RuleHelper == ruleHelper)
+        if (self.RuleHelperTypeName == ruleHelperName)
         {
             return;
         }
 
-        self.RuleHelper = ruleHelper;
+        self.RuleHelperTypeName = ruleHelperName;
+        IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(self.RuleHelperTypeName);
+        self.RuleHelper = helper;
         EditorUtility.SetDirty(self);
     }
 

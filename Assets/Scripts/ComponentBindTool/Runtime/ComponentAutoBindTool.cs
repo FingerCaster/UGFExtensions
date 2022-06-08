@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using RoboRyanTron.SearchableEnum;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// 组件自动绑定工具
@@ -61,6 +60,20 @@ public class ComponentAutoBindTool : MonoBehaviour
     {
         get;
         set;
+    }
+
+    [SerializeField] private string m_RuleHelperTypeName = nameof(DefaultAutoBindRuleHelper);
+
+    public string RuleHelperTypeName
+    {
+        get => m_RuleHelperTypeName;
+        set => m_RuleHelperTypeName = value;
+    }
+
+    public List<Component> BindComs
+    {
+        get => m_BindComs;
+        set => m_BindComs = value;
     }
 #endif
     [SerializeField]

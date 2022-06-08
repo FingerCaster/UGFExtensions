@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -250,6 +251,8 @@ public static class ComponentAutoBindToolUtility
         }
 
         AssetDatabase.Refresh();
+        Debug.Log($"代码生成成功,生成路径: {codeFolderPath}/{className}.BindComponents.cs");
+
         return true;
     }
 
@@ -258,23 +261,23 @@ public static class ComponentAutoBindToolUtility
     /// </summary>
     /// <param name="target"></param>
     /// <param name="ruleHelper"></param>
-    public static void AutoBindComponents(GameObject target, IAutoBindRuleHelper ruleHelper = null)
+    public static void AutoBindComponents(GameObject target, string  ruleHelperTypeName = null)
     {
         PrefabStage prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+        ComponentAutoBindTool bindTool = target.GetOrAddComponent<ComponentAutoBindTool>();
+        if (!string.IsNullOrEmpty(ruleHelperTypeName))
+        {
+            bindTool.SetRuleHelperTypeName(ruleHelperTypeName);
+        }
+
+        if (bindTool.RuleHelper == null)
+        {
+            bindTool.SetRuleHelperTypeName(GetTypeNames()[0]);
+        }
+
+        bindTool.AutoBindComponent();
         if (prefabStage == null)
         {
-            ComponentAutoBindTool bindTool = target.GetOrAddComponent<ComponentAutoBindTool>();
-            if (ruleHelper != null)
-            {
-                bindTool.RuleHelper = ruleHelper;
-            }
-
-            if (bindTool.RuleHelper == null)
-            {
-                bindTool.RuleHelper = (IAutoBindRuleHelper) CreateHelperInstance(GetTypeNames()[0]);
-            }
-
-            bindTool.AutoBindComponent();
             PrefabInstanceStatus status = PrefabUtility.GetPrefabInstanceStatus(target);
             if (status == PrefabInstanceStatus.Connected)
             {
@@ -286,18 +289,6 @@ public static class ComponentAutoBindToolUtility
         }
         else
         {
-            ComponentAutoBindTool bindTool = prefabStage.prefabContentsRoot.GetOrAddComponent<ComponentAutoBindTool>();
-            if (ruleHelper != null)
-            {
-                bindTool.RuleHelper = ruleHelper;
-            }
-
-            if (bindTool.RuleHelper == null)
-            {
-                bindTool.RuleHelper = (IAutoBindRuleHelper) CreateHelperInstance(GetTypeNames()[0]);
-            }
-
-            bindTool.AutoBindComponent();
             EditorSceneManager.MarkSceneDirty(prefabStage.scene);
         }
     }

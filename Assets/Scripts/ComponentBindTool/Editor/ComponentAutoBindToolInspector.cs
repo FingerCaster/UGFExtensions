@@ -8,7 +8,6 @@ public class ComponentAutoBindToolInspector : Editor
 {
     private ComponentAutoBindTool m_Target;
     private string[] m_HelperTypeNames;
-    private string m_HelperTypeName;
     private int m_HelperTypeNameIndex;
 
 
@@ -67,6 +66,8 @@ public class ComponentAutoBindToolInspector : Editor
         m_Target.SetSearchable(settingDataNames, m_LastSettingDataNameIndex);
         m_Searchable = serializedObject.FindProperty("m_Searchable");
         m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName) ? m_Target.gameObject.name : m_Target.ClassName);
+        IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_Target.RuleHelperTypeName);
+        m_Target.RuleHelper = helper;
         serializedObject.ApplyModifiedProperties();
         SetPage();
     }
@@ -168,15 +169,11 @@ public class ComponentAutoBindToolInspector : Editor
     /// </summary>
     private void DrawHelperSelect()
     {
-        m_HelperTypeName = m_HelperTypeNames[0];
-
         if (m_Target.RuleHelper != null)
         {
-            m_HelperTypeName = m_Target.RuleHelper.GetType().Name;
-
             for (int i = 0; i < m_HelperTypeNames.Length; i++)
             {
-                if (m_HelperTypeName == m_HelperTypeNames[i])
+                if (m_Target.RuleHelperTypeName == m_HelperTypeNames[i])
                 {
                     m_HelperTypeNameIndex = i;
                 }
@@ -184,9 +181,7 @@ public class ComponentAutoBindToolInspector : Editor
         }
         else
         {
-            IAutoBindRuleHelper helper =
-                (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_HelperTypeName);
-            m_Target.SetRuleHelper(helper);
+            m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
         }
 
         foreach (GameObject go in Selection.gameObjects)
@@ -199,9 +194,7 @@ public class ComponentAutoBindToolInspector : Editor
 
             if (autoBindTool.RuleHelper == null)
             {
-                IAutoBindRuleHelper helper =
-                    (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_HelperTypeName);
-                autoBindTool.SetRuleHelper(helper);
+                m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
             }
         }
 
@@ -209,10 +202,7 @@ public class ComponentAutoBindToolInspector : Editor
         if (selectedIndex != m_HelperTypeNameIndex)
         {
             m_HelperTypeNameIndex = selectedIndex;
-            m_HelperTypeName = m_HelperTypeNames[selectedIndex];
-            IAutoBindRuleHelper helper =
-                (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_HelperTypeName);
-            m_Target.SetRuleHelper(helper);
+            m_Target.SetRuleHelperTypeName(m_HelperTypeNames[selectedIndex]);
         }
     }
 

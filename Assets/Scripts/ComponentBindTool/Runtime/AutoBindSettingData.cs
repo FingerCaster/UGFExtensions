@@ -19,11 +19,11 @@ public class AutoBindSettingData
         m_Name = name;
     }
 
-    public AutoBindSettingData(string name, string codeFolderPath, string ns)
+    public AutoBindSettingData(string name, string codeFolderPath, string nameSpace)
     {
         m_Name = name;
         m_CodeFolderPath = codeFolderPath;
-        m_Namespace = ns;
+        m_Namespace = nameSpace;
     }
 
     public string Name => m_Name;
