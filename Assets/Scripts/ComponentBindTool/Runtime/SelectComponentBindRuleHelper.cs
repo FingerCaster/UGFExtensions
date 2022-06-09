@@ -27,6 +27,11 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
         {
             return;
         }
+
+        if (bindDataSelect.BindComponents == null)
+        {
+            return;
+        }
         
         foreach (Component component in bindDataSelect.BindComponents)
         {

@@ -27,6 +27,7 @@ public class BindDataSelectEditor : UnityEditor.Editor
 
     private void OnEnable()
     {
+        serializedObject.Update();
         m_AllComponents = Target.gameObject.GetComponents<Component>();
         m_BindComponents = serializedObject.FindProperty("m_BindComponents");
         if (m_BindComponents.arraySize != 0)

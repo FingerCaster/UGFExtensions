@@ -255,6 +255,7 @@ public class ComponentAutoBindToolInspector : Editor
             m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName)
                 ? m_Target.gameObject.name
                 : m_Target.ClassName);
+            m_LastSettingDataNameIndex = m_Target.Searchable.Select;
         }
 
 

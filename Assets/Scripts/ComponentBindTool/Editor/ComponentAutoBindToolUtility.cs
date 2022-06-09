@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -109,6 +108,7 @@ public static class ComponentAutoBindToolUtility
         StringBuilder stringBuilder = new StringBuilder(2048);
 
         List<string> nameSpaces = GetNameSpaces(target);
+        nameSpaces.Add(nameof(UnityEngine));
         foreach (var nameSpace in nameSpaces)
         {
             stringBuilder.AppendLine($"using {nameSpace};");
@@ -174,80 +174,16 @@ public static class ComponentAutoBindToolUtility
     /// </summary>
     public static bool GenAutoBindCode(ComponentAutoBindTool target, string className, string codeFolderPath)
     {
-        if (target.BindDatas.Find(_=>_.IsRepeatName)!= null)
-        {
-            throw new Exception("绑定组件中存在同名组件,请修改后重新生成。");
-        }
-        if (target.BindDatas == null || target.BindDatas.Count == 0)
-        {
-            throw new Exception("没有绑定组件数据。");
-        }
-        GameObject go = target.gameObject;
-
         if (!Directory.Exists(codeFolderPath))
         {
-            Debug.LogError($"{go.name}的代码保存路径{codeFolderPath}无效");
+            Debug.LogError($"{target.gameObject.name}的代码保存路径{codeFolderPath}无效");
             return false;
         }
 
         using (StreamWriter sw = new StreamWriter($"{codeFolderPath}/{className}.BindComponents.cs"))
         {
-            List<string> nameSpaces = GetNameSpaces(target);
-            foreach (var nameSpace in nameSpaces)
-            {
-                sw.WriteLine($"using {nameSpace};");
-            }
-            sw.WriteLine("");
-
-            sw.WriteLine("//自动生成于：" + DateTime.Now);
-
-            if (!string.IsNullOrEmpty(target.SettingData.Namespace))
-            {
-                //命名空间
-                sw.WriteLine("namespace " + target.SettingData.Namespace);
-                sw.WriteLine("{");
-                sw.WriteLine("");
-            }
-
-            //类名
-            sw.WriteLine($"\tpublic partial class {className}");
-            sw.WriteLine("\t{");
-            sw.WriteLine("");
-
-            //组件字段
-            foreach (ComponentAutoBindTool.BindData data in target.BindDatas)
-            {
-                sw.WriteLine($"\t\tprivate {data.BindCom.GetType().Name} m_{data.Name};");
-            }
-
-            sw.WriteLine("");
-
-            sw.WriteLine("\t\tprivate void GetBindComponents(GameObject go)");
-            sw.WriteLine("\t\t{");
-
-            //获取autoBindTool上的Component
-            sw.WriteLine(
-                $"\t\t\tComponentAutoBindTool autoBindTool = go.GetComponent<ComponentAutoBindTool>();");
-            sw.WriteLine("");
-
-            //根据索引获取
-
-            for (int i = 0; i < target.BindDatas.Count; i++)
-            {
-                ComponentAutoBindTool.BindData data = target.BindDatas[i];
-                string filedName = $"m_{data.Name}";
-                sw.WriteLine(
-                    $"\t\t\t{filedName} = autoBindTool.GetBindComponent<{data.BindCom.GetType().Name}>({i});");
-            }
-
-            sw.WriteLine("\t\t}");
-
-            sw.WriteLine("\t}");
-
-            if (!string.IsNullOrEmpty(target.SettingData.Namespace))
-            {
-                sw.WriteLine("}");
-            }
+            string str = GenAutoBindCode(target, className);
+            sw.Write(str);
         }
 
         AssetDatabase.Refresh();
