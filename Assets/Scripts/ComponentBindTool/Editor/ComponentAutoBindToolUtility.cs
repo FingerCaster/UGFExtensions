@@ -7,7 +7,9 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-
+#if !UNITY_2021_2_OR_NEWER
+using UnityEditor.Experimental.SceneManagement;
+#endif
 public static class ComponentAutoBindToolUtility
 {
     private static readonly string[] s_AssemblyNames =
