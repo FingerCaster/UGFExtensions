@@ -22,13 +22,9 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
     
     public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
     {
+#if UNITY_EDITOR
         BindDataSelect bindDataSelect = target.GetComponent<BindDataSelect>();
         if (bindDataSelect == null)
-        {
-            return;
-        }
-
-        if (bindDataSelect.BindComponents == null)
         {
             return;
         }
@@ -38,5 +34,6 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
             filedNames.Add(GetFiledName(target, component.GetType().Name));
             components.Add(component);
         }
+#endif
     }
 }

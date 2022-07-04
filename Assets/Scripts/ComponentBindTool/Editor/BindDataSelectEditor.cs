@@ -45,39 +45,36 @@ public class BindDataSelectEditor : UnityEditor.Editor
         m_Select = 0;
     }
 
-    public override void OnInspectorGUI()
-    {
-        DrawSelect();
-        EditorGUILayout.Space();
-
-        int needDeleteIndex = -1;
-        for (int i = 0; i < m_BindComponents.arraySize; i++)
+        public override void OnInspectorGUI()
         {
-            EditorGUILayout.BeginHorizontal();
-            GUI.enabled = false;
-            EditorGUILayout.LabelField("Type：", GUILayout.Width(40));
-            EditorGUILayout.LabelField(m_BindComponents.GetArrayElementAtIndex(i).objectReferenceValue.GetType().Name,
-                GUILayout.Width(150));
-            EditorGUILayout.ObjectField(m_BindComponents.GetArrayElementAtIndex(i).objectReferenceValue,
-                typeof(Component), true);
-            GUI.enabled = true;
-            if (GUILayout.Button("X", GUILayout.Width(20), GUILayout.Height(20)))
+            serializedObject.Update();
+            DrawSelect();
+            EditorGUILayout.Space();
+
+            int needDeleteIndex = -1;
+            for (int i = 0; i < m_BindComponents.arraySize; i++)
             {
-                //将元素下标添加进删除list
-                needDeleteIndex = i;
+                
+                EditorGUILayout.BeginHorizontal();
+                GUI.enabled = false;
+                EditorGUILayout.LabelField("Type：",GUILayout.Width(40));
+                EditorGUILayout.LabelField(m_BindComponents.GetArrayElementAtIndex(i).objectReferenceValue.GetType().Name,GUILayout.Width(150));
+                EditorGUILayout.ObjectField(m_BindComponents.GetArrayElementAtIndex(i).objectReferenceValue, typeof(Component), true);
+                GUI.enabled = true;
+                if (GUILayout.Button("X",GUILayout.Width(20),GUILayout.Height(20)))
+                {
+                    //将元素下标添加进删除list
+                    needDeleteIndex = i;
+                }
+                EditorGUILayout.EndHorizontal();
             }
-
-            EditorGUILayout.EndHorizontal();
-        }
-
-        if (needDeleteIndex != -1)
-        {
-            Component component =
-                (Component) m_BindComponents.GetArrayElementAtIndex(needDeleteIndex).objectReferenceValue;
-            m_BindComponents.DeleteArrayElementAtIndex(needDeleteIndex);
-            m_NotSelectedComponents.Add(component);
-            m_NotSelectedComponentTypeNames.Add(component.GetType().Name);
-        }
+            if (needDeleteIndex != -1)
+            {
+                Component component = (Component)m_BindComponents.GetArrayElementAtIndex(needDeleteIndex).objectReferenceValue;
+                m_BindComponents.DeleteArrayElementAtIndex(needDeleteIndex);
+                m_NotSelectedComponents.Add(component);
+                m_NotSelectedComponentTypeNames.Add(component.GetType().Name);
+            }
 
         serializedObject.ApplyModifiedProperties();
     }

@@ -62,7 +62,7 @@ public class ComponentAutoBindTool : MonoBehaviour
         set;
     }
 
-    [SerializeField] private string m_RuleHelperTypeName = nameof(DefaultAutoBindRuleHelper);
+    [SerializeField] private string m_RuleHelperTypeName;
 
     public string RuleHelperTypeName
     {

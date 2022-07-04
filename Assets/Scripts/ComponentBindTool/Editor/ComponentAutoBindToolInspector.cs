@@ -66,8 +66,14 @@ public class ComponentAutoBindToolInspector : Editor
         m_Target.SetSearchable(settingDataNames, m_LastSettingDataNameIndex);
         m_Searchable = serializedObject.FindProperty("m_Searchable");
         m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName) ? m_Target.gameObject.name : m_Target.ClassName);
-        IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_Target.RuleHelperTypeName);
-        m_Target.RuleHelper = helper;
+        if (string.IsNullOrEmpty(m_Target.RuleHelperTypeName))
+        {
+            m_Target.SetRuleHelperTypeName(nameof(DefaultAutoBindRuleHelper));
+        }
+        else
+        {
+            m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
+        }
         serializedObject.ApplyModifiedProperties();
         SetPage();
     }

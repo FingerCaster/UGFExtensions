@@ -292,9 +292,11 @@ public static class ComponentAutoBindToolUtility
     }
 
     /// <summary>
-    ///   获取代码生成配置
+    /// 添加代码生成配置
     /// </summary>
     /// <param name="name"></param>
+    /// <param name="folder"></param>
+    /// <param name="nameSpace"></param>
     /// <returns></returns>
     public static bool AddAutoBindSetting(string name, string folder, string nameSpace)
     {
