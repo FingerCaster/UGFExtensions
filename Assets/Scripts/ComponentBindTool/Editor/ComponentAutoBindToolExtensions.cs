@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using RoboRyanTron.SearchableEnum;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,7 +27,17 @@ public static class ComponentAutoBindToolExtensions
     /// </summary>
     public static void AddBindData(this ComponentAutoBindTool self, string name, Component bindCom)
     {
-        self.BindDatas.Add(new ComponentAutoBindTool.BindData(name, bindCom));
+        bool isRepeat = false;
+        for (int j = 0; j < self.BindDatas.Count; j++)
+        {
+            if (self.BindDatas[j].Name == name)
+            {
+                isRepeat = true;
+                break;
+            }
+        }
+
+        self.BindDatas.Add(new ComponentAutoBindTool.BindData(isRepeat, name, bindCom));
         EditorUtility.SetDirty(self);
     }
 
@@ -88,7 +100,7 @@ public static class ComponentAutoBindToolExtensions
         List<ComponentAutoBindTool.BindData> tempList = new List<ComponentAutoBindTool.BindData>();
         foreach (ComponentAutoBindTool.BindData data in self.BindDatas)
         {
-            tempList.Add(new ComponentAutoBindTool.BindData(data.Name, data.BindCom));
+            tempList.Add(new ComponentAutoBindTool.BindData(data.IsRepeatName, data.Name, data.BindCom));
         }
 
         tempList.Sort((x, y) => { return string.Compare(x.Name, y.Name, StringComparison.Ordinal); });
@@ -103,46 +115,18 @@ public static class ComponentAutoBindToolExtensions
     }
 
     /// <summary>
-    /// 设置命名空间
-    /// </summary>
-    /// <param name="self"></param>
-    /// <param name="nameSpace"></param>
-    public static void SetNameSpace(this ComponentAutoBindTool self, string nameSpace)
-    {
-        if ( self.Namespace == nameSpace)
-        {
-            return;   
-        }
-        self.Namespace = nameSpace;
-        EditorUtility.SetDirty(self);
-    }
-
-    /// <summary>
     /// 设置脚本名称
     /// </summary>
     /// <param name="self"></param>
     /// <param name="className"></param>
     public static void SetClassName(this ComponentAutoBindTool self, string className)
     {
-        if ( self.ClassName == className)
+        if (self.ClassName == className)
         {
-            return;   
+            return;
         }
+
         self.ClassName = className;
-        EditorUtility.SetDirty(self);
-    }
-    /// <summary>
-    /// 设置脚本生成地址
-    /// </summary>
-    /// <param name="self"></param>
-    /// <param name="codePath"></param>
-    public static void SetCodePath(this ComponentAutoBindTool self, string codePath)
-    {
-        if ( self.CodePath == codePath)
-        {
-            return;   
-        }
-        self.CodePath = codePath;
         EditorUtility.SetDirty(self);
     }
     
@@ -151,13 +135,92 @@ public static class ComponentAutoBindToolExtensions
     /// </summary>
     /// <param name="self"></param>
     /// <param name="ruleHelper"></param>
-    public static void SetRuleHelper(this ComponentAutoBindTool self, IAutoBindRuleHelper ruleHelper)
+    public static void SetRuleHelperTypeName(this ComponentAutoBindTool self, string ruleHelperName)
     {
-        if (self.RuleHelper == ruleHelper)
+        if (self.RuleHelperTypeName == ruleHelperName)
         {
             return;
         }
-        self.RuleHelper = ruleHelper;
+
+        self.RuleHelperTypeName = ruleHelperName;
+        IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(self.RuleHelperTypeName);
+        self.RuleHelper = helper;
+        EditorUtility.SetDirty(self);
+    }
+
+    /// <summary>
+    /// 设置生成代码配置
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="data"></param>
+    public static void SetSettingData(this ComponentAutoBindTool self, AutoBindSettingData data)
+    {
+        if (self.SettingData == data)
+        {
+            return;
+        }
+
+        self.SettingData = data;
+        if (self.Searchable != null)
+        {
+            int findIndex = self.Searchable.Names.ToList().FindIndex(_ => _ == data.Name);
+            if (findIndex == -1)
+            {
+                string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+                string path = AssetDatabase.GUIDToAssetPath(paths[0]);
+                var settingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+                var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
+                self.Searchable.Select = settingDataNames.FindIndex(_ => _ == data.Name);
+                self.Searchable.Names = settingDataNames.ToArray();
+            }
+            else
+            {
+                self.Searchable.Select = findIndex;
+            }
+        }
+
+        EditorUtility.SetDirty(self);
+    }
+
+    /// <summary>
+    /// 设置生成代码配置
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="data"></param>
+    public static void SetSettingData(this ComponentAutoBindTool self, string name)
+    {
+        self.SettingData = ComponentAutoBindToolUtility.GetAutoBindSetting(name: name);
+        if (self.Searchable != null)
+        {
+            int findIndex = self.Searchable.Names.ToList().FindIndex(_ => _ == name);
+            if (findIndex == -1)
+            {
+                string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+                string path = AssetDatabase.GUIDToAssetPath(paths[0]);
+                var settingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+                var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
+
+                self.Searchable.Select = settingDataNames.FindIndex(_ => _ == name);
+                self.Searchable.Names = settingDataNames.ToArray();
+            }
+            else
+            {
+                self.Searchable.Select = findIndex;
+            }
+        }
+
+        EditorUtility.SetDirty(self);
+    }
+
+    /// <summary>
+    /// 设置生成代码配置
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="data"></param>
+    public static void SetSearchable(this ComponentAutoBindTool self, string[] names, int select)
+    {
+        self.Searchable.Select = select;
+        self.Searchable.Names = names;
         EditorUtility.SetDirty(self);
     }
 }

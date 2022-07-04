@@ -1,46 +1,79 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-using System;
-using BindData = ComponentAutoBindTool.BindData;
-using System.Reflection;
-using System.IO;
+using System.Linq;
+using RoboRyanTron.SearchableEnum;
 
 [CustomEditor(typeof(ComponentAutoBindTool))]
 public class ComponentAutoBindToolInspector : Editor
 {
     private ComponentAutoBindTool m_Target;
     private string[] m_HelperTypeNames;
-    private string m_HelperTypeName;
     private int m_HelperTypeNameIndex;
 
-    private AutoBindGlobalSetting m_Setting;
+
+    private AutoBindSettingConfig m_SettingConfig;
+    private bool m_SettingDataExpanded = true;
+    private SerializedProperty m_Searchable;
+    private int m_LastSettingDataNameIndex;
+    private bool m_SettingDataError;
 
     private void OnEnable()
     {
         m_Target = (ComponentAutoBindTool) target;
         m_HelperTypeNames = ComponentAutoBindToolUtility.GetTypeNames();
-
-        string[] paths = AssetDatabase.FindAssets("t:AutoBindGlobalSetting");
+        m_SettingDataError = false;
+        string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
         if (paths.Length == 0)
         {
-            Debug.LogError("不存在AutoBindGlobalSetting");
+            Debug.LogError("不存在AutoBindSettingConfig");
             return;
         }
 
         if (paths.Length > 1)
         {
-            Debug.LogError("AutoBindGlobalSetting数量大于1");
+            Debug.LogError("AutoBindSettingConfig数量大于1");
             return;
         }
 
         string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-        m_Setting = AssetDatabase.LoadAssetAtPath<AutoBindGlobalSetting>(path);
+        m_SettingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+        if (m_SettingConfig.Settings.Count == 0)
+        {
+            Debug.LogError("不存在AutoBindSettingData");
+            return;
+        }
 
-        m_Target.SetNameSpace(string.IsNullOrEmpty(m_Target.Namespace) ? m_Setting.Namespace : m_Target.Namespace);
+        var settingDataNames = m_SettingConfig.Settings.Select(_ => _.Name).ToArray();
+        if (m_Target.SettingData == null)
+        {
+            m_Target.SetSettingData(m_SettingConfig.Settings[0]);
+            m_LastSettingDataNameIndex = 0;
+        }
+        else
+        {
+            var data = m_SettingConfig.GetSettingData(m_Target.SettingData.Name);
+            if (data == null)
+            {
+                Debug.LogError($"不存在名为‘{m_Target.SettingData.Name}’的AutoBindSettingData");
+                m_SettingDataError = true;
+                return;
+            }
+
+            m_Target.SetSettingData(m_SettingConfig.GetSettingData(m_Target.SettingData.Name));
+            m_LastSettingDataNameIndex = m_SettingConfig.Settings.FindIndex(_ => _.Name == m_Target.SettingData.Name);
+        }
+
+        m_Target.SetSearchable(settingDataNames, m_LastSettingDataNameIndex);
+        m_Searchable = serializedObject.FindProperty("m_Searchable");
         m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName) ? m_Target.gameObject.name : m_Target.ClassName);
-        m_Target.SetCodePath(string.IsNullOrEmpty(m_Target.CodePath) ? m_Setting.CodePath : m_Target.CodePath);
-
+        if (string.IsNullOrEmpty(m_Target.RuleHelperTypeName))
+        {
+            m_Target.SetRuleHelperTypeName(nameof(DefaultAutoBindRuleHelper));
+        }
+        else
+        {
+            m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
+        }
         serializedObject.ApplyModifiedProperties();
         SetPage();
     }
@@ -94,9 +127,8 @@ public class ComponentAutoBindToolInspector : Editor
             string className = !string.IsNullOrEmpty(m_Target.ClassName)
                 ? m_Target.ClassName
                 : m_Target.gameObject.name;
-            string codePath = !string.IsNullOrEmpty(m_Target.CodePath) ? m_Target.CodePath : m_Setting.CodePath;
 
-            ComponentAutoBindToolUtility.GenAutoBindCode(m_Target, className, codePath);
+            ComponentAutoBindToolUtility.GenAutoBindCode(m_Target, className, m_Target.SettingData.CodePath);
         }
 
         EditorGUILayout.EndHorizontal();
@@ -143,15 +175,11 @@ public class ComponentAutoBindToolInspector : Editor
     /// </summary>
     private void DrawHelperSelect()
     {
-        m_HelperTypeName = m_HelperTypeNames[0];
-
         if (m_Target.RuleHelper != null)
         {
-            m_HelperTypeName = m_Target.RuleHelper.GetType().Name;
-
             for (int i = 0; i < m_HelperTypeNames.Length; i++)
             {
-                if (m_HelperTypeName == m_HelperTypeNames[i])
+                if (m_Target.RuleHelperTypeName == m_HelperTypeNames[i])
                 {
                     m_HelperTypeNameIndex = i;
                 }
@@ -159,18 +187,20 @@ public class ComponentAutoBindToolInspector : Editor
         }
         else
         {
-            IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_HelperTypeName);
-            m_Target.SetRuleHelper(helper);
+            m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
         }
 
         foreach (GameObject go in Selection.gameObjects)
         {
             ComponentAutoBindTool autoBindTool = go.GetComponent<ComponentAutoBindTool>();
+            if (autoBindTool == null)
+            {
+                continue;
+            }
+
             if (autoBindTool.RuleHelper == null)
             {
-                IAutoBindRuleHelper helper =
-                    (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_HelperTypeName);
-                autoBindTool.SetRuleHelper(helper);
+                m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
             }
         }
 
@@ -178,10 +208,7 @@ public class ComponentAutoBindToolInspector : Editor
         if (selectedIndex != m_HelperTypeNameIndex)
         {
             m_HelperTypeNameIndex = selectedIndex;
-            m_HelperTypeName = m_HelperTypeNames[selectedIndex];
-            IAutoBindRuleHelper helper =
-                (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(m_HelperTypeName);
-            m_Target.SetRuleHelper(helper);
+            m_Target.SetRuleHelperTypeName(m_HelperTypeNames[selectedIndex]);
         }
     }
 
@@ -190,44 +217,77 @@ public class ComponentAutoBindToolInspector : Editor
     /// </summary>
     private void DrawSetting()
     {
-        EditorGUILayout.BeginHorizontal();
-        m_Target.SetNameSpace(EditorGUILayout.TextField(new GUIContent("命名空间："), m_Target.Namespace));
-        if (GUILayout.Button("默认设置"))
+        m_SettingDataExpanded = EditorGUILayout.Foldout(m_SettingDataExpanded, "SettingData", true);
+
+        if (!m_SettingDataExpanded)
         {
-            m_Target.SetNameSpace(m_Setting.Namespace);
+            return;
         }
 
+        if (m_SettingDataError)
+        {
+            EditorGUILayout.HelpBox($"不存在名为‘{m_Target.SettingData.Name}’的AutoBindSettingData", MessageType.Error);
+            if (GUILayout.Button($"创建 {m_Target.SettingData.Name} 绑定配置"))
+            {
+                bool result = ComponentAutoBindToolUtility.AddAutoBindSetting(m_Target.SettingData.Name, "", "");
+                if (!result)
+                {
+                    EditorUtility.DisplayDialog("创建配置", "创建代码自动生成配置失败，请检查配置信息！", "确定");
+                    return;
+                }
+                m_Target.SetSettingData(m_Target.SettingData.Name);
+                m_SettingDataError = false;
+            }
+
+            if (GUILayout.Button("使用默认配置"))
+            {
+                m_Target.SetSettingData(m_SettingConfig.Default);
+                m_SettingDataError = false;
+            }
+
+            return;
+        }
+
+        m_Searchable ??= serializedObject.FindProperty("m_Searchable");
+        EditorGUILayout.PropertyField(m_Searchable);
+        if (m_Target.Searchable.Select != m_LastSettingDataNameIndex)
+        {
+            if (m_Target.Searchable.Select >= m_SettingConfig.Settings.Count)
+            {
+                m_SettingDataError = true;
+                return;
+            }
+            m_Target.SetSettingData(m_SettingConfig.Settings[m_Target.Searchable.Select]);
+            m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName)
+                ? m_Target.gameObject.name
+                : m_Target.ClassName);
+            m_LastSettingDataNameIndex = m_Target.Searchable.Select;
+        }
+
+
+        EditorGUILayout.BeginHorizontal();
+
+        EditorGUILayout.PrefixLabel("命名空间：");
+        EditorGUILayout.LabelField(m_Target.SettingData.Namespace);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
         m_Target.SetClassName(EditorGUILayout.TextField(new GUIContent("类名："), m_Target.ClassName));
-        
+
         if (GUILayout.Button("物体名"))
         {
             m_Target.SetClassName(m_Target.gameObject.name);
         }
 
         EditorGUILayout.EndHorizontal();
-
-        EditorGUILayout.LabelField("代码保存路径：");
-        EditorGUILayout.LabelField(m_Target.CodePath);
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("选择路径"))
-        {
-            string temp = m_Target.CodePath;
-            m_Target.SetCodePath(EditorUtility.OpenFolderPanel("选择代码保存路径", Application.dataPath, ""));
-            if (string.IsNullOrEmpty(m_Target.CodePath))
-            {
-                m_Target.SetCodePath(temp);
-            }
-        }
-
-        if (GUILayout.Button("默认设置"))
-        {
-            m_Target.SetCodePath(m_Setting.CodePath);
-        }
-
+        EditorGUILayout.PrefixLabel("代码保存路径：");
+        EditorGUILayout.LabelField(m_Target.SettingData.CodePath);
         EditorGUILayout.EndHorizontal();
+        if (string.IsNullOrEmpty(m_Target.SettingData.CodePath))
+        {
+            EditorGUILayout.HelpBox("代码保存路径不能为空!", MessageType.Error);
+        }
     }
 
     /// <summary>
@@ -253,12 +313,16 @@ public class ComponentAutoBindToolInspector : Editor
             EditorGUILayout.LabelField($"[{i}]", GUILayout.Width(50));
             string lastName = m_Target.BindDatas[i].Name;
             Component lastComponent = m_Target.BindDatas[i].BindCom;
-            m_Target.BindDatas[i].Name = EditorGUILayout.TextField(m_Target.BindDatas[i].Name, GUILayout.Width(150));
-            m_Target.BindDatas[i].BindCom = (Component) EditorGUILayout.ObjectField(m_Target.BindDatas[i].BindCom, typeof(Component), true);
-            if (m_Target.BindDatas[i].Name!= lastName || m_Target.BindDatas[i].BindCom!=lastComponent)
+            GUI.enabled = false;
+            EditorGUILayout.TextField(m_Target.BindDatas[i].Name, GUILayout.Width(150));
+            m_Target.BindDatas[i].BindCom =
+                (Component) EditorGUILayout.ObjectField(m_Target.BindDatas[i].BindCom, typeof(Component), true);
+            GUI.enabled = true;
+            if (m_Target.BindDatas[i].Name != lastName || m_Target.BindDatas[i].BindCom != lastComponent)
             {
                 EditorUtility.SetDirty(m_Target);
             }
+
             if (GUILayout.Button("X"))
             {
                 //将元素下标添加进删除list
@@ -266,6 +330,10 @@ public class ComponentAutoBindToolInspector : Editor
             }
 
             EditorGUILayout.EndHorizontal();
+            if (m_Target.BindDatas[i].IsRepeatName)
+            {
+                EditorGUILayout.HelpBox("组件命名不能相同 请修改!", MessageType.Error);
+            }
         }
 
         //删除data

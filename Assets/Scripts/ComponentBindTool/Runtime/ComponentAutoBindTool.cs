@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using RoboRyanTron.SearchableEnum;
 using UnityEngine;
+
 /// <summary>
 /// 组件自动绑定工具
 /// </summary>
@@ -13,13 +15,15 @@ public class ComponentAutoBindTool : MonoBehaviour
         public BindData()
         {
         }
-
-        public BindData(string name, Component bindCom)
+        
+        public BindData(bool isRepeatName, string name, Component bindCom)
         {
+            IsRepeatName = isRepeatName;
             Name = name;
             BindCom = bindCom;
         }
 
+        public bool IsRepeatName;
         public string Name;
         public Component BindCom;
     }
@@ -30,33 +34,46 @@ public class ComponentAutoBindTool : MonoBehaviour
     private string m_ClassName;
 
     [SerializeField]
-    private string m_Namespace;
-
+    private AutoBindSettingData m_SettingData;
+    
     [SerializeField]
-    private string m_CodePath;
+    private SearchableData m_Searchable;
+
+    public SearchableData Searchable
+    {
+        get => m_Searchable;
+        set => m_Searchable = value;
+    }
+
+    public AutoBindSettingData SettingData
+    {
+        get => m_SettingData;
+        set => m_SettingData = value;
+    }
 
     public string ClassName
     {
         get => m_ClassName;
         set => m_ClassName = value;
     }
-
-    public string Namespace
-    {
-        get => m_Namespace;
-        set => m_Namespace = value;
-    }
-
-    public string CodePath
-    {
-        get => m_CodePath;
-        set => m_CodePath = value;
-    }
-
     public IAutoBindRuleHelper RuleHelper
     {
         get;
         set;
+    }
+
+    [SerializeField] private string m_RuleHelperTypeName;
+
+    public string RuleHelperTypeName
+    {
+        get => m_RuleHelperTypeName;
+        set => m_RuleHelperTypeName = value;
+    }
+
+    public List<Component> BindComs
+    {
+        get => m_BindComs;
+        set => m_BindComs = value;
     }
 #endif
     [SerializeField]

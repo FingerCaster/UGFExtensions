@@ -20,23 +20,17 @@ namespace DE.Editor
     {
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
 
-        [MenuItem("DataTable/Excel To Txt", priority = 13)]
-        public static void ExcelToTxt()
+        public static void ExcelToTxt(string excelFolder, string txtFolder)
         {
-            if (!Directory.Exists(DataTableConfig.ExcelsFolder))
-            {
-                Debug.LogError($"{DataTableConfig.ExcelsFolder} is not exist!");
-                return;
-            }
+            string[] excelFiles = Directory.GetFiles(excelFolder);
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            string[] excelFiles = Directory.GetFiles(DataTableConfig.ExcelsFolder);
             foreach (var excelFile in excelFiles)
             {
                 if (!excelFile.EndsWith(".xlsx") || excelFile.Contains("~$"))
                     continue;
                 using (FileStream fileStream =
-                    new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                       new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
                     {
@@ -58,7 +52,7 @@ namespace DE.Editor
                                 continue;
                             }
 
-                            string fileFullPath = $"{DataTableConfig.DataTableFolderPath}/{fileName}.txt";
+                            string fileFullPath = $"{txtFolder}/{fileName}.txt";
                             if (File.Exists(fileFullPath))
                             {
                                 File.Delete(fileFullPath);
@@ -75,13 +69,14 @@ namespace DE.Editor
                             int columnCount = sheet.Dimension.End.Column;
                             for (int i = 1; i <= sheet.Dimension.End.Row; i++)
                             {
-                                if (i>DataTableConfig.ContentStartRow)
+                                if (i > DataTableConfig.ContentStartRow)
                                 {
-                                    if (sheet.Cells[i, DataTableConfig.IdColumn+1].Value == null)
+                                    if (sheet.Cells[i, DataTableConfig.IdColumn + 1].Value == null)
                                     {
                                         continue;
                                     }
                                 }
+
                                 sb.Clear();
                                 for (int j = 1; j <= columnCount; j++)
                                 {
@@ -109,8 +104,6 @@ namespace DE.Editor
                     }
                 }
             }
-
-            AssetDatabase.Refresh();
         }
     }
 }

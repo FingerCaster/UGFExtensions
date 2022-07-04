@@ -6,6 +6,10 @@
     public enum TimeTaskStatus
     {
         /// <summary>
+        /// 默认状态
+        /// </summary>
+        None,
+        /// <summary>
         /// 等待中
         /// </summary>
         Wait,
