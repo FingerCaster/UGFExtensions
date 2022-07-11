@@ -95,6 +95,11 @@ namespace TimingWheel
         {
             var task = TimeTask.Create(timeoutMs);
             AddTask(task);
+            // 如果添加了已经到期的时间 那么会立即执行 导致下面的task 被置空 报错 这里判断一下是否执行了
+            if (task.TaskStatus == TimeTaskStatus.None)
+            {
+                return true;
+            }
             void CancelAction()
             {
                 task.Cancel();
@@ -122,7 +127,8 @@ namespace TimingWheel
         {
             var task = TimeTask.Create(timeoutMs, action);
             AddTask(task);
-            return task;
+            // 如果添加了已经到期的时间 那么会立即执行 返回null 不允许操作已经返还对象池的 ITimeTask 。
+            return task.TaskStatus == TimeTaskStatus.None ? null : task;
         }
 
         /// <summary>
