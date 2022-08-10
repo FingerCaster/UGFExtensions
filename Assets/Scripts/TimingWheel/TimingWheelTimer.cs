@@ -98,7 +98,7 @@ namespace TimingWheel
             // 如果添加了已经到期的时间 那么会立即执行 导致下面的task 被置空 报错 这里判断一下是否执行了
             if (task.TaskStatus == TimeTaskStatus.None)
             {
-                return await (ETTask<bool>) task.DelayTask ;
+                return true;
             }
             void CancelAction()
             {
