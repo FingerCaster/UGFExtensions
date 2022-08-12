@@ -21,29 +21,34 @@ namespace UGFExtensions.Texture
 
         private void OnLoadAssetFailure(string assetName, LoadResourceStatus status, string errormessage, object userdata)
         {
+            ResourceData resourceData = (ResourceData)userdata;
+            ReferencePool.Release(resourceData);
             Log.Error("Can not load Texture2D from '{1}' with error message '{2}'.",assetName,errormessage);
         }
 
         private void OnLoadAssetSuccess(string assetName, object asset, float duration, object userdata)
         {
-            ISetTexture2dObject setTexture2dObject = (ISetTexture2dObject)userdata;
+            ResourceData resourceData = (ResourceData)userdata;
             Texture2D texture =  asset as Texture2D;
             if (texture != null)
             {
-                m_TexturePool.Register(TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromResource,m_ResourceComponent), true);
-                SetTexture(setTexture2dObject,texture);
+                m_TexturePool.Register(TextureItemObject.Create(resourceData.SetTexture2dObject.Texture2dFilePath, texture, TextureLoad.FromResource,m_ResourceComponent), true);
+                SetTexture(resourceData.SetTexture2dObject,texture,resourceData.SerialId);
             }
             else
             {
                 Log.Error(new GameFrameworkException($"Load Texture2D failure asset type is {asset.GetType()}."));
             }
+
+            ReferencePool.Release(resourceData);
         }
         /// <summary>
         /// 通过资源系统设置图片
         /// </summary>
         /// <param name="setTexture2dObject">需要设置图片的对象</param>
-        public void SetTextureByResources(ISetTexture2dObject setTexture2dObject)
+        public int SetTextureByResources(ISetTexture2dObject setTexture2dObject)
         {
+            int serialId = -1;
             if (m_TexturePool.CanSpawn(setTexture2dObject.Texture2dFilePath))
             {
                 var texture = (Texture2D)m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath).Target;
@@ -51,8 +56,12 @@ namespace UGFExtensions.Texture
             }
             else
             {
-                m_ResourceComponent.LoadAsset(setTexture2dObject.Texture2dFilePath, typeof(Texture2D),m_LoadAssetCallbacks,setTexture2dObject);
+                serialId = m_SerialId++;
+                m_ResourceComponent.LoadAsset(setTexture2dObject.Texture2dFilePath, 
+                    typeof(Texture2D),m_LoadAssetCallbacks,ResourceData.Create(setTexture2dObject,serialId));
             }
+
+            return serialId;
         }
     }
 }

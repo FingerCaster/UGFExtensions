@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using GameFramework;
 using GameFramework.Event;
 using UnityEngine;
@@ -10,7 +12,8 @@ namespace UGFExtensions.Texture
     public partial class TextureSetComponent
     {
         private WebRequestComponent m_WebRequestComponent;
-        
+     
+
         private void InitializedWeb()
         {
             m_WebRequestComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<WebRequestComponent>();
@@ -23,8 +26,9 @@ namespace UGFExtensions.Texture
         /// </summary>
         /// <param name="setTexture2dObject">需要设置图片的对象</param>
         /// <param name="saveFilePath">保存网络图片到本地的路径</param>
-        public void SetTextureByNetwork(ISetTexture2dObject setTexture2dObject, string saveFilePath = null)
+        public int SetTextureByNetwork(ISetTexture2dObject setTexture2dObject, string saveFilePath = null)
         {
+            int serialId = -1;
             if (m_TexturePool.CanSpawn(setTexture2dObject.Texture2dFilePath))
             {
                 var texture = (Texture2D)m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath).Target;
@@ -32,8 +36,11 @@ namespace UGFExtensions.Texture
             }
             else
             {
-                m_WebRequestComponent.AddWebRequest(setTexture2dObject.Texture2dFilePath, WebGetTextureData.Create(setTexture2dObject,this,saveFilePath));
+                serialId = m_SerialId++;
+                m_WebRequestComponent.AddWebRequest(setTexture2dObject.Texture2dFilePath, WebGetTextureData.Create(setTexture2dObject,this,saveFilePath,serialId));
             }
+
+            return serialId;
         }
         
         private void OnWebGetTextureFailure(object sender, GameEventArgs e)
@@ -64,9 +71,10 @@ namespace UGFExtensions.Texture
                 SaveTexture(webGetTextureData.FilePath, bytes);
             }
             m_TexturePool.Register(TextureItemObject.Create(webGetTextureData.SetTexture2dObject.Texture2dFilePath, tex, TextureLoad.FromNet), true);
-            SetTexture(webGetTextureData.SetTexture2dObject, tex);
+            SetTexture(webGetTextureData.SetTexture2dObject, tex,webGetTextureData.SerialId);
             ReferencePool.Release(webGetTextureData);
         }
-      
+        
+        
     }
 }

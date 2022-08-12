@@ -36,8 +36,7 @@ namespace UGFExtensions.Texture
 
         public bool IsCanRelease()
         {
-            return m_RawImage == null || m_RawImage.texture == null ||
-                   (Texture2D != null && m_RawImage.texture != Texture2D);
+            return m_RawImage == null || m_RawImage.texture == null || m_RawImage.texture != Texture2D;
         }
 
         public static SetRawImage Create(RawImage rawImage, string filePath)

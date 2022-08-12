@@ -9,15 +9,17 @@ namespace UGFExtensions.Texture
     {
         public static void SetTextureByFileSystem(this RawImage rawImage, string file)
         {
-            GameEntry.TextureSet.SetTextureByFileSystem(SetRawImage.Create(rawImage,file));
+             GameEntry.TextureSet.SetTextureByFileSystem(SetRawImage.Create(rawImage, file));
         }
-        public static void SetTextureByNetwork(this RawImage rawImage, string file,string saveFilePath = null)
+
+        public static int SetTextureByNetwork(this RawImage rawImage, string file, string saveFilePath = null)
         {
-            GameEntry.TextureSet.SetTextureByNetwork(SetRawImage.Create(rawImage,file),saveFilePath);
+            return GameEntry.TextureSet.SetTextureByNetwork(SetRawImage.Create(rawImage, file), saveFilePath);
         }
-        public static void SetTextureByResources(this RawImage rawImage, string file)
+
+        public static int SetTextureByResources(this RawImage rawImage, string file)
         {
-            GameEntry.TextureSet.SetTextureByResources(SetRawImage.Create(rawImage,file));
+           return GameEntry.TextureSet.SetTextureByResources(SetRawImage.Create(rawImage, file));
         }
     }
 }
