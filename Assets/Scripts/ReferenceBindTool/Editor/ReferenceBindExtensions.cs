@@ -159,13 +159,13 @@ namespace ReferenceBindTool.Editor
                 var tempData = tempList[i];
 
                 ReferenceData reference = new ReferenceData(tempData.BindReference);
-             
+                self.ReferenceDataList.Add(reference);
                 for (int j = 0; j < tempData.BindObjects.Count; j++)
                 {
                     self.AddBindObject(reference,tempData.BindObjects[j].BindObject,tempData.BindObjects[j].FieldName);
                 }
 
-                self.ReferenceDataList.Add(reference);
+                
             }
 
             self.SyncBindObjects();
@@ -184,13 +184,13 @@ namespace ReferenceBindTool.Editor
                 var tempData = tempList[i];
 
                 ReferenceData reference = new ReferenceData(tempData.BindReference);
-             
+                self.ReferenceDataList.Add(reference);
+
                 for (int j = 0; j < tempData.BindObjects.Count; j++)
                 {
                     self.AddBindObject(reference,tempData.BindObjects[j].BindObject,ReferenceBindUtility.GetFiledName(tempData.BindObjects[j].BindObject));
                 }
 
-                self.ReferenceDataList.Add(reference);
             }
 
             self.SyncBindObjects();
