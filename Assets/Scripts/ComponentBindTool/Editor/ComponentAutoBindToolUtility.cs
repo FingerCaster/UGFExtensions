@@ -105,8 +105,7 @@ public static class ComponentAutoBindToolUtility
         {
             throw new Exception("没有绑定组件数据。");
         }
-        GameObject go = target.gameObject;
-
+        
         StringBuilder stringBuilder = new StringBuilder(2048);
 
         List<string> nameSpaces = GetNameSpaces(target);

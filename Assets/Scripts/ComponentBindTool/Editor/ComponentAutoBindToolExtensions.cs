@@ -186,7 +186,7 @@ public static class ComponentAutoBindToolExtensions
     /// 设置生成代码配置
     /// </summary>
     /// <param name="self"></param>
-    /// <param name="data"></param>
+    /// <param name="name"></param>
     public static void SetSettingData(this ComponentAutoBindTool self, string name)
     {
         self.SettingData = ComponentAutoBindToolUtility.GetAutoBindSetting(name: name);
@@ -216,7 +216,8 @@ public static class ComponentAutoBindToolExtensions
     /// 设置生成代码配置
     /// </summary>
     /// <param name="self"></param>
-    /// <param name="data"></param>
+    /// <param name="names"></param>
+    /// <param name="select"></param>
     public static void SetSearchable(this ComponentAutoBindTool self, string[] names, int select)
     {
         self.Searchable.Select = select;

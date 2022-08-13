@@ -62,9 +62,9 @@ public class ComponentAutoBindToolInspector : Editor
             m_Target.SetSettingData(m_SettingConfig.GetSettingData(m_Target.SettingData.Name));
             m_LastSettingDataNameIndex = m_SettingConfig.Settings.FindIndex(_ => _.Name == m_Target.SettingData.Name);
         }
+        m_Searchable = serializedObject.FindProperty("m_Searchable");
 
         m_Target.SetSearchable(settingDataNames, m_LastSettingDataNameIndex);
-        m_Searchable = serializedObject.FindProperty("m_Searchable");
         m_Target.SetClassName(string.IsNullOrEmpty(m_Target.ClassName) ? m_Target.gameObject.name : m_Target.ClassName);
         if (string.IsNullOrEmpty(m_Target.RuleHelperTypeName))
         {
@@ -311,17 +311,11 @@ public class ComponentAutoBindToolInspector : Editor
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField($"[{i}]", GUILayout.Width(50));
-            string lastName = m_Target.BindDatas[i].Name;
-            Component lastComponent = m_Target.BindDatas[i].BindCom;
             GUI.enabled = false;
             EditorGUILayout.TextField(m_Target.BindDatas[i].Name, GUILayout.Width(150));
-            m_Target.BindDatas[i].BindCom =
-                (Component) EditorGUILayout.ObjectField(m_Target.BindDatas[i].BindCom, typeof(Component), true);
+            m_Target.BindDatas[i].BindCom = (Component) EditorGUILayout.ObjectField(m_Target.BindDatas[i].BindCom, typeof(Component), true);
             GUI.enabled = true;
-            if (m_Target.BindDatas[i].Name != lastName || m_Target.BindDatas[i].BindCom != lastComponent)
-            {
-                EditorUtility.SetDirty(m_Target);
-            }
+            
 
             if (GUILayout.Button("X"))
             {
