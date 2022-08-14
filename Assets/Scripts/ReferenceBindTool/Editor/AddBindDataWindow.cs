@@ -55,7 +55,7 @@ namespace ReferenceBindTool.Editor
             GameObject go = referenceData.BindReference as GameObject;
             if (go != null)
             {
-                m_AllBindObjects.AddRange(go.GetComponentsInChildren<Component>(true).Where(_=>_.GetType()!= typeof(ReferenceBindComponent)));
+                m_AllBindObjects.AddRange(go.GetComponents<Component>().Where(_=>_.GetType()!= typeof(ReferenceBindComponent)));
             }
             m_CanBindObjects = m_AllBindObjects.Where(_ => !excludeObjects.Contains(_)).Select(_=> new SelectBindObject(_)).ToList();
             m_Page = new Page(10,m_CanBindObjects.Count);
