@@ -125,7 +125,6 @@ public static class ComponentAutoBindToolUtility
             //命名空间
             stringBuilder.AppendLine("namespace " + target.SettingData.Namespace);
             stringBuilder.AppendLine("{");
-            stringBuilder.AppendLine("");
         }
 
         //类名
