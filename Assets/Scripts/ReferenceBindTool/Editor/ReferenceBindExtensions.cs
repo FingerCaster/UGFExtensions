@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using BindObjectData = ReferenceBindTool.ReferenceBindComponent.BindObjectData;
@@ -13,36 +14,24 @@ namespace ReferenceBindTool.Editor
     /// </summary>
     public static class ReferenceBindExtensions
     {
-        
         /// <summary>
         /// 自动绑定组件
         /// </summary>
         public static void AutoBindComponent(this ReferenceBindComponent self)
         {
-            self.BindComponents.Clear();
-            List<string> tempFiledNames = new List<string>();
-            List<Component> tempComponentTypeNames = new List<Component>();
-            Transform[] children = self.gameObject.GetComponentsInChildren<Transform>(true);
-            foreach (Transform child in children)
-            {
-                tempFiledNames.Clear();
-                tempComponentTypeNames.Clear();
-                self.RuleHelper.GetBindData(child, tempFiledNames, tempComponentTypeNames);
-                for (int i = 0; i < tempFiledNames.Count; i++)
-                {
-                    self.AddBindComponent(tempFiledNames[i], tempComponentTypeNames[i]);
-                }
-            }
-
+            self.RuleHelper.AddBindComponents(self);
             self.SyncBindObjects();
         }
+
         /// <summary>
         /// 排序
         /// </summary>
         public static void Sort(this ReferenceBindComponent self)
         {
-            self.BindAssetsOrPrefabs.Sort((x, y) => string.Compare(x.BindObject.name, y.BindObject.name, StringComparison.Ordinal));
-            self.BindComponents.Sort((x, y) => string.Compare(x.BindObject.name, y.BindObject.name, StringComparison.Ordinal));
+            self.BindAssetsOrPrefabs.Sort((x, y) =>
+                string.Compare(x.FieldName, y.FieldName, StringComparison.Ordinal));
+            self.BindComponents.Sort((x, y) =>
+                string.Compare(x.FieldName, y.FieldName, StringComparison.Ordinal));
             self.SyncBindObjects();
         }
 
@@ -56,6 +45,7 @@ namespace ReferenceBindTool.Editor
             {
                 self.BindObjects.Add(bindData.BindObject);
             }
+
             foreach (var bindData in self.BindComponents)
             {
                 self.BindObjects.Add(bindData.BindObject);
@@ -79,6 +69,7 @@ namespace ReferenceBindTool.Editor
                     self.BindAssetsOrPrefabs.RemoveAt(i);
                 }
             }
+
             for (int i = self.BindComponents.Count - 1; i >= 0; i--)
             {
                 var bindData = self.BindComponents[i];
@@ -88,6 +79,7 @@ namespace ReferenceBindTool.Editor
                     self.BindComponents.RemoveAt(i);
                 }
             }
+
             self.SyncBindObjects();
         }
 
@@ -107,13 +99,15 @@ namespace ReferenceBindTool.Editor
         /// <param name="self"></param>
         /// <param name="name"></param>
         /// <param name="bindObject"></param>
-        public static void AddBindAssetsOrPrefabs(this ReferenceBindComponent self,string name, UnityEngine.Object bindObject)
+        public static void AddBindAssetsOrPrefabs(this ReferenceBindComponent self, string name,
+            UnityEngine.Object bindObject)
         {
             if (!ReferenceBindUtility.CheckIsCanAdd(bindObject))
             {
                 Debug.LogError("不能添加目录!");
                 return;
             }
+
             foreach (var item in self.BindObjects)
             {
                 if (item == bindObject)
@@ -122,7 +116,7 @@ namespace ReferenceBindTool.Editor
                     return;
                 }
             }
-  
+
             bool isRepeat = false;
             for (int j = 0; j < self.BindAssetsOrPrefabs.Count; j++)
             {
@@ -132,16 +126,20 @@ namespace ReferenceBindTool.Editor
                     break;
                 }
             }
-            self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat,name,bindObject));
+
+            self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat, name, bindObject));
             self.SyncBindObjects();
         }
+
         /// <summary>
         /// 添加绑定组件
         /// </summary>
         /// <param name="self"></param>
         /// <param name="name"></param>
         /// <param name="bindComponent"></param>
-        private static void AddBindComponent(this ReferenceBindComponent self,string name, Component bindComponent)
+        /// <param name="isSyncBindObject"></param>
+        public static void AddBindComponent(this ReferenceBindComponent self, string name, Component bindComponent,
+            bool isSyncBindObject = true)
         {
             foreach (var item in self.BindObjects)
             {
@@ -151,6 +149,7 @@ namespace ReferenceBindTool.Editor
                     return;
                 }
             }
+
             bool isRepeat = false;
             for (int j = 0; j < self.BindComponents.Count; j++)
             {
@@ -160,8 +159,12 @@ namespace ReferenceBindTool.Editor
                     break;
                 }
             }
-            self.BindComponents.Add(new BindObjectData(isRepeat,name,bindComponent));
-            self.SyncBindObjects();
+
+            self.BindComponents.Add(new BindObjectData(isRepeat, name, bindComponent));
+            if (isSyncBindObject)
+            {
+                self.SyncBindObjects();
+            }
         }
 
         /// <summary>
@@ -170,6 +173,7 @@ namespace ReferenceBindTool.Editor
         /// <param name="self"></param>
         public static void Refresh(this ReferenceBindComponent self)
         {
+            self.BindObjects.Clear();
             var tempList = new List<BindObjectData>(self.BindAssetsOrPrefabs.Count);
             tempList.AddRange(self.BindAssetsOrPrefabs);
             self.BindAssetsOrPrefabs.Clear();
@@ -179,6 +183,7 @@ namespace ReferenceBindTool.Editor
                 var tempData = tempList[i];
                 self.AddBindAssetsOrPrefabs(tempData.FieldName, tempData.BindObject);
             }
+
             tempList.AddRange(self.BindComponents);
             self.BindComponents.Clear();
             for (; i < tempList.Count; i++)
@@ -189,12 +194,14 @@ namespace ReferenceBindTool.Editor
 
             self.SyncBindObjects();
         }
+
         /// <summary>
         /// 重置所有字段名
         /// </summary>
         /// <param name="self"></param>
         public static void ResetAllFieldName(this ReferenceBindComponent self)
         {
+            self.BindObjects.Clear();
             var tempList = new List<BindObjectData>(self.BindAssetsOrPrefabs.Count);
             tempList.AddRange(self.BindAssetsOrPrefabs);
             self.BindAssetsOrPrefabs.Clear();
@@ -202,21 +209,21 @@ namespace ReferenceBindTool.Editor
             for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-                self.AddBindAssetsOrPrefabs(ReferenceBindUtility.GetFiledName(tempData.BindObject), tempData.BindObject);
+                self.AddBindAssetsOrPrefabs(ReferenceBindUtility.GetFiledName(tempData.BindObject),
+                    tempData.BindObject);
             }
+
             tempList.AddRange(self.BindComponents);
             self.BindComponents.Clear();
             for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-                self.AddBindComponent(ReferenceBindUtility.GetFiledName(tempData.BindObject), (Component)tempData.BindObject);
+                self.AddBindComponent(ReferenceBindUtility.GetFiledName(tempData.BindObject),
+                    (Component)tempData.BindObject);
             }
-
-            self.SyncBindObjects();
-
             self.SyncBindObjects();
         }
-        
+
 
         /// <summary>
         /// 设置脚本名称
@@ -233,7 +240,7 @@ namespace ReferenceBindTool.Editor
             self.GeneratorCodeName = className;
             EditorUtility.SetDirty(self);
         }
-        
+
         /// <summary>
         /// 设置生成代码配置
         /// </summary>
@@ -267,6 +274,7 @@ namespace ReferenceBindTool.Editor
 
             EditorUtility.SetDirty(self);
         }
+
         /// <summary>
         /// 设置生成代码配置
         /// </summary>
@@ -296,6 +304,7 @@ namespace ReferenceBindTool.Editor
 
             EditorUtility.SetDirty(self);
         }
+
         /// <summary>
         /// 设置生成代码配置
         /// </summary>
@@ -322,10 +331,10 @@ namespace ReferenceBindTool.Editor
             }
 
             self.RuleHelperTypeName = ruleHelperName;
-            IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(self.RuleHelperTypeName);
+            IAutoBindRuleHelper helper =
+                (IAutoBindRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.RuleHelperTypeName);
             self.RuleHelper = helper;
             EditorUtility.SetDirty(self);
         }
-        
     }
 }

@@ -22,7 +22,7 @@ namespace ReferenceBindTool.Editor
         private void OnEnable()
         {
             m_Target = (ReferenceBindComponent) target;
-            m_HelperTypeNames = ComponentAutoBindToolUtility.GetTypeNames();
+            m_HelperTypeNames = ReferenceBindUtility.GetTypeNames();
 
             m_Page = new Page(10, m_Target.GetAllBindObjectsCount());
             if (!CheckAutoBindSettingData())
@@ -327,21 +327,16 @@ namespace ReferenceBindTool.Editor
 
             EditorGUILayout.BeginVertical();
             int i = m_Page.CurrentPage * m_Page.ShowCount;
-            int count = i + m_Page.ShowCount;
-
-            if (count > m_Target.GetAllBindObjectsCount())
-            {
-                count = m_Target.GetAllBindObjectsCount();
-            }
+            int index = 0;
 
             if (i < m_Target.BindAssetsOrPrefabs.Count)
             {
                 EditorGUILayout.LabelField("绑定的资源或预制体");
             }
 
-            for (; i < m_Target.BindAssetsOrPrefabs.Count; i++)
+            for (; i < m_Target.BindAssetsOrPrefabs.Count; i++,index++)
             {
-                if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i],i))
+                if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i],index))
                 {
                     needDeleteIndex = i;
                 }
@@ -352,9 +347,9 @@ namespace ReferenceBindTool.Editor
                 EditorGUILayout.LabelField("绑定的组件");
             }
 
-            for (; i < m_Target.BindComponents.Count; i++)
+            for (i=0; i < m_Target.BindComponents.Count; i++,index++)
             {
-                if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i],i))
+                if (DrawBindObjectData(m_Target.BindComponents[i],index))
                 {
                     needDeleteIndex = i;
                 }
@@ -363,7 +358,7 @@ namespace ReferenceBindTool.Editor
             //删除data
             if (needDeleteIndex != -1)
             {
-                if (needDeleteIndex < m_Target.BindAssetsOrPrefabs.Count)
+                if (index < m_Target.BindAssetsOrPrefabs.Count)
                 {
                     m_Target.BindAssetsOrPrefabs.RemoveAt(needDeleteIndex);
                 }
@@ -383,8 +378,14 @@ namespace ReferenceBindTool.Editor
         {
             bool isDelete = false;
             EditorGUILayout.BeginHorizontal();
-
             EditorGUILayout.LabelField($"[{index}]", GUILayout.Width(40));
+
+            EditorGUI.BeginChangeCheck();
+            string fieldName = EditorGUILayout.TextField(bindObjectData.FieldName);
+            if (EditorGUI.EndChangeCheck())
+            {
+                bindObjectData.FieldName = fieldName;
+            }
 
             GUI.enabled = false;
             EditorGUILayout.ObjectField(bindObjectData.BindObject, typeof(UnityEngine.Object), true);

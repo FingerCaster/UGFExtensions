@@ -18,7 +18,8 @@ namespace ReferenceBindTool.Editor
 #if UNITY_2017_3_OR_NEWER
             //asmdef
 #endif
-            "Assembly-CSharp"
+            "Assembly-CSharp",
+            "Assembly-CSharp-Editor"
         };
 
         /// <summary>
@@ -57,6 +58,25 @@ namespace ReferenceBindTool.Editor
             typeNames.Sort();
             return typeNames.ToArray();
         }
+        
+        /// <summary>
+        /// 创建辅助器实例
+        /// </summary>
+        public static object CreateHelperInstance(string helperTypeName)
+        {
+            foreach (string assemblyName in s_AssemblyNames)
+            {
+                Assembly assembly = Assembly.Load(assemblyName);
+
+                object instance = assembly.CreateInstance(helperTypeName);
+                if (instance != null)
+                {
+                    return instance;
+                }
+            }
+
+            return null;
+        }
         /// <summary>
         /// 检查引用是否可以添加
         /// </summary>
@@ -94,7 +114,10 @@ namespace ReferenceBindTool.Editor
             };
             foreach (var bindCom in target.BindObjects)
             {
-                nameSpaces.Add(bindCom.GetType().Namespace);
+                if (!string.IsNullOrEmpty(bindCom.GetType().Namespace))
+                {
+                    nameSpaces.Add(bindCom.GetType().Namespace);
+                }
             }
      
             return nameSpaces.Distinct().ToList();
@@ -125,7 +148,6 @@ namespace ReferenceBindTool.Editor
                 //命名空间
                 stringBuilder.AppendLine("namespace " + target.SettingData.Namespace);
                 stringBuilder.AppendLine("{");
-                stringBuilder.AppendLine("");
                 indentation = "\t";
             }
 

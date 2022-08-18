@@ -27,8 +27,7 @@ namespace ReferenceBindTool
             public BindObjectData(bool isRepeatName, string name, Object bindObject)
             {
                 m_IsRepeatName = isRepeatName;
-                m_FieldName = name;
-                m_IsComponent = bindObject is Component;
+                FieldName = name;
                 m_BindObject = bindObject;
             }
 
@@ -46,11 +45,6 @@ namespace ReferenceBindTool
             /// 字段名称是否无效
             /// </summary>
             [SerializeField] private bool m_FiedNameIsInvalid;
-
-            /// <summary>
-            /// 绑定对象是否是组件
-            /// </summary>
-            [SerializeField] private bool m_IsComponent;
 
             /// <summary>
             /// 绑定对象(组件 资源 预制体)
@@ -82,12 +76,7 @@ namespace ReferenceBindTool
             {
                 get => m_FiedNameIsInvalid;
             }
-
-            /// <summary>
-            /// 绑定对象是否是组件
-            /// </summary>
-            public bool IsComponent => m_IsComponent;
-
+            
             /// <summary>
             /// 绑定对象(组件 资源 预制体)
             /// </summary>
