@@ -9,14 +9,12 @@ public class ComponentAutoBindToolInspector : Editor
     private ComponentAutoBindTool m_Target;
     private string[] m_HelperTypeNames;
     private int m_HelperTypeNameIndex;
-
-
     private AutoBindSettingConfig m_SettingConfig;
     private bool m_SettingDataExpanded = true;
     private SerializedProperty m_Searchable;
     private int m_LastSettingDataNameIndex;
     private bool m_SettingDataError;
-
+    
     private void OnEnable()
     {
         m_Target = (ComponentAutoBindTool) target;

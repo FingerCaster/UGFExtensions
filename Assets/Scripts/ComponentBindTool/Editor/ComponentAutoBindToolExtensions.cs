@@ -134,10 +134,10 @@ public static class ComponentAutoBindToolExtensions
     /// 设置生成规则帮助类
     /// </summary>
     /// <param name="self"></param>
-    /// <param name="ruleHelper"></param>
+    /// <param name="ruleHelperName"></param>
     public static void SetRuleHelperTypeName(this ComponentAutoBindTool self, string ruleHelperName)
     {
-        if (self.RuleHelperTypeName == ruleHelperName)
+        if (self.RuleHelperTypeName == ruleHelperName && self.RuleHelper != null)
         {
             return;
         }
