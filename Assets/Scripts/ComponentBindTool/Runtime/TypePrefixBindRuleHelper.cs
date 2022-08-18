@@ -1,7 +1,9 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using ReferenceBindTool;
 using UnityEngine;
 
 /// <summary>
@@ -79,4 +81,10 @@ public class TypePrefixBindRuleHelper : IAutoBindRuleHelper
             }
         }
     }
+
+    public void AddBindComponents(ReferenceBindComponent referenceBindComponent)
+    {
+        throw new NotImplementedException();
+    }
 }
+#endif

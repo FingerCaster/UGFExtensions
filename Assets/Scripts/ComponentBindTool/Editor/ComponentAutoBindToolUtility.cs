@@ -68,7 +68,10 @@ public static class ComponentAutoBindToolUtility
         
         foreach (var bindCom in target.m_BindComs)
         {
-            nameSpaces.Add(bindCom.GetType().Namespace);
+            if (!string.IsNullOrEmpty(bindCom.GetType().Namespace))
+            {
+                nameSpaces.Add(bindCom.GetType().Namespace);
+            }
         }
         
         return nameSpaces.Distinct().ToList();
@@ -116,8 +119,6 @@ public static class ComponentAutoBindToolUtility
         }
 
         stringBuilder.AppendLine("");
-
-        stringBuilder.AppendLine("//自动生成于：" + DateTime.Now);
 
         if (!string.IsNullOrEmpty(target.SettingData.Namespace))
         {

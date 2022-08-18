@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
+using ReferenceBindTool;
 using UnityEngine;
 
 /// <summary>
@@ -14,4 +16,7 @@ public interface IAutoBindRuleHelper
     /// <param name="components">组件集合</param>
     /// <returns>返回绑定数据</returns>
     void GetBindData(Transform target,List<string> filedNames,List<Component> components);
+
+    void AddBindComponents(ReferenceBindComponent referenceBindComponent);
 }
+#endif

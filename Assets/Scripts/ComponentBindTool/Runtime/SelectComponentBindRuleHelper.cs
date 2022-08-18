@@ -1,6 +1,8 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using ReferenceBindTool;
 using UnityEngine;
 
 public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
@@ -11,9 +13,7 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
         string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
         if (!Regex.IsMatch(filedName, regex))
         {
-#if UNITY_EDITOR
             UnityEditor.Selection.activeTransform = target;
-#endif
             throw new Exception($"FiledName : \"{target.name}\" is invalid.Please check it!");
         }
 
@@ -22,7 +22,6 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
     
     public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
     {
-#if UNITY_EDITOR
         BindDataSelect bindDataSelect = target.GetComponent<BindDataSelect>();
         if (bindDataSelect == null)
         {
@@ -34,6 +33,12 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
             filedNames.Add(GetFiledName(target, component.GetType().Name));
             components.Add(component);
         }
-#endif
     }
+
+    public void AddBindComponents(ReferenceBindComponent referenceBindComponent)
+    {
+        throw new NotImplementedException();
+    }
+    
 }
+#endif
