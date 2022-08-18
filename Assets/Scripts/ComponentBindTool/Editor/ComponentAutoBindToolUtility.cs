@@ -64,12 +64,13 @@ public static class ComponentAutoBindToolUtility
     /// <returns>绑定的组件使用到的命名空间</returns>
     private static List<string> GetNameSpaces(ComponentAutoBindTool target)
     {
-        List<string> nameSpaces = new List<string>();
+        List<string> nameSpaces = new List<string> { nameof(UnityEngine) };
+        
         foreach (var bindCom in target.m_BindComs)
         {
             nameSpaces.Add(bindCom.GetType().Namespace);
         }
-
+        
         return nameSpaces.Distinct().ToList();
     }
 
@@ -109,7 +110,6 @@ public static class ComponentAutoBindToolUtility
         StringBuilder stringBuilder = new StringBuilder(2048);
 
         List<string> nameSpaces = GetNameSpaces(target);
-        nameSpaces.Add(nameof(UnityEngine));
         foreach (var nameSpace in nameSpaces)
         {
             stringBuilder.AppendLine($"using {nameSpace};");
@@ -124,13 +124,11 @@ public static class ComponentAutoBindToolUtility
             //命名空间
             stringBuilder.AppendLine("namespace " + target.SettingData.Namespace);
             stringBuilder.AppendLine("{");
-            stringBuilder.AppendLine("");
         }
 
         //类名
         stringBuilder.AppendLine($"\tpublic partial class {className}");
         stringBuilder.AppendLine("\t{");
-        stringBuilder.AppendLine("");
 
         //组件字段
         foreach (ComponentAutoBindTool.BindData data in target.BindDatas)
