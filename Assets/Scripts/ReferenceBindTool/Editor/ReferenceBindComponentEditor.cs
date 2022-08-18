@@ -323,7 +323,8 @@ namespace ReferenceBindTool.Editor
         {
             //绘制key value数据
 
-            int needDeleteIndex = -1;
+            int bindAopNeedDeleteIndex = -1;
+            int bindComNeedDeleteIndex = -1;
 
             EditorGUILayout.BeginVertical();
             int i = m_Page.CurrentPage * m_Page.ShowCount;
@@ -338,11 +339,11 @@ namespace ReferenceBindTool.Editor
             {
                 if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i],index))
                 {
-                    needDeleteIndex = i;
+                    bindAopNeedDeleteIndex = i;
                 }
             }
 
-            if (i < m_Target.BindComponents.Count)
+            if (m_Target.BindComponents.Count > 0)
             {
                 EditorGUILayout.LabelField("绑定的组件");
             }
@@ -351,22 +352,21 @@ namespace ReferenceBindTool.Editor
             {
                 if (DrawBindObjectData(m_Target.BindComponents[i],index))
                 {
-                    needDeleteIndex = i;
+                    bindComNeedDeleteIndex = i;
                 }
             }
 
             //删除data
-            if (needDeleteIndex != -1)
+            if (bindAopNeedDeleteIndex != -1)
             {
-                if (index < m_Target.BindAssetsOrPrefabs.Count)
-                {
-                    m_Target.BindAssetsOrPrefabs.RemoveAt(needDeleteIndex);
-                }
-                else
-                {
-                    m_Target.BindComponents.RemoveAt(needDeleteIndex);
-                }
+                m_Target.BindAssetsOrPrefabs.RemoveAt(bindAopNeedDeleteIndex);
+                m_Target.SyncBindObjects();
+                m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
+            }
 
+            if (bindComNeedDeleteIndex != -1)
+            {
+                m_Target.BindComponents.RemoveAt(bindComNeedDeleteIndex);
                 m_Target.SyncBindObjects();
                 m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
             }
