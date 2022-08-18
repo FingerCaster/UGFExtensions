@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using ReferenceData = ReferenceBindTool.ReferenceBindComponent.ReferenceData;
+using BindObjectData = ReferenceBindTool.ReferenceBindComponent.BindObjectData;
 
 namespace ReferenceBindTool.Editor
 {
@@ -13,19 +13,36 @@ namespace ReferenceBindTool.Editor
     /// </summary>
     public static class ReferenceBindExtensions
     {
+        
+        /// <summary>
+        /// 自动绑定组件
+        /// </summary>
+        public static void AutoBindComponent(this ReferenceBindComponent self)
+        {
+            self.BindComponents.Clear();
+            List<string> tempFiledNames = new List<string>();
+            List<Component> tempComponentTypeNames = new List<Component>();
+            Transform[] children = self.gameObject.GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in children)
+            {
+                tempFiledNames.Clear();
+                tempComponentTypeNames.Clear();
+                self.RuleHelper.GetBindData(child, tempFiledNames, tempComponentTypeNames);
+                for (int i = 0; i < tempFiledNames.Count; i++)
+                {
+                    self.AddBindComponent(tempFiledNames[i], tempComponentTypeNames[i]);
+                }
+            }
+
+            self.SyncBindObjects();
+        }
         /// <summary>
         /// 排序
         /// </summary>
         public static void Sort(this ReferenceBindComponent self)
         {
-            self.ReferenceDataList.Sort((x, y) =>
-                string.Compare(x.BindReference.name, y.BindReference.name, StringComparison.Ordinal));
-            foreach (ReferenceData reference in self.ReferenceDataList)
-            {
-                reference.BindObjects.Sort((x, y) =>
-                    string.Compare(x.FieldName, y.FieldName, StringComparison.Ordinal));
-            }
-
+            self.BindAssetsOrPrefabs.Sort((x, y) => string.Compare(x.BindObject.name, y.BindObject.name, StringComparison.Ordinal));
+            self.BindComponents.Sort((x, y) => string.Compare(x.BindObject.name, y.BindObject.name, StringComparison.Ordinal));
             self.SyncBindObjects();
         }
 
@@ -35,12 +52,13 @@ namespace ReferenceBindTool.Editor
         public static void SyncBindObjects(this ReferenceBindComponent self)
         {
             self.BindObjects.Clear();
-            foreach (var bindData in self.ReferenceDataList)
+            foreach (var bindData in self.BindAssetsOrPrefabs)
             {
-                foreach (ReferenceBindComponent.BindObjectData bindComponentData in bindData.BindObjects)
-                {
-                    self.BindObjects.Add(bindComponentData.BindObject);
-                }
+                self.BindObjects.Add(bindData.BindObject);
+            }
+            foreach (var bindData in self.BindComponents)
+            {
+                self.BindObjects.Add(bindData.BindObject);
             }
 
             EditorUtility.SetDirty(self);
@@ -52,25 +70,24 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         public static void RemoveNull(this ReferenceBindComponent self)
         {
-            for (var i = 0; i < self.ReferenceDataList.Count; i++)
+            for (int i = self.BindAssetsOrPrefabs.Count - 1; i >= 0; i--)
             {
-                ReferenceData reference = self.ReferenceDataList[i];
-                if (reference.BindReference == null)
-                {
-                    self.ReferenceDataList.RemoveAt(i);
-                    continue;
-                }
+                var bindData = self.BindAssetsOrPrefabs[i];
 
-                for (var j = 0; j < reference.BindObjects.Count; j++)
+                if (bindData.BindObject == null)
                 {
-                    ReferenceBindComponent.BindObjectData bindObjectData = reference.BindObjects[j];
-                    if (bindObjectData.BindObject == null)
-                    {
-                        reference.BindObjects.RemoveAt(j);
-                    }
+                    self.BindAssetsOrPrefabs.RemoveAt(i);
                 }
             }
+            for (int i = self.BindComponents.Count - 1; i >= 0; i--)
+            {
+                var bindData = self.BindComponents[i];
 
+                if (bindData.BindObject == null)
+                {
+                    self.BindComponents.RemoveAt(i);
+                }
+            }
             self.SyncBindObjects();
         }
 
@@ -79,69 +96,71 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         public static void RemoveAll(this ReferenceBindComponent self)
         {
-            self.ReferenceDataList.Clear();
+            self.BindAssetsOrPrefabs.Clear();
+            self.BindComponents.Clear();
             self.SyncBindObjects();
         }
 
-
         /// <summary>
-        /// 添加引用
+        /// 添加绑定资源或预制体
         /// </summary>
-        public static void AddReferenceData(this ReferenceBindComponent self, UnityEngine.Object bindObject)
+        /// <param name="self"></param>
+        /// <param name="name"></param>
+        /// <param name="bindObject"></param>
+        public static void AddBindAssetsOrPrefabs(this ReferenceBindComponent self,string name, UnityEngine.Object bindObject)
         {
             if (!ReferenceBindUtility.CheckIsCanAdd(bindObject))
             {
                 Debug.LogError("不能添加目录!");
                 return;
             }
-            foreach (var referenceData in self.ReferenceDataList)
+            foreach (var item in self.BindObjects)
             {
-                if (referenceData.BindReference == bindObject)
+                if (item == bindObject)
                 {
                     Debug.LogWarning($"{bindObject.name} 已经添加。");
                     return;
                 }
             }
-
-            ReferenceData reference = new ReferenceData(bindObject);
-            self.ReferenceDataList.Add(reference);
-            if (reference.IsOnlyBindSelf)
+  
+            bool isRepeat = false;
+            for (int j = 0; j < self.BindAssetsOrPrefabs.Count; j++)
             {
-                self.AddBindObject(reference,bindObject);
-                self.SyncBindObjects();
-            }
-        }
-
-        /// <summary>
-        /// 添加绑定对象
-        /// </summary>
-        /// <param name="self"></param>
-        /// <param name="referenceData"></param>
-        /// <param name="bindObject"></param>
-        /// <param name="fieldName"></param>
-        public static void AddBindObject(this ReferenceBindComponent self, ReferenceData referenceData, Object bindObject,string fieldName = null)
-        {
-            var isRepeat = false;
-            string filedName =fieldName ?? ReferenceBindUtility.GetFiledName(bindObject);
-
-            foreach (var temp in self.ReferenceDataList)
-            {
-                foreach (var bindComponent in temp.BindObjects)
+                if (self.BindAssetsOrPrefabs[j].FieldName == name)
                 {
-                    if (bindComponent.FieldName == filedName)
-                    {
-                        isRepeat = true;
-                        break;
-                    }
-                }
-
-                if (isRepeat)
-                {
+                    isRepeat = true;
                     break;
                 }
             }
-
-            referenceData.BindObjects.Add(new ReferenceBindComponent.BindObjectData(isRepeat, filedName, bindObject));
+            self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat,name,bindObject));
+            self.SyncBindObjects();
+        }
+        /// <summary>
+        /// 添加绑定组件
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="name"></param>
+        /// <param name="bindComponent"></param>
+        private static void AddBindComponent(this ReferenceBindComponent self,string name, Component bindComponent)
+        {
+            foreach (var item in self.BindObjects)
+            {
+                if (item == bindComponent)
+                {
+                    Debug.LogWarning($"{bindComponent.name} 已经添加。");
+                    return;
+                }
+            }
+            bool isRepeat = false;
+            for (int j = 0; j < self.BindComponents.Count; j++)
+            {
+                if (self.BindComponents[j].FieldName == name)
+                {
+                    isRepeat = true;
+                    break;
+                }
+            }
+            self.BindComponents.Add(new BindObjectData(isRepeat,name,bindComponent));
             self.SyncBindObjects();
         }
 
@@ -151,21 +170,21 @@ namespace ReferenceBindTool.Editor
         /// <param name="self"></param>
         public static void Refresh(this ReferenceBindComponent self)
         {
-            var tempList = new List<ReferenceData>(self.ReferenceDataList.Count);
-            tempList.AddRange(self.ReferenceDataList);
-            self.ReferenceDataList.Clear();
-            for (var i = 0; i < tempList.Count; i++)
+            var tempList = new List<BindObjectData>(self.BindAssetsOrPrefabs.Count);
+            tempList.AddRange(self.BindAssetsOrPrefabs);
+            self.BindAssetsOrPrefabs.Clear();
+            int i = 0;
+            for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-
-                ReferenceData reference = new ReferenceData(tempData.BindReference);
-                self.ReferenceDataList.Add(reference);
-                for (int j = 0; j < tempData.BindObjects.Count; j++)
-                {
-                    self.AddBindObject(reference,tempData.BindObjects[j].BindObject,tempData.BindObjects[j].FieldName);
-                }
-
-                
+                self.AddBindAssetsOrPrefabs(tempData.FieldName, tempData.BindObject);
+            }
+            tempList.AddRange(self.BindComponents);
+            self.BindComponents.Clear();
+            for (; i < tempList.Count; i++)
+            {
+                var tempData = tempList[i];
+                self.AddBindComponent(tempData.FieldName, (Component)tempData.BindObject);
             }
 
             self.SyncBindObjects();
@@ -176,22 +195,24 @@ namespace ReferenceBindTool.Editor
         /// <param name="self"></param>
         public static void ResetAllFieldName(this ReferenceBindComponent self)
         {
-            var tempList = new List<ReferenceData>(self.ReferenceDataList.Count);
-            tempList.AddRange(self.ReferenceDataList);
-            self.ReferenceDataList.Clear();
-            for (var i = 0; i < tempList.Count; i++)
+            var tempList = new List<BindObjectData>(self.BindAssetsOrPrefabs.Count);
+            tempList.AddRange(self.BindAssetsOrPrefabs);
+            self.BindAssetsOrPrefabs.Clear();
+            int i = 0;
+            for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-
-                ReferenceData reference = new ReferenceData(tempData.BindReference);
-                self.ReferenceDataList.Add(reference);
-
-                for (int j = 0; j < tempData.BindObjects.Count; j++)
-                {
-                    self.AddBindObject(reference,tempData.BindObjects[j].BindObject,ReferenceBindUtility.GetFiledName(tempData.BindObjects[j].BindObject));
-                }
-
+                self.AddBindAssetsOrPrefabs(ReferenceBindUtility.GetFiledName(tempData.BindObject), tempData.BindObject);
             }
+            tempList.AddRange(self.BindComponents);
+            self.BindComponents.Clear();
+            for (; i < tempList.Count; i++)
+            {
+                var tempData = tempList[i];
+                self.AddBindComponent(ReferenceBindUtility.GetFiledName(tempData.BindObject), (Component)tempData.BindObject);
+            }
+
+            self.SyncBindObjects();
 
             self.SyncBindObjects();
         }
@@ -288,5 +309,23 @@ namespace ReferenceBindTool.Editor
             EditorUtility.SetDirty(self);
         }
 
+        /// <summary>
+        /// 设置生成规则帮助类
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="ruleHelperName"></param>
+        public static void SetRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
+        {
+            if (self.RuleHelperTypeName == ruleHelperName && self.RuleHelper != null)
+            {
+                return;
+            }
+
+            self.RuleHelperTypeName = ruleHelperName;
+            IAutoBindRuleHelper helper = (IAutoBindRuleHelper) ComponentAutoBindToolUtility.CreateHelperInstance(self.RuleHelperTypeName);
+            self.RuleHelper = helper;
+            EditorUtility.SetDirty(self);
+        }
+        
     }
 }

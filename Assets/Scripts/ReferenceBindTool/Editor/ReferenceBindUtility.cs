@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -11,6 +12,51 @@ namespace ReferenceBindTool.Editor
 {
     public static class ReferenceBindUtility
     {
+        
+        private static readonly string[] s_AssemblyNames =
+        {
+#if UNITY_2017_3_OR_NEWER
+            //asmdef
+#endif
+            "Assembly-CSharp"
+        };
+
+        /// <summary>
+        /// 获取指定基类在指定程序集中的所有子类名称
+        /// </summary>
+        public static string[] GetTypeNames()
+        {
+            List<string> typeNames = new List<string>();
+            foreach (string assemblyName in s_AssemblyNames)
+            {
+                Assembly assembly = null;
+                try
+                {
+                    assembly = Assembly.Load(assemblyName);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (assembly == null)
+                {
+                    continue;
+                }
+
+                Type[] types = assembly.GetTypes();
+                foreach (Type type in types)
+                {
+                    if (type.IsClass && !type.IsAbstract && typeof(IAutoBindRuleHelper).IsAssignableFrom(type))
+                    {
+                        typeNames.Add(type.FullName);
+                    }
+                }
+            }
+
+            typeNames.Sort();
+            return typeNames.ToArray();
+        }
         /// <summary>
         /// 检查引用是否可以添加
         /// </summary>
@@ -59,9 +105,10 @@ namespace ReferenceBindTool.Editor
         public static string GenAutoBindCode(ReferenceBindComponent target, string className)
         {
             target.Refresh();
-            if (target.ReferenceDataList.Find(_ => _.BindObjects.Find(_ => _.IsRepeatName) != null) != null)
+            if (target.BindAssetsOrPrefabs.Find(_ =>  _.IsRepeatName) != null ||
+                target.BindComponents.Find(_ =>  _.IsRepeatName) != null)
             {
-                throw new Exception("绑定组件中存在同名组件,请修改后重新生成。");
+                throw new Exception("绑定对象中存在同名,请修改后重新生成。");
             }
             StringBuilder stringBuilder = new StringBuilder(2048);
 
@@ -87,7 +134,10 @@ namespace ReferenceBindTool.Editor
             stringBuilder.AppendLine($"{indentation}{{");
             stringBuilder.AppendLine("");
 
-            List<ReferenceBindComponent.BindObjectData> allBindObjectDataList = target.GetAllBindObjectDataList();
+            
+            List<ReferenceBindComponent.BindObjectData> allBindObjectDataList = new List<ReferenceBindComponent.BindObjectData>(target.GetAllBindObjectsCount());
+            allBindObjectDataList.AddRange(target.BindAssetsOrPrefabs);
+            allBindObjectDataList.AddRange(target.BindComponents);
             //组件字段
             foreach (var data in allBindObjectDataList)
             {

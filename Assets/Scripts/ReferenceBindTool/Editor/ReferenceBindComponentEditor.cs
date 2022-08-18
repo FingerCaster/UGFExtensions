@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -10,19 +10,21 @@ namespace ReferenceBindTool.Editor
     public class ReferenceBindComponentEditor : UnityEditor.Editor
     {
         private ReferenceBindComponent m_Target;
+        private string[] m_HelperTypeNames;
+        private int m_HelperTypeNameIndex;
         private Page m_Page;
-        private AddBindDataWindow m_AddBindDataWindow = new AddBindDataWindow();
         private SerializedProperty m_Searchable;
         private AutoBindSettingConfig m_SettingConfig;
         private bool m_SettingDataExpanded = true;
         private int m_LastSettingDataNameIndex;
         private bool m_SettingDataError;
-
+        
         private void OnEnable()
         {
             m_Target = (ReferenceBindComponent) target;
-            m_ShowControls = new Dictionary<int, bool>();
-            m_Page = new Page(10, m_Target.ReferenceDataList.Count);
+            m_HelperTypeNames = ComponentAutoBindToolUtility.GetTypeNames();
+
+            m_Page = new Page(10, m_Target.GetAllBindObjectsCount());
             if (!CheckAutoBindSettingData())
             {
                 return;
@@ -32,6 +34,15 @@ namespace ReferenceBindTool.Editor
             m_Target.SetClassName(string.IsNullOrEmpty(m_Target.GeneratorCodeName)
                 ? m_Target.gameObject.name
                 : m_Target.GeneratorCodeName);
+            
+            if (string.IsNullOrEmpty(m_Target.RuleHelperTypeName))
+            {
+                m_Target.SetRuleHelperTypeName(nameof(DefaultAutoBindRuleHelper));
+            }
+            else
+            {
+                m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
+            }
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -93,15 +104,58 @@ namespace ReferenceBindTool.Editor
             serializedObject.Update();
             DrawTopButton();
             EditorGUILayout.Space();
-            DrawDragArea();
+            DrawHelperSelect();
+            EditorGUILayout.Space();
+            DrawBindAssetOrPrefab();
             EditorGUILayout.Space();
             DrawSetting();
             EditorGUILayout.Space();
-            DrawReferences();
+            DrawBindObjects();
             m_Page.Draw();
             serializedObject.ApplyModifiedProperties();
         }
+        
+        /// <summary>
+        /// 绘制辅助器选择框
+        /// </summary>
+        private void DrawHelperSelect()
+        {
+            if (m_Target.RuleHelper != null)
+            {
+                for (int i = 0; i < m_HelperTypeNames.Length; i++)
+                {
+                    if (m_Target.RuleHelperTypeName == m_HelperTypeNames[i])
+                    {
+                        m_HelperTypeNameIndex = i;
+                    }
+                }
+            }
+            else
+            {
+                m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
+            }
 
+            foreach (GameObject go in Selection.gameObjects)
+            {
+                ReferenceBindComponent autoBindTool = go.GetComponent<ReferenceBindComponent>();
+                if (autoBindTool == null)
+                {
+                    continue;
+                }
+
+                if (autoBindTool.RuleHelper == null)
+                {
+                    m_Target.SetRuleHelperTypeName(m_Target.RuleHelperTypeName);
+                }
+            }
+
+            int selectedIndex = EditorGUILayout.Popup("AutoBindRuleHelper", m_HelperTypeNameIndex, m_HelperTypeNames);
+            if (selectedIndex != m_HelperTypeNameIndex)
+            {
+                m_HelperTypeNameIndex = selectedIndex;
+                m_Target.SetRuleHelperTypeName(m_HelperTypeNames[selectedIndex]);
+            }
+        }
         /// <summary>
         /// 绘制设置项
         /// </summary>
@@ -198,6 +252,7 @@ namespace ReferenceBindTool.Editor
             {
                 Refresh();
             }
+
             if (GUILayout.Button("重置组建字段名"))
             {
                 ResetAllFieldName();
@@ -212,7 +267,10 @@ namespace ReferenceBindTool.Editor
             {
                 RemoveAll();
             }
-
+            if (GUILayout.Button("自动绑定组件"))
+            {
+                AutoBindComponent();
+            }
             if (GUILayout.Button("生成绑定代码"))
             {
                 string className = !string.IsNullOrEmpty(m_Target.GeneratorCodeName)
@@ -224,51 +282,44 @@ namespace ReferenceBindTool.Editor
 
             EditorGUILayout.EndHorizontal();
         }
+
         private void ResetAllFieldName()
         {
             m_Target.ResetAllFieldName();
-            m_Page.SetAllCount(m_Target.ReferenceDataList.Count);
+            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
+
         private void Refresh()
         {
             m_Target.Refresh();
-            m_Page.SetAllCount(m_Target.ReferenceDataList.Count);
+            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
+
+        private UnityEngine.Object m_NeedBindObject = null;
 
         /// <summary>
         /// 绘制拖拽区域
         /// </summary>
-        private void DrawDragArea()
+        private void DrawBindAssetOrPrefab()
         {
-            Rect dragRect = EditorGUILayout.GetControlRect(false, 40);
-            var style = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.MiddleCenter };
-            GUI.Box(dragRect, "请将需要绑定的物体拖到此位置", style);
-            Event e = Event.current;
-            if (dragRect.Contains(e.mousePosition))
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("绑定资源或预制体");
+            m_NeedBindObject = EditorGUILayout.ObjectField(m_NeedBindObject, typeof(UnityEngine.Object), false);
+            GUI.enabled = m_NeedBindObject != null;
+            if (GUILayout.Button("绑定", GUILayout.Width(50)))
             {
-                if (e.type == EventType.DragUpdated)
-                    DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
-                else if (e.type == EventType.DragPerform)
-                {
-                    UnityEngine.Object[] objs = DragAndDrop.objectReferences;
-                    e.Use();
-                    for (int i = 0; objs != null && i < objs.Length; i++)
-                    {
-                        if (objs[i] != null)
-                        {
-                            m_Target.AddReferenceData(objs[i]);
-                        }
-                    }
-                }
+                m_Target.AddBindAssetsOrPrefabs(ReferenceBindUtility.GetFiledName(m_NeedBindObject),m_NeedBindObject);
+                m_NeedBindObject = null;
             }
-        }
 
-        private Dictionary<int, bool> m_ShowControls;
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+        }
 
         /// <summary>
         /// 绘制键值对数据
         /// </summary>
-        private void DrawReferences()
+        private void DrawBindObjects()
         {
             //绘制key value数据
 
@@ -277,146 +328,88 @@ namespace ReferenceBindTool.Editor
             EditorGUILayout.BeginVertical();
             int i = m_Page.CurrentPage * m_Page.ShowCount;
             int count = i + m_Page.ShowCount;
-            if (count > m_Target.ReferenceDataList.Count)
+
+            if (count > m_Target.GetAllBindObjectsCount())
             {
-                count = m_Target.ReferenceDataList.Count;
+                count = m_Target.GetAllBindObjectsCount();
             }
 
-            for (; i < count; i++)
+            if (i < m_Target.BindAssetsOrPrefabs.Count)
             {
-                EditorGUILayout.BeginHorizontal();
-                Rect rect = EditorGUILayout.GetControlRect(false);
-                int id = m_Target.ReferenceDataList[i].BindReference.GetInstanceID();
-                m_ShowControls.TryGetValue(id, out bool isShow);
-                if (!m_Target.ReferenceDataList[i].IsOnlyBindSelf)
+                EditorGUILayout.LabelField("绑定的资源或预制体");
+            }
+
+            for (; i < m_Target.BindAssetsOrPrefabs.Count; i++)
+            {
+                if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i],i))
                 {
-                    m_ShowControls[id] = EditorGUI.Foldout(new Rect(rect.x, rect.y, 20, rect.height), isShow, "");
-                }
-
-                EditorGUI.LabelField(new Rect(rect.x, rect.y, 40, rect.height), $"[{i}]",
-                    new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter });
-                GUI.enabled = false;
-                EditorGUI.ObjectField(new Rect(rect.x + 40, rect.y, rect.width - 40, rect.height),
-                    m_Target.ReferenceDataList[i].BindReference, typeof(Component), true);
-                GUI.enabled = true;
-
-
-                if (GUILayout.Button("X", GUILayout.Width(20)))
-                {
-                    //将元素下标添加进删除list
                     needDeleteIndex = i;
                 }
+            }
 
-                EditorGUILayout.EndHorizontal();
-                if (isShow)
+            if (i < m_Target.BindComponents.Count)
+            {
+                EditorGUILayout.LabelField("绑定的组件");
+            }
+
+            for (; i < m_Target.BindComponents.Count; i++)
+            {
+                if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i],i))
                 {
-                    DrawComponents(m_Target.ReferenceDataList[i]);
+                    needDeleteIndex = i;
                 }
             }
 
             //删除data
             if (needDeleteIndex != -1)
             {
-                m_Target.ReferenceDataList.RemoveAt(needDeleteIndex);
+                if (needDeleteIndex < m_Target.BindAssetsOrPrefabs.Count)
+                {
+                    m_Target.BindAssetsOrPrefabs.RemoveAt(needDeleteIndex);
+                }
+                else
+                {
+                    m_Target.BindComponents.RemoveAt(needDeleteIndex);
+                }
+
                 m_Target.SyncBindObjects();
-                m_Page.SetAllCount(m_Target.ReferenceDataList.Count);
+                m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
             }
 
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawComponents(ReferenceBindComponent.ReferenceData referenceData)
+        private bool DrawBindObjectData(ReferenceBindComponent.BindObjectData bindObjectData, int index)
         {
-            EditorGUILayout.BeginVertical();
-            int needDeleteIndex = -1;
-            bool isChange = false;
+            bool isDelete = false;
+            EditorGUILayout.BeginHorizontal();
 
-            for (int i = 0; i < referenceData.BindObjects.Count; i++)
+            EditorGUILayout.LabelField($"[{index}]", GUILayout.Width(40));
+
+            GUI.enabled = false;
+            EditorGUILayout.ObjectField(bindObjectData.BindObject, typeof(UnityEngine.Object), true);
+            GUI.enabled = true;
+
+            if (GUILayout.Button("X", GUILayout.Width(20)))
             {
-                EditorGUILayout.BeginHorizontal();
-                string lastName = referenceData.BindObjects[i].FieldName;
-                referenceData.BindObjects[i].FieldName = EditorGUILayout.TextField(referenceData.BindObjects[i].FieldName);
-                if (referenceData.BindObjects[i].FieldName != lastName)
-                {
-                    Refresh();
-                }
-                GUI.enabled = false;
-                EditorGUILayout.ObjectField(referenceData.BindObjects[i].BindObject, typeof(Component), true);
-                GUI.enabled = true;
-                if (GUILayout.Button("X", GUILayout.Width(20)))
-                {
-                    //将元素下标添加进删除list
-                    needDeleteIndex = i;
-                    isChange = true;
-                }
-
-                EditorGUILayout.EndHorizontal();
-                if (referenceData.BindObjects[i].FileNameIsInvalid)
-                {
-                    EditorGUILayout.HelpBox("绑定对象命名无效 不符合规则。 请修改!", MessageType.Error);
-                }
-                if (referenceData.BindObjects[i].IsRepeatName)
-                {
-                    EditorGUILayout.HelpBox("绑定对象命名不能相同 请修改!", MessageType.Error);
-                }
+                //将元素下标添加进删除list
+                isDelete = true;
             }
 
+            EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button("AddBindData"))
+
+            if (bindObjectData.FileNameIsInvalid)
             {
-                m_AddBindDataWindow.Show(EditorGUILayout.GetControlRect(), referenceData);
+                EditorGUILayout.HelpBox("绑定对象命名无效 不符合规则。 请修改!", MessageType.Error);
             }
 
-            EditorGUILayout.EndVertical();
-
-            if (needDeleteIndex != -1)
+            if (bindObjectData.IsRepeatName)
             {
-                referenceData.BindObjects.RemoveAt(needDeleteIndex);
+                EditorGUILayout.HelpBox("绑定对象命名不能相同 请修改!", MessageType.Error);
             }
 
-            if (m_AddBindDataWindow.IsChanged)
-            {
-                if (referenceData.BindReference.GetInstanceID() != m_AddBindDataWindow.ReferenceId)
-                {
-                    return;
-                }
-
-                m_AddBindDataWindow.IsChanged = false;
-                var selectObjects = m_AddBindDataWindow.GetSelectObjects();
-
-                for (int i = 0; i < selectObjects.Count; i++)
-                {
-                    bool isRepeat = false;
-                    string filedName = ReferenceBindUtility.GetFiledName(selectObjects[i]);
-
-                    foreach (var reference in m_Target.ReferenceDataList)
-                    {
-                        foreach (var bindComponent in reference.BindObjects)
-                        {
-                            if (bindComponent.FieldName == filedName)
-                            {
-                                isRepeat = true;
-                                break;
-                            }
-                        }
-
-                        if (isRepeat)
-                        {
-                            break;
-                        }
-                    }
-
-                    referenceData.BindObjects.Add(
-                        new ReferenceBindComponent.BindObjectData(isRepeat, filedName, selectObjects[i]));
-                }
-
-                isChange = true;
-            }
-
-            if (isChange)
-            {
-                m_Target.SyncBindObjects();
-            }
+            return isDelete;
         }
 
         /// <summary>
@@ -425,7 +418,7 @@ namespace ReferenceBindTool.Editor
         private void Sort()
         {
             m_Target.Sort();
-            m_Page.SetAllCount(m_Target.ReferenceDataList.Count);
+            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -434,7 +427,7 @@ namespace ReferenceBindTool.Editor
         private void RemoveAll()
         {
             m_Target.RemoveAll();
-            m_Page.SetAllCount(m_Target.ReferenceDataList.Count);
+            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -443,7 +436,16 @@ namespace ReferenceBindTool.Editor
         private void RemoveNull()
         {
             m_Target.RemoveNull();
-            m_Page.SetAllCount(m_Target.ReferenceDataList.Count);
+            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
+        }
+        
+        /// <summary>
+        /// 自动绑定组件
+        /// </summary>
+        private void AutoBindComponent()
+        {
+            m_Target.AutoBindComponent();
+            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
     }
 }
