@@ -1,44 +1,44 @@
-﻿#if UNITY_EDITOR
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using ReferenceBindTool;
 using UnityEngine;
 
-public class SelectComponentBindComponentsRuleHelper : IBindComponentsRuleHelper
+namespace ReferenceBindTool.Editor
 {
-    private string GetFiledName(Transform target, string componentName)
+    public class SelectComponentBindComponentsRuleHelper : IBindComponentsRuleHelper
     {
-        string filedName = $"{componentName}_{target.name}".Replace(' ', '_');
-        string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
-        if (!Regex.IsMatch(filedName, regex))
+        private string GetFiledName(Transform target, string componentName)
         {
-            UnityEditor.Selection.activeTransform = target;
-            throw new Exception($"FiledName : \"{target.name}\" is invalid.Please check it!");
+            string filedName = $"{componentName}_{target.name}".Replace(' ', '_');
+            string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
+            if (!Regex.IsMatch(filedName, regex))
+            {
+                UnityEditor.Selection.activeTransform = target;
+                throw new Exception($"FiledName : \"{target.name}\" is invalid.Please check it!");
+            }
+
+            return filedName;
         }
 
-        return filedName;
-    }
-    
-    public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
-    {
-        BindDataSelect bindDataSelect = target.GetComponent<BindDataSelect>();
-        if (bindDataSelect == null)
+        public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
         {
-            return;
-        }
-        
-        foreach (Component component in bindDataSelect.BindComponents)
-        {
-            filedNames.Add(GetFiledName(target, component.GetType().Name));
-            components.Add(component);
-        }
-    }
+            BindDataSelect bindDataSelect = target.GetComponent<BindDataSelect>();
+            if (bindDataSelect == null)
+            {
+                return;
+            }
 
-    public void BindComponents(ReferenceBindComponent referenceBindComponent)
-    {
-        throw new NotImplementedException();
+            foreach (Component component in bindDataSelect.BindComponents)
+            {
+                filedNames.Add(GetFiledName(target, component.GetType().Name));
+                components.Add(component);
+            }
+        }
+
+        public void BindComponents(ReferenceBindComponent referenceBindComponent)
+        {
+            throw new NotImplementedException();
+        }
     }
-    
 }
-#endif

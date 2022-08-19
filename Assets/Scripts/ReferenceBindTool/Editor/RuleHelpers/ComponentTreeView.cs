@@ -1,12 +1,9 @@
-﻿#if UNITY_EDITOR
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-namespace ReferenceBindTool.Runtime
+namespace ReferenceBindTool.Editor
 {
     public class ComponentTreeView : TreeView
     {
@@ -223,5 +220,4 @@ namespace ReferenceBindTool.Runtime
         }
     }
 }
-#endif
 

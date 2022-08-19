@@ -57,11 +57,7 @@ namespace ReferenceBindTool
             public string FieldName
             {
                 get => m_FieldName;
-                set
-                {
-                    m_FiedNameIsInvalid = CheckFieldNameIsInvalid(value);
-                    m_FieldName = value;
-                }
+                set => m_FieldName = value;
             }
 
             /// <summary>
@@ -75,29 +71,20 @@ namespace ReferenceBindTool
             public bool FileNameIsInvalid
             {
                 get => m_FiedNameIsInvalid;
+                set => m_FiedNameIsInvalid = value;
             }
-            
+
             /// <summary>
             /// 绑定对象(组件 资源 预制体)
             /// </summary>
             public Object BindObject => m_BindObject;
-
-            /// <summary>
-            /// 检查字段名是否无效
-            /// </summary>
-            /// <param name="filedName">字段名</param>
-            /// <returns>字段名是否无效</returns>
-            public static bool CheckFieldNameIsInvalid(string filedName)
-            {
-                string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
-                return !Regex.IsMatch(filedName, regex);
-            }
+            
         }
 
         /// <summary>
         /// 自动绑定设置数据
         /// </summary>
-        [SerializeField] private AutoBindSettingData m_SettingData;
+        [SerializeField] private ReferenceBindCodeGeneratorSettingData m_CodeGeneratorSettingData;
 
         /// <summary>
         /// 所有绑定组件
@@ -122,7 +109,15 @@ namespace ReferenceBindTool
         /// <summary>
         /// 自动绑定组件规则类型名称
         /// </summary>
-        [SerializeField] private string m_RuleHelperTypeName;
+        [SerializeField] private string m_BindComponentsRuleHelperTypeName;
+        /// <summary>
+        /// 绑定资源或预制体规则类型名
+        /// </summary>
+        [SerializeField] private string m_BindAssetOrPrefabRuleHelperTypeName;
+        /// <summary>
+        /// 字段名称规则类型名
+        /// </summary>
+        [SerializeField] private string m_NameRuleHelperTypeName;
         /// <summary>
         /// 所有绑定组件
         /// </summary>
@@ -162,10 +157,10 @@ namespace ReferenceBindTool
         /// <summary>
         /// 自动绑定设置数据
         /// </summary>
-        public AutoBindSettingData SettingData
+        public ReferenceBindCodeGeneratorSettingData CodeGeneratorSettingData
         {
-            get => m_SettingData;
-            set => m_SettingData = value;
+            get => m_CodeGeneratorSettingData;
+            set => m_CodeGeneratorSettingData = value;
         }
 
 
@@ -187,19 +182,52 @@ namespace ReferenceBindTool
         /// <summary>
         /// 自动绑定组件规则
         /// </summary>
-        public IAutoBindRuleHelper RuleHelper
+        public IBindComponentsRuleHelper BindComponentsRuleHelper
         {
             get;
             set;
         }
 
         /// <summary>
+        /// 自动绑定组件规则
+        /// </summary>
+        public IBindAssetOrPrefabRuleHelper BindAssetOrPrefabRuleHelper
+        {
+            get;
+            set;
+        }
+        
+        /// <summary>
+        /// 自动绑定组件规则
+        /// </summary>
+        public INameRuleHelper NameRuleHelper
+        {
+            get;
+            set;
+        }
+        /// <summary>
         /// 自动绑定组件规则类型名称
         /// </summary>
-        public string RuleHelperTypeName
+        public string BindComponentsRuleHelperTypeName
         {
-            get => m_RuleHelperTypeName;
-            set => m_RuleHelperTypeName = value;
+            get => m_BindComponentsRuleHelperTypeName;
+            set => m_BindComponentsRuleHelperTypeName = value;
+        }
+        /// <summary>
+        /// 绑定资源或预制体规则类型名
+        /// </summary>
+        public string BindAssetOrPrefabRuleHelperTypeName
+        {
+            get => m_BindAssetOrPrefabRuleHelperTypeName;
+            set => m_BindAssetOrPrefabRuleHelperTypeName = value;
+        }
+        /// <summary>
+        /// 字段名称规则类型名
+        /// </summary>
+        public string NameRuleHelperTypeName
+        {
+            get => m_NameRuleHelperTypeName;
+            set => m_NameRuleHelperTypeName = value;
         }
 #endif
 

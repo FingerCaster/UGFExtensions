@@ -1,18 +1,11 @@
-﻿#if UNITY_EDITOR
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using ReferenceBindTool.Editor;
-using ReferenceBindTool.Runtime;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
-using UnityEditor.TreeViewExamples;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
-namespace ReferenceBindTool
+namespace ReferenceBindTool.Editor
 {
     public class SelectComponentTreePopWindow : PopupWindowContent
     {
@@ -101,4 +94,3 @@ namespace ReferenceBindTool
         }
     }
 }
-#endif

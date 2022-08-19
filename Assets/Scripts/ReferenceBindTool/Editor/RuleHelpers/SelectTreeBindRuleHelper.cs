@@ -1,5 +1,4 @@
-﻿#if UNITY_EDITOR
-namespace ReferenceBindTool
+﻿namespace ReferenceBindTool.Editor
 {
     public class SelectTreeBindComponentsRuleHelper : IBindComponentsRuleHelper
     {
@@ -15,4 +14,3 @@ namespace ReferenceBindTool
         }
     }
 }
-#endif

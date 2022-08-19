@@ -2,44 +2,44 @@
 using System;
 using UnityEngine;
 
-[Serializable]
-public class ReferenceBindCodeGeneratorSettingData
+namespace ReferenceBindTool
 {
-    [SerializeField]
-    private string m_Name;
-    [SerializeField]
-    private string m_CodeFolderPath;
-    [SerializeField] 
-    private string m_Namespace;
-    [SerializeField] 
-    private bool m_IsShow = false;
-
-    public ReferenceBindCodeGeneratorSettingData(string name)
+    [Serializable]
+    public class ReferenceBindCodeGeneratorSettingData
     {
-        m_Name = name;
-    }
+        [SerializeField] private string m_Name;
+        [SerializeField] private string m_CodeFolderPath;
+        [SerializeField] private string m_Namespace;
+        [SerializeField] private bool m_IsShow = false;
 
-    public ReferenceBindCodeGeneratorSettingData(string name, string codeFolderPath, string nameSpace)
-    {
-        m_Name = name;
-        m_CodeFolderPath = codeFolderPath;
-        m_Namespace = nameSpace;
-    }
+        public ReferenceBindCodeGeneratorSettingData(string name)
+        {
+            m_Name = name;
+        }
 
-    public string Name => m_Name;
-    
-    public string CodePath
-    {
-        get => m_CodeFolderPath;
+        public ReferenceBindCodeGeneratorSettingData(string name, string codeFolderPath, string nameSpace)
+        {
+            m_Name = name;
+            m_CodeFolderPath = codeFolderPath;
+            m_Namespace = nameSpace;
+        }
 
-        set => m_CodeFolderPath = value;
-    }
+        public string Name => m_Name;
 
-    public string Namespace
-    {
-        get => m_Namespace;
+        public string CodePath
+        {
+            get => m_CodeFolderPath;
 
-        set => m_Namespace = value;
+            set => m_CodeFolderPath = value;
+        }
+
+        public string Namespace
+        {
+            get => m_Namespace;
+
+            set => m_Namespace = value;
+        }
     }
 }
+
 #endif

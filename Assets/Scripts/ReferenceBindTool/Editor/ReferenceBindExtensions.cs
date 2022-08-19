@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using BindObjectData = ReferenceBindTool.ReferenceBindComponent.BindObjectData;
@@ -111,12 +110,6 @@ namespace ReferenceBindTool.Editor
         public static void AddBindAssetsOrPrefabs(this ReferenceBindComponent self, string name,
             UnityEngine.Object bindObject)
         {
-            if (!ReferenceBindUtility.CheckIsCanAdd(bindObject))
-            {
-                Debug.LogError("不能添加目录!");
-                return;
-            }
-
             foreach (var item in self.BindObjects)
             {
                 if (item == bindObject)
@@ -261,14 +254,14 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         /// <param name="self"></param>
         /// <param name="data"></param>
-        public static void SetSettingData(this ReferenceBindComponent self, AutoBindSettingData data)
+        public static void SetSettingData(this ReferenceBindComponent self, ReferenceBindCodeGeneratorSettingData data)
         {
-            if (self.SettingData == data)
+            if (self.CodeGeneratorSettingData == data)
             {
                 return;
             }
 
-            self.SettingData = data;
+            self.CodeGeneratorSettingData = data;
             if (self.SettingDataSearchable != null)
             {
                 int findIndex = self.SettingDataSearchable.Names.ToList().FindIndex(_ => _ == data.Name);
@@ -276,7 +269,7 @@ namespace ReferenceBindTool.Editor
                 {
                     string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
                     string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-                    var settingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+                    var settingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
                     var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
                     self.SettingDataSearchable.Select = settingDataNames.FindIndex(_ => _ == data.Name);
                     self.SettingDataSearchable.Names = settingDataNames.ToArray();
@@ -297,7 +290,7 @@ namespace ReferenceBindTool.Editor
         /// <param name="name"></param>
         public static void SetSettingData(this ReferenceBindComponent self, string name)
         {
-            self.SettingData = ComponentAutoBindToolUtility.GetAutoBindSetting(name: name);
+            self.CodeGeneratorSettingData = ReferenceBindUtility.GetAutoBindSetting(name: name);
             if (self.SettingDataSearchable != null)
             {
                 int findIndex = self.SettingDataSearchable.Names.ToList().FindIndex(_ => _ == name);
@@ -305,7 +298,7 @@ namespace ReferenceBindTool.Editor
                 {
                     string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
                     string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-                    var settingConfig = AssetDatabase.LoadAssetAtPath<AutoBindSettingConfig>(path);
+                    var settingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
                     var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
 
                     self.SettingDataSearchable.Select = settingDataNames.FindIndex(_ => _ == name);
@@ -334,11 +327,11 @@ namespace ReferenceBindTool.Editor
         }
 
         /// <summary>
-        /// 设置生成规则帮助类
+        /// 设置绑定组件规则帮助类
         /// </summary>
         /// <param name="self"></param>
         /// <param name="ruleHelperName"></param>
-        public static void SetRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
+        public static void SetBindComponentsRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
         {
             if (self.BindComponentsRuleHelperTypeName == ruleHelperName && self.BindComponentsRuleHelper != null)
             {
@@ -349,6 +342,44 @@ namespace ReferenceBindTool.Editor
             IBindComponentsRuleHelper helper =
                 (IBindComponentsRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.BindComponentsRuleHelperTypeName);
             self.BindComponentsRuleHelper = helper;
+            EditorUtility.SetDirty(self);
+        }
+        
+        /// <summary>
+        /// 设置绑定资源或预制体规则帮助类
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="ruleHelperName"></param>
+        public static void SetBindAssetOrPrefabRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
+        {
+            if (self.BindAssetOrPrefabRuleHelperTypeName == ruleHelperName && self.BindAssetOrPrefabRuleHelper != null)
+            {
+                return;
+            }
+
+            self.BindAssetOrPrefabRuleHelperTypeName = ruleHelperName;
+            IBindAssetOrPrefabRuleHelper helper =
+                (IBindAssetOrPrefabRuleHelper) ReferenceBindUtility.CreateHelperInstance(self.BindAssetOrPrefabRuleHelperTypeName);
+            self.BindAssetOrPrefabRuleHelper = helper;
+            EditorUtility.SetDirty(self);
+        }
+        
+        /// <summary>
+        /// 设置字段名称规则帮助类
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="ruleHelperName"></param>
+        public static void SetNameRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
+        {
+            if (self.NameRuleHelperTypeName == ruleHelperName && self.NameRuleHelper != null)
+            {
+                return;
+            }
+
+            self.NameRuleHelperTypeName = ruleHelperName;
+            INameRuleHelper helper =
+                (INameRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.NameRuleHelperTypeName);
+            self.NameRuleHelper = helper;
             EditorUtility.SetDirty(self);
         }
     }
