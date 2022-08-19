@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace ReferenceBindTool.Editor
 {
+    /// <summary>
+    /// 页码工具类
+    /// </summary>
     public class Page
     {
         private int m_CurrentPage = 0;

@@ -8,20 +8,7 @@ namespace ReferenceBindTool.Editor
 {
     public class SelectComponentBindComponentsRuleHelper : IBindComponentsRuleHelper
     {
-        private string GetFiledName(Transform target, string componentName)
-        {
-            string filedName = $"{componentName}_{target.name}".Replace(' ', '_');
-            string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
-            if (!Regex.IsMatch(filedName, regex))
-            {
-                UnityEditor.Selection.activeTransform = target;
-                throw new Exception($"FiledName : \"{target.name}\" is invalid.Please check it!");
-            }
-
-            return filedName;
-        }
-
-        public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
+        public void GetBindComponents(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
         {
             BindDataSelect bindDataSelect = target.GetComponent<BindDataSelect>();
             if (bindDataSelect == null)
@@ -31,14 +18,28 @@ namespace ReferenceBindTool.Editor
 
             foreach (Component component in bindDataSelect.BindComponents)
             {
-                filedNames.Add(GetFiledName(target, component.GetType().Name));
+                filedNames.Add(ruleHelper.GetDefaultFieldName(target));
                 components.Add(component);
             }
         }
 
         public void BindComponents(ReferenceBindComponent referenceBindComponent)
         {
-            throw new NotImplementedException();
+            Transform transform = referenceBindComponent.transform;
+            referenceBindComponent.BindComponents.Clear();
+            Transform[] children = transform.GetComponentsInChildren<Transform>(true);
+            List<string> tempFiledNames = new List<string>();
+            List<Component> tempComponentTypeNames = new List<Component>();
+            foreach (Transform child in children)
+            {
+                tempFiledNames.Clear();
+                tempComponentTypeNames.Clear();
+                GetBindComponents(referenceBindComponent.NameRuleHelper,child, tempFiledNames, tempComponentTypeNames);
+                for (int i = 0; i < tempFiledNames.Count; i++)
+                {
+                    referenceBindComponent.AddBindComponent(tempFiledNames[i], tempComponentTypeNames[i]);
+                }
+            }
         }
     }
 }

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace ReferenceBindTool.Editor
 {
+    /// <summary>
+    /// 引用绑定代码生成配置数据Drawer
+    /// </summary>
     [CustomPropertyDrawer(typeof(ReferenceBindCodeGeneratorSettingData))]
     public class ReferenceBindCodeGeneratorSettingDataDrawer : PropertyDrawer
     {

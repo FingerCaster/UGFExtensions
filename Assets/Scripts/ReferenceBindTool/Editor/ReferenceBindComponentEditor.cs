@@ -489,6 +489,7 @@ namespace ReferenceBindTool.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 bindObjectData.FieldName = fieldName;
+                bindObjectData.FileNameIsInvalid = m_Target.NameRuleHelper.CheckFieldNameIsInvalid(fieldName);
             }
 
             GUI.enabled = false;

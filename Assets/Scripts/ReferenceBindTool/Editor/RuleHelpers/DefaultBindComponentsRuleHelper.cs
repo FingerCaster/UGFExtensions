@@ -18,10 +18,11 @@ namespace ReferenceBindTool.Editor
         /// <summary>
         /// 获取绑定数据
         /// </summary>
+        /// <param name="ruleHelper"></param>
         /// <param name="target"></param>
         /// <param name="filedNames"></param>
         /// <param name="components"></param>
-        void GetBindData(Transform target, List<string> filedNames, List<Component> components);
+        void GetBindData(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components);
     }
 
     public class DefaultBindRule : IBindRule
@@ -61,22 +62,8 @@ namespace ReferenceBindTool.Editor
             // typeof(EnhancedScrollerCellView),
             typeof(EventTrigger),
         };
-
-        private string GetFiledName(Transform target, string componentName)
-        {
-            string filedName = $"{componentName}_{target.name.Substring(Prefix.Length)}".Replace(' ', '_');
-            string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
-            if (!Regex.IsMatch(filedName, regex))
-            {
-                UnityEditor.Selection.activeTransform = target;
-                throw new Exception($"FiledName : \"{target.name}\" is invalid.Please check it!");
-            }
-
-            return filedName;
-        }
-
-
-        public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
+        
+        public void GetBindData(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
         {
             if (target == null || string.IsNullOrEmpty(target.name) || !target.name.StartsWith(Prefix))
             {
@@ -88,7 +75,7 @@ namespace ReferenceBindTool.Editor
                 Component component = target.GetComponent(BindTypes[i]);
                 if (component != null)
                 {
-                    filedNames.Add(GetFiledName(target, BindTypes[i].Name));
+                    filedNames.Add(ruleHelper.GetDefaultFieldName(target));
                     components.Add(component);
                 }
             }
@@ -102,7 +89,7 @@ namespace ReferenceBindTool.Editor
             new DefaultBindRule(),
         };
 
-        public void GetBindData(Transform target, List<string> filedNames, List<Component> components)
+        public void GetBindComponents(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
         {
             for (int i = 0; i < m_BindRules.Count; i++)
             {
@@ -111,13 +98,27 @@ namespace ReferenceBindTool.Editor
                     continue;
                 }
 
-                m_BindRules[i].GetBindData(target, filedNames, components);
+                m_BindRules[i].GetBindData(ruleHelper,target, filedNames, components);
             }
         }
 
         public void BindComponents(ReferenceBindComponent referenceBindComponent)
         {
-            throw new NotImplementedException();
+            Transform transform = referenceBindComponent.transform;
+            referenceBindComponent.BindComponents.Clear();
+            Transform[] children = transform.GetComponentsInChildren<Transform>(true);
+            List<string> tempFiledNames = new List<string>();
+            List<Component> tempComponentTypeNames = new List<Component>();
+            foreach (Transform child in children)
+            {
+                tempFiledNames.Clear();
+                tempComponentTypeNames.Clear();
+                GetBindComponents(referenceBindComponent.NameRuleHelper,child, tempFiledNames, tempComponentTypeNames);
+                for (int i = 0; i < tempFiledNames.Count; i++)
+                {
+                    referenceBindComponent.AddBindComponent(tempFiledNames[i], tempComponentTypeNames[i]);
+                }
+            }
         }
     }
 }
