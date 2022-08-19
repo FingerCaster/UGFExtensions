@@ -48,7 +48,7 @@ namespace ReferenceBindTool.Editor
                 Type[] types = assembly.GetTypes();
                 foreach (Type type in types)
                 {
-                    if (type.IsClass && !type.IsAbstract && typeof(IAutoBindRuleHelper).IsAssignableFrom(type))
+                    if (type.IsClass && !type.IsAbstract && typeof(IBindComponentsRuleHelper).IsAssignableFrom(type))
                     {
                         typeNames.Add(type.FullName);
                     }
@@ -87,19 +87,6 @@ namespace ReferenceBindTool.Editor
             bool isFolder = obj is DefaultAsset && ProjectWindowUtil.IsFolder(obj.GetInstanceID());
             return !isFolder;
         }
-
-        /// <summary>
-        /// 获取字段名称
-        /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public static string GetFiledName(UnityEngine.Object target)
-        {
-            string filedName = $"{target.GetType().Name}_{target.name}".Replace(' ', '_');
-            return filedName;
-        }
-        
         /// <summary>
         /// 获取绑定的组件使用到的命名空间
         /// </summary>

@@ -5,8 +5,8 @@ using UnityEditor;
 using UnityEngine;
 
 
-[CustomPropertyDrawer(typeof(AutoBindSettingData))]
-public class AutoBindSettingDataDrawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(ReferenceBindCodeGeneratorSettingData))]
+public class ReferenceBindCodeGeneratorSettingDataDrawer : PropertyDrawer
 {
     public override void OnGUI(Rect position, SerializedProperty property,
         GUIContent label)

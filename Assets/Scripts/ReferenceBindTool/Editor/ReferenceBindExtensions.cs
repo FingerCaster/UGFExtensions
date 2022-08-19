@@ -15,11 +15,20 @@ namespace ReferenceBindTool.Editor
     public static class ReferenceBindExtensions
     {
         /// <summary>
-        /// 自动绑定组件
+        /// 规则绑定所有组件
         /// </summary>
-        public static void AutoBindComponent(this ReferenceBindComponent self)
+        public static void RuleBindComponents(this ReferenceBindComponent self)
         {
-            self.RuleHelper.AddBindComponents(self);
+            self.BindComponentsRuleHelper.BindComponents(self);
+            self.SyncBindObjects();
+        }
+        
+        /// <summary>
+        /// 规则绑定所有组件
+        /// </summary>
+        public static void RuleBindAssetsOrPrefabs(this ReferenceBindComponent self,string fieldName,Object obj)
+        {
+            self.BindAssetOrPrefabRuleHelper.BindAssetOrPrefab(self,fieldName,obj);
             self.SyncBindObjects();
         }
 
@@ -127,7 +136,10 @@ namespace ReferenceBindTool.Editor
                 }
             }
 
-            self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat, name, bindObject));
+            self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat, name, bindObject)
+            {
+                FileNameIsInvalid = self.NameRuleHelper.CheckFieldNameIsInvalid(name)
+            });
             self.SyncBindObjects();
         }
 
@@ -138,7 +150,7 @@ namespace ReferenceBindTool.Editor
         /// <param name="name"></param>
         /// <param name="bindComponent"></param>
         /// <param name="isSyncBindObject"></param>
-        public static void AddBindComponent(this ReferenceBindComponent self, string name, Component bindComponent,
+        public static void AddBindComponent(this ReferenceBindComponent self, string name,Component bindComponent,
             bool isSyncBindObject = true)
         {
             foreach (var item in self.BindObjects)
@@ -160,7 +172,10 @@ namespace ReferenceBindTool.Editor
                 }
             }
 
-            self.BindComponents.Add(new BindObjectData(isRepeat, name, bindComponent));
+            self.BindComponents.Add(new BindObjectData(isRepeat, name, bindComponent)
+            {
+                FileNameIsInvalid = self.NameRuleHelper.CheckFieldNameIsInvalid(name)
+            });
             if (isSyncBindObject)
             {
                 self.SyncBindObjects();
@@ -209,7 +224,7 @@ namespace ReferenceBindTool.Editor
             for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-                self.AddBindAssetsOrPrefabs(ReferenceBindUtility.GetFiledName(tempData.BindObject),
+                self.AddBindAssetsOrPrefabs(self.NameRuleHelper.GetDefaultFieldName(tempData.BindObject),
                     tempData.BindObject);
             }
 
@@ -218,7 +233,7 @@ namespace ReferenceBindTool.Editor
             for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-                self.AddBindComponent(ReferenceBindUtility.GetFiledName(tempData.BindObject),
+                self.AddBindComponent(self.NameRuleHelper.GetDefaultFieldName(tempData.BindObject),
                     (Component)tempData.BindObject);
             }
             self.SyncBindObjects();
@@ -325,15 +340,15 @@ namespace ReferenceBindTool.Editor
         /// <param name="ruleHelperName"></param>
         public static void SetRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
         {
-            if (self.RuleHelperTypeName == ruleHelperName && self.RuleHelper != null)
+            if (self.BindComponentsRuleHelperTypeName == ruleHelperName && self.BindComponentsRuleHelper != null)
             {
                 return;
             }
 
-            self.RuleHelperTypeName = ruleHelperName;
-            IAutoBindRuleHelper helper =
-                (IAutoBindRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.RuleHelperTypeName);
-            self.RuleHelper = helper;
+            self.BindComponentsRuleHelperTypeName = ruleHelperName;
+            IBindComponentsRuleHelper helper =
+                (IBindComponentsRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.BindComponentsRuleHelperTypeName);
+            self.BindComponentsRuleHelper = helper;
             EditorUtility.SetDirty(self);
         }
     }

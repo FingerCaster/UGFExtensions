@@ -96,7 +96,7 @@ public class DefaultBindRule : IBindRule
     }
 }
 
-public class DefaultAutoBindRuleHelper : IAutoBindRuleHelper
+public class DefaultBindComponentsRuleHelper : IBindComponentsRuleHelper
 {
     private List<IBindRule> m_BindRules = new List<IBindRule>()
     {
@@ -116,7 +116,7 @@ public class DefaultAutoBindRuleHelper : IAutoBindRuleHelper
         }
     }
 
-    public void AddBindComponents(ReferenceBindComponent referenceBindComponent)
+    public void BindComponents(ReferenceBindComponent referenceBindComponent)
     {
         throw new NotImplementedException();
     }

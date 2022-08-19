@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class AutoBindSettingData
+public class ReferenceBindCodeGeneratorSettingData
 {
     [SerializeField]
     private string m_Name;
@@ -14,12 +14,12 @@ public class AutoBindSettingData
     [SerializeField] 
     private bool m_IsShow = false;
 
-    public AutoBindSettingData(string name)
+    public ReferenceBindCodeGeneratorSettingData(string name)
     {
         m_Name = name;
     }
 
-    public AutoBindSettingData(string name, string codeFolderPath, string nameSpace)
+    public ReferenceBindCodeGeneratorSettingData(string name, string codeFolderPath, string nameSpace)
     {
         m_Name = name;
         m_CodeFolderPath = codeFolderPath;

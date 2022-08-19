@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using ReferenceBindTool;
 using UnityEngine;
 
-public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
+public class SelectComponentBindComponentsRuleHelper : IBindComponentsRuleHelper
 {
     private string GetFiledName(Transform target, string componentName)
     {
@@ -35,7 +35,7 @@ public class SelectComponentBindRuleHelper : IAutoBindRuleHelper
         }
     }
 
-    public void AddBindComponents(ReferenceBindComponent referenceBindComponent)
+    public void BindComponents(ReferenceBindComponent referenceBindComponent)
     {
         throw new NotImplementedException();
     }

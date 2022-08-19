@@ -9,7 +9,7 @@ using UnityEngine;
 /// <summary>
 /// 默认自动绑定规则辅助器
 /// </summary>
-public class TypePrefixBindRuleHelper : IAutoBindRuleHelper
+public class TypePrefixBindComponentsRuleHelper : IBindComponentsRuleHelper
 {
     /// <summary>
     /// 命名前缀与类型的映射
@@ -82,7 +82,7 @@ public class TypePrefixBindRuleHelper : IAutoBindRuleHelper
         }
     }
 
-    public void AddBindComponents(ReferenceBindComponent referenceBindComponent)
+    public void BindComponents(ReferenceBindComponent referenceBindComponent)
     {
         throw new NotImplementedException();
     }

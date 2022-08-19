@@ -47,7 +47,8 @@ namespace ReferenceBindTool
                 m_TreeViewState = new TreeViewState();
                 m_TreeView = new ComponentTreeView(m_TreeViewState, bindComponentList.transform,m_Select);
             }
-
+            
+            m_TreeView.Reload();
             // if (m_TreeView != null)
             //     m_TreeView.SetSelection (Selection.instanceIDs);
             Rect rect = EditorGUILayout.GetControlRect();
@@ -87,7 +88,7 @@ namespace ReferenceBindTool
                 {
                     var bindData = tempList.Find(_ => _.BindObject.GetInstanceID() == selectItem.Key);
                     Component component = GetComponent(selectItem.Key);
-                    string name = bindData == null ? ReferenceBindUtility.GetFiledName(component) : bindData.FieldName;
+                    string name = bindData == null ? m_ReferenceBindComponent.NameRuleHelper.GetDefaultFieldName(component) : bindData.FieldName;
                     m_ReferenceBindComponent.AddBindComponent(name, component, false);
                 }
             }
