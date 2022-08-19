@@ -62,16 +62,19 @@ namespace ReferenceBindTool.Editor
             }
 
             serializedObject.Update();
-            DrawTopButton();
-            EditorGUILayout.Space();
-            DrawHelperSelect();
-            EditorGUILayout.Space();
-            DrawBindAssetOrPrefab();
-            EditorGUILayout.Space();
-            DrawSetting();
-            EditorGUILayout.Space();
-            DrawBindObjects();
-            m_Page.Draw();
+            using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
+            {
+                DrawTopButton();
+                EditorGUILayout.Space();
+                DrawHelperSelect();
+                EditorGUILayout.Space();
+                DrawBindAssetOrPrefab();
+                EditorGUILayout.Space();
+                DrawSetting();
+                EditorGUILayout.Space();
+                DrawBindObjects();
+                m_Page.Draw();
+            }
             serializedObject.ApplyModifiedProperties();
         }
 
