@@ -73,7 +73,6 @@ namespace ReferenceBindTool.Editor
             // Debug.Log(LitJson.JsonMapper.ToJson(m_Select.ToDictionary(_=>_.Key.ToString())));
             var tempList = new List<ReferenceBindComponent.BindObjectData>(m_ReferenceBindComponent.BindComponents.Count);
             tempList.AddRange(m_ReferenceBindComponent.BindComponents);
-            m_ReferenceBindComponent.BindObjects.Clear();
             m_ReferenceBindComponent.BindComponents.Clear();
             foreach (var selectItem in m_Select)
             {
@@ -81,7 +80,7 @@ namespace ReferenceBindTool.Editor
                 {
                     var bindData = tempList.Find(_ => _.BindObject.GetInstanceID() == selectItem.Key);
                     Component component = GetComponent(selectItem.Key);
-                    string name = bindData == null ? m_ReferenceBindComponent.NameRuleHelper.GetDefaultFieldName(component) : bindData.FieldName;
+                    string name = bindData == null ? m_ReferenceBindComponent.BindComponentsRuleHelper.GetDefaultFieldName(component) : bindData.FieldName;
                     m_ReferenceBindComponent.AddBindComponent(name, component, false);
                 }
             }

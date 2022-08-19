@@ -114,10 +114,7 @@ namespace ReferenceBindTool
         /// 绑定资源或预制体规则类型名
         /// </summary>
         [SerializeField] private string m_BindAssetOrPrefabRuleHelperTypeName;
-        /// <summary>
-        /// 字段名称规则类型名
-        /// </summary>
-        [SerializeField] private string m_NameRuleHelperTypeName;
+
         /// <summary>
         /// 所有绑定组件
         /// </summary>
@@ -198,14 +195,6 @@ namespace ReferenceBindTool
         }
         
         /// <summary>
-        /// 自动绑定组件规则
-        /// </summary>
-        public INameRuleHelper NameRuleHelper
-        {
-            get;
-            set;
-        }
-        /// <summary>
         /// 自动绑定组件规则类型名称
         /// </summary>
         public string BindComponentsRuleHelperTypeName
@@ -220,14 +209,6 @@ namespace ReferenceBindTool
         {
             get => m_BindAssetOrPrefabRuleHelperTypeName;
             set => m_BindAssetOrPrefabRuleHelperTypeName = value;
-        }
-        /// <summary>
-        /// 字段名称规则类型名
-        /// </summary>
-        public string NameRuleHelperTypeName
-        {
-            get => m_NameRuleHelperTypeName;
-            set => m_NameRuleHelperTypeName = value;
         }
 #endif
 

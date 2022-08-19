@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace ReferenceBindTool.Editor
         /// <param name="target"></param>
         /// <param name="filedNames"></param>
         /// <param name="components"></param>
-        void GetBindData(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components);
+        void GetBindData(DefaultBindComponentsRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components);
     }
 
     public class DefaultBindRule : IBindRule
@@ -63,7 +64,7 @@ namespace ReferenceBindTool.Editor
             typeof(EventTrigger),
         };
         
-        public void GetBindData(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
+        public void GetBindData(DefaultBindComponentsRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
         {
             if (target == null || string.IsNullOrEmpty(target.name) || !target.name.StartsWith(Prefix))
             {
@@ -75,7 +76,7 @@ namespace ReferenceBindTool.Editor
                 Component component = target.GetComponent(BindTypes[i]);
                 if (component != null)
                 {
-                    filedNames.Add(ruleHelper.GetDefaultFieldName(target));
+                    filedNames.Add(ruleHelper.GetDefaultFieldName(component));
                     components.Add(component);
                 }
             }
@@ -89,7 +90,7 @@ namespace ReferenceBindTool.Editor
             new DefaultBindRule(),
         };
 
-        public void GetBindComponents(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
+        public void GetBindComponents(Transform target, List<string> filedNames, List<Component> components)
         {
             for (int i = 0; i < m_BindRules.Count; i++)
             {
@@ -98,25 +99,47 @@ namespace ReferenceBindTool.Editor
                     continue;
                 }
 
-                m_BindRules[i].GetBindData(ruleHelper,target, filedNames, components);
+                m_BindRules[i].GetBindData(this,target, filedNames, components);
             }
+        }
+
+        public string GetDefaultFieldName(Component component)
+        {
+            string gameObjectName = component.gameObject.name;
+            for (int i = 0; i < m_BindRules.Count; i++)
+            {
+                if (!gameObjectName.StartsWith(m_BindRules[i].Prefix)) continue;
+                gameObjectName = gameObjectName.Substring(m_BindRules[i].Prefix.Length);
+                break;
+            }
+            return $"{component.GetType().Name}_{gameObjectName}".Replace(' ', '_');
+        }
+
+        public bool CheckFieldNameIsInvalid(string fieldName)
+        {
+            string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
+            return !Regex.IsMatch(fieldName, regex);
         }
 
         public void BindComponents(ReferenceBindComponent referenceBindComponent)
         {
             Transform transform = referenceBindComponent.transform;
+            var tempList = new List<ReferenceBindComponent.BindObjectData>(referenceBindComponent.BindComponents.Count);
+            tempList.AddRange(referenceBindComponent.BindComponents);
             referenceBindComponent.BindComponents.Clear();
             Transform[] children = transform.GetComponentsInChildren<Transform>(true);
             List<string> tempFiledNames = new List<string>();
-            List<Component> tempComponentTypeNames = new List<Component>();
+            List<Component> tempComponents = new List<Component>();
             foreach (Transform child in children)
             {
                 tempFiledNames.Clear();
-                tempComponentTypeNames.Clear();
-                GetBindComponents(referenceBindComponent.NameRuleHelper,child, tempFiledNames, tempComponentTypeNames);
+                tempComponents.Clear();
+                GetBindComponents(child, tempFiledNames, tempComponents);
                 for (int i = 0; i < tempFiledNames.Count; i++)
                 {
-                    referenceBindComponent.AddBindComponent(tempFiledNames[i], tempComponentTypeNames[i]);
+                    var bindData = tempList.Find(_ => _.BindObject == tempComponents[i]);
+                    string fieldName = bindData == null ? tempFiledNames[i] : bindData.FieldName;
+                    referenceBindComponent.AddBindComponent(fieldName, tempComponents[i]);
                 }
             }
         }

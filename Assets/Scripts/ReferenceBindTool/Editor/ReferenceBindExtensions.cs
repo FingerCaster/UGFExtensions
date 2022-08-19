@@ -110,11 +110,10 @@ namespace ReferenceBindTool.Editor
         public static void AddBindAssetsOrPrefabs(this ReferenceBindComponent self, string name,
             UnityEngine.Object bindObject)
         {
-            foreach (var item in self.BindObjects)
+            foreach (var item in self.BindAssetsOrPrefabs)
             {
-                if (item == bindObject)
+                if (item.BindObject == bindObject)
                 {
-                    Debug.LogWarning($"{bindObject.name} 已经添加。");
                     return;
                 }
             }
@@ -131,7 +130,7 @@ namespace ReferenceBindTool.Editor
 
             self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat, name, bindObject)
             {
-                FileNameIsInvalid = self.NameRuleHelper.CheckFieldNameIsInvalid(name)
+                FileNameIsInvalid = self.BindAssetOrPrefabRuleHelper.CheckFieldNameIsInvalid(name)
             });
             self.SyncBindObjects();
         }
@@ -146,11 +145,10 @@ namespace ReferenceBindTool.Editor
         public static void AddBindComponent(this ReferenceBindComponent self, string name,Component bindComponent,
             bool isSyncBindObject = true)
         {
-            foreach (var item in self.BindObjects)
+            foreach (var item in self.BindComponents)
             {
-                if (item == bindComponent)
+                if (item.BindObject == bindComponent)
                 {
-                    Debug.LogWarning($"{bindComponent.name} 已经添加。");
                     return;
                 }
             }
@@ -167,7 +165,7 @@ namespace ReferenceBindTool.Editor
 
             self.BindComponents.Add(new BindObjectData(isRepeat, name, bindComponent)
             {
-                FileNameIsInvalid = self.NameRuleHelper.CheckFieldNameIsInvalid(name)
+                FileNameIsInvalid = self.BindComponentsRuleHelper.CheckFieldNameIsInvalid(name)
             });
             if (isSyncBindObject)
             {
@@ -217,7 +215,7 @@ namespace ReferenceBindTool.Editor
             for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-                self.AddBindAssetsOrPrefabs(self.NameRuleHelper.GetDefaultFieldName(tempData.BindObject),
+                self.AddBindAssetsOrPrefabs(self.BindAssetOrPrefabRuleHelper.GetDefaultFieldName(tempData.BindObject),
                     tempData.BindObject);
             }
 
@@ -226,7 +224,7 @@ namespace ReferenceBindTool.Editor
             for (; i < tempList.Count; i++)
             {
                 var tempData = tempList[i];
-                self.AddBindComponent(self.NameRuleHelper.GetDefaultFieldName(tempData.BindObject),
+                self.AddBindComponent(self.BindComponentsRuleHelper.GetDefaultFieldName((Component)tempData.BindObject),
                     (Component)tempData.BindObject);
             }
             self.SyncBindObjects();
@@ -361,25 +359,6 @@ namespace ReferenceBindTool.Editor
             IBindAssetOrPrefabRuleHelper helper =
                 (IBindAssetOrPrefabRuleHelper) ReferenceBindUtility.CreateHelperInstance(self.BindAssetOrPrefabRuleHelperTypeName);
             self.BindAssetOrPrefabRuleHelper = helper;
-            EditorUtility.SetDirty(self);
-        }
-        
-        /// <summary>
-        /// 设置字段名称规则帮助类
-        /// </summary>
-        /// <param name="self"></param>
-        /// <param name="ruleHelperName"></param>
-        public static void SetNameRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
-        {
-            if (self.NameRuleHelperTypeName == ruleHelperName && self.NameRuleHelper != null)
-            {
-                return;
-            }
-
-            self.NameRuleHelperTypeName = ruleHelperName;
-            INameRuleHelper helper =
-                (INameRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.NameRuleHelperTypeName);
-            self.NameRuleHelper = helper;
             EditorUtility.SetDirty(self);
         }
     }

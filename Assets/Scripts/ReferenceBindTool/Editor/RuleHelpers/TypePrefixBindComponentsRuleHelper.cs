@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using ReferenceBindTool;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ReferenceBindTool.Editor
 {
@@ -15,35 +14,35 @@ namespace ReferenceBindTool.Editor
         /// <summary>
         /// 命名前缀与类型的映射
         /// </summary>
-        private Dictionary<string, string> m_PrefixesDict = new Dictionary<string, string>()
+        private Dictionary<string, Type> m_PrefixesDict = new Dictionary<string, Type>()
         {
-            {"Trans", "Transform"},
-            {"OldAnim", "Animation"},
-            {"NewAnim", "Animator"},
+            {"Trans", typeof(Transform)},
+            {"OldAnim", typeof(Animation)},
+            {"NewAnim", typeof(Animator)},
 
-            {"Rect", "RectTransform"},
-            {"Canvas", "Canvas"},
-            {"Group", "CanvasGroup"},
-            {"VGroup", "VerticalLayoutGroup"},
-            {"HGroup", "HorizontalLayoutGroup"},
-            {"GGroup", "GridLayoutGroup"},
-            {"TGroup", "ToggleGroup"},
+            {"Rect", typeof(RectTransform)},
+            {"Canvas", typeof(Canvas)},
+            {"Group",typeof(CanvasGroup)},
+            {"VGroup",typeof(VerticalLayoutGroup)},
+            {"HGroup",typeof(HorizontalLayoutGroup)},
+            {"GGroup",typeof(GridLayoutGroup)},
+            {"TGroup",typeof(ToggleGroup)},
 
-            {"Btn", "Button"},
-            {"Img", "Image"},
-            {"RImg", "RawImage"},
-            {"Txt", "Text"},
-            {"Input", "InputField"},
-            {"Slider", "Slider"},
-            {"Mask", "Mask"},
-            {"Mask2D", "RectMask2D"},
-            {"Tog", "Toggle"},
-            {"Sbar", "Scrollbar"},
-            {"SRect", "ScrollRect"},
-            {"Drop", "Dropdown"},
+            {"Btn",typeof(Button)},
+            {"Img",typeof(Image)},
+            {"RImg",typeof(RawImage)},
+            {"Txt",typeof(Text)},
+            {"Input",typeof(InputField)},
+            {"Slider",typeof(Slider)},
+            {"Mask",typeof(Mask)},
+            {"Mask2D",typeof(RectMask2D)},
+            {"Tog",typeof(Toggle)},
+            {"Sbar",typeof(Scrollbar)},
+            {"SRect",typeof(ScrollRect)},
+            {"Drop",typeof(Dropdown)},
         };
         
-        public void GetBindComponents(INameRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
+        public void GetBindComponents(Transform target, List<string> filedNames, List<Component> components)
         {
             string[] strArray = target.name.Split('_');
 
@@ -55,33 +54,62 @@ namespace ReferenceBindTool.Editor
             for (int i = 0; i < strArray.Length - 1; i++)
             {
                 string str = strArray[i];
-                if (m_PrefixesDict.TryGetValue(str, out var comName))
+                if (m_PrefixesDict.TryGetValue(str, out var componentType))
                 {
-                    filedNames.Add(ruleHelper.GetDefaultFieldName(target));
-                    components.Add(target.GetComponent(comName));
+                    var component = target.GetComponent(componentType);
+                    filedNames.Add(GetDefaultFieldName(component));
+                    components.Add(component);
                 }
                 else
                 {
-                    Debug.LogError($"{target.name}的命名中{str}不存在对应的组件类型，绑定失败");
+                    Debug.LogWarning($"{target.name}的命名中{str}不存在对应的组件类型，绑定失败");
                 }
             }
+        }
+
+        public string GetDefaultFieldName(Component component)
+        {
+            string gameObjectName = component.gameObject.name;
+            string[] strArray = component.name.Split('_');
+
+            if (strArray.Length != 1)
+            {
+                for (int i = 0; i < strArray.Length - 1; i++)
+                {
+                    string str = strArray[i];
+                    if (!m_PrefixesDict.ContainsKey(str)) continue;
+                    gameObjectName = strArray[strArray.Length - 1];
+                    break;
+                }
+            }
+            return $"{component.GetType().Name}_{gameObjectName}".Replace(' ', '_');
+        }
+
+        public bool CheckFieldNameIsInvalid(string fieldName)
+        {
+            string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
+            return !Regex.IsMatch(fieldName, regex);
         }
 
         public void BindComponents(ReferenceBindComponent referenceBindComponent)
         {
             Transform transform = referenceBindComponent.transform;
+            var tempList = new List<ReferenceBindComponent.BindObjectData>(referenceBindComponent.BindComponents.Count);
+            tempList.AddRange(referenceBindComponent.BindComponents);
             referenceBindComponent.BindComponents.Clear();
             Transform[] children = transform.GetComponentsInChildren<Transform>(true);
             List<string> tempFiledNames = new List<string>();
-            List<Component> tempComponentTypeNames = new List<Component>();
+            List<Component> tempComponents = new List<Component>();
             foreach (Transform child in children)
             {
                 tempFiledNames.Clear();
-                tempComponentTypeNames.Clear();
-                GetBindComponents(referenceBindComponent.NameRuleHelper,child, tempFiledNames, tempComponentTypeNames);
+                tempComponents.Clear();
+                GetBindComponents(child, tempFiledNames, tempComponents);
                 for (int i = 0; i < tempFiledNames.Count; i++)
                 {
-                    referenceBindComponent.AddBindComponent(tempFiledNames[i], tempComponentTypeNames[i]);
+                    var bindData = tempList.Find(_ => _.BindObject == tempComponents[i]);
+                    string fieldName = bindData == null ? tempFiledNames[i] : bindData.FieldName;
+                    referenceBindComponent.AddBindComponent(fieldName, tempComponents[i]);
                 }
             }
         }

@@ -20,7 +20,6 @@ namespace ReferenceBindTool.Editor
 
         private HelperInfo<IBindComponentsRuleHelper> m_BindComponentsHelperInfo;
         private HelperInfo<IBindAssetOrPrefabRuleHelper> m_BindAssetOrPrefabRuleHelperInfo;
-        private HelperInfo<INameRuleHelper> m_NameRuleHelperInfo;
 
         private bool m_IsInitError = false;
         private void OnEnable()
@@ -81,16 +80,6 @@ namespace ReferenceBindTool.Editor
 
         private void InitHelperInfos()
         {
-            m_Target.SetNameRuleHelperTypeName(string.IsNullOrEmpty(m_Target.NameRuleHelperTypeName)
-                ? typeof(DefaultNameRuleHelper).FullName
-                : m_Target.NameRuleHelperTypeName);
-            m_NameRuleHelperInfo = new HelperInfo<INameRuleHelper>("m_NameRule");
-            m_NameRuleHelperInfo.Init(m_Target.NameRuleHelperTypeName, typeName =>
-            {
-                m_Target.SetNameRuleHelperTypeName(typeName);
-                return m_Target.NameRuleHelperTypeName;
-            });
-
             m_Target.SetBindAssetOrPrefabRuleHelperTypeName(
                 string.IsNullOrEmpty(m_Target.BindAssetOrPrefabRuleHelperTypeName)
                     ? typeof(DefaultBindAssetOrPrefabRuleHelper).FullName
@@ -128,7 +117,6 @@ namespace ReferenceBindTool.Editor
 
         void RefreshHelperTypeNames()
         {
-            m_NameRuleHelperInfo.Refresh();
             m_BindAssetOrPrefabRuleHelperInfo.Refresh();
             m_BindComponentsHelperInfo.Refresh();
             serializedObject.ApplyModifiedProperties();
@@ -139,7 +127,6 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         private void DrawHelperSelect()
         {
-            m_NameRuleHelperInfo.Draw();
             m_BindAssetOrPrefabRuleHelperInfo.Draw();
             m_BindComponentsHelperInfo.Draw();
         }
@@ -413,7 +400,7 @@ namespace ReferenceBindTool.Editor
             GUI.enabled = m_NeedBindObject != null;
             if (GUILayout.Button("绑定", GUILayout.Width(50)))
             {
-                m_Target.RuleBindAssetsOrPrefabs(m_Target.NameRuleHelper.GetDefaultFieldName(m_NeedBindObject),
+                m_Target.RuleBindAssetsOrPrefabs(m_Target.BindAssetOrPrefabRuleHelper.GetDefaultFieldName(m_NeedBindObject),
                     m_NeedBindObject);
                 m_NeedBindObject = null;
             }
@@ -489,7 +476,7 @@ namespace ReferenceBindTool.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 bindObjectData.FieldName = fieldName;
-                bindObjectData.FileNameIsInvalid = m_Target.NameRuleHelper.CheckFieldNameIsInvalid(fieldName);
+                Refresh();
             }
 
             GUI.enabled = false;
