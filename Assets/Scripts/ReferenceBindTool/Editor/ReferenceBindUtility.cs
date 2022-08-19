@@ -215,18 +215,18 @@ namespace ReferenceBindTool.Editor
         /// <param name="nameSpace"></param>
         /// <param name="path"></param>
         /// <param name="isAutoCreateDir"></param>
-        public static void SetAutoBindSetting(string name, string nameSpace, string path, bool isAutoCreateDir)
+        public static void SetBindSetting(string name, string nameSpace, string path, bool isAutoCreateDir)
         {
-            string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                Debug.LogError("不存在AutoBindSettingConfig");
+                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
                 return;
             }
 
             if (paths.Length > 1)
             {
-                Debug.LogError("AutoBindSettingConfig数量大于1");
+                Debug.LogError($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
                 return;
             }
 
@@ -253,15 +253,15 @@ namespace ReferenceBindTool.Editor
         /// <returns></returns>
         public static ReferenceBindCodeGeneratorSettingData GetAutoBindSetting(string name)
         {
-            string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                throw new Exception("不存在AutoBindSettingConfig");
+                throw new Exception($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             }
 
             if (paths.Length > 1)
             {
-                throw new Exception("AutoBindSettingConfig数量大于1");
+                throw new Exception($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
             }
 
             string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
@@ -278,15 +278,15 @@ namespace ReferenceBindTool.Editor
         /// <returns></returns>
         public static bool AddAutoBindSetting(string name, string folder, string nameSpace)
         {
-            string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                throw new Exception("不存在AutoBindSettingConfig");
+                throw new Exception($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             }
 
             if (paths.Length > 1)
             {
-                throw new Exception("AutoBindSettingConfig数量大于1");
+                throw new Exception($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
             }
 
             string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);

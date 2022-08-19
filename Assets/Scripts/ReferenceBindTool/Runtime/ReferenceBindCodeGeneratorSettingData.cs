@@ -4,13 +4,28 @@ using UnityEngine;
 
 namespace ReferenceBindTool
 {
+    /// <summary>
+    /// 引用绑定工具代码生成配置数据类
+    /// </summary>
     [Serializable]
     public class ReferenceBindCodeGeneratorSettingData
     {
+        /// <summary>
+        /// 配置名
+        /// </summary>
         [SerializeField] private string m_Name;
+        /// <summary>
+        /// 代码生成目录
+        /// </summary>
         [SerializeField] private string m_CodeFolderPath;
+        /// <summary>
+        /// 命名空间
+        /// </summary>
         [SerializeField] private string m_Namespace;
-        [SerializeField] private bool m_IsShow = false;
+        /// <summary>
+        /// 是否展开
+        /// </summary>
+        [SerializeField] private bool m_IsExpand = false;
 
         public ReferenceBindCodeGeneratorSettingData(string name)
         {

@@ -267,7 +267,7 @@ namespace ReferenceBindTool.Editor
                 int findIndex = self.SettingDataSearchable.Names.ToList().FindIndex(_ => _ == data.Name);
                 if (findIndex == -1)
                 {
-                    string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+                    string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
                     string path = AssetDatabase.GUIDToAssetPath(paths[0]);
                     var settingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
                     var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
@@ -296,7 +296,7 @@ namespace ReferenceBindTool.Editor
                 int findIndex = self.SettingDataSearchable.Names.ToList().FindIndex(_ => _ == name);
                 if (findIndex == -1)
                 {
-                    string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+                    string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
                     string path = AssetDatabase.GUIDToAssetPath(paths[0]);
                     var settingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
                     var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();

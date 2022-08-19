@@ -7,12 +7,18 @@ using UnityEditor;
 namespace ReferenceBindTool
 {
     /// <summary>
-    /// 自动绑定全局设置
+    /// 引用绑定绑定全局设置
     /// </summary>
     public class ReferenceBindCodeGeneratorSettingConfig : ScriptableObject
     {
+        /// <summary>
+        /// 默认配置名称
+        /// </summary>
         private const string DefaultStr = "Default";
 
+        /// <summary>
+        /// 所有设置
+        /// </summary>
         [SerializeField]
         private List<ReferenceBindCodeGeneratorSettingData> m_Settings =
             new List<ReferenceBindCodeGeneratorSettingData>();
@@ -36,7 +42,12 @@ namespace ReferenceBindTool
                 return data;
             }
         }
-
+        
+        /// <summary>
+        /// 获取配置
+        /// </summary>
+        /// <param name="settingName">配置名称</param>
+        /// <returns></returns>
         public ReferenceBindCodeGeneratorSettingData GetSettingData(string settingName)
         {
             int index = m_Settings.FindIndex(_ => _.Name == settingName);
@@ -47,7 +58,12 @@ namespace ReferenceBindTool
 
             return m_Settings[index];
         }
-
+        
+        /// <summary>
+        /// 添加配置
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public bool AddSettingData(ReferenceBindCodeGeneratorSettingData data)
         {
             int index = m_Settings.FindIndex(_ => _.Name == data.Name);
@@ -60,14 +76,14 @@ namespace ReferenceBindTool
             return false;
         }
 
-        [MenuItem("Tools/AutoBindTools/CreateAutoBindSettingConfig")]
-        public static void CreateAutoBindSettingConfig()
+        [MenuItem("Tools/ReferenceBindTools/CreateBindSettingConfig")]
+        public static void CreateBindSettingConfig()
         {
-            string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             if (paths.Length >= 1)
             {
                 string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-                EditorUtility.DisplayDialog("警告", $"已存在AutoBindSettingConfig，路径:{path}", "确认");
+                EditorUtility.DisplayDialog("警告", $"已存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}，路径:{path}", "确认");
                 return;
             }
 
@@ -75,7 +91,7 @@ namespace ReferenceBindTool
                 CreateInstance<ReferenceBindCodeGeneratorSettingConfig>();
             codeGeneratorSettingConfig.m_Settings.Add(new ReferenceBindCodeGeneratorSettingData(DefaultStr));
 
-            AssetDatabase.CreateAsset(codeGeneratorSettingConfig, "Assets/AutoBindSettingConfig.asset");
+            AssetDatabase.CreateAsset(codeGeneratorSettingConfig, "Assets/BindSettingConfig.asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
