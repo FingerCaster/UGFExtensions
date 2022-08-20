@@ -17,7 +17,9 @@ namespace ReferenceBindTool.Editor
             //asmdef
 #endif
             "Assembly-CSharp",
-            "Assembly-CSharp-Editor"
+            "Assembly-CSharp-Editor",
+            "Assembly-CSharp-firstpass",
+            "Assembly-CSharp-Editor-firstpass"
         };
 
         /// <summary>
