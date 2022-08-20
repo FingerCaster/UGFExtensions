@@ -18,7 +18,7 @@ namespace ReferenceBindTool.Editor
             var nameProperty = property.FindPropertyRelative("m_Name");
             Rect headerRect = new Rect(position.x, position.y, position.width, 18);
             EditorGUI.DrawRect(headerRect, new Color(0.21f, 0.21f, 0.21f));
-            var isShowProperty = property.FindPropertyRelative("m_IsShow");
+            var isShowProperty = property.FindPropertyRelative("m_IsExpand");
             isShowProperty.boolValue =
                 EditorGUI.Foldout(headerRect, isShowProperty.boolValue, nameProperty.stringValue, true);
             if (isShowProperty.boolValue)
@@ -53,7 +53,7 @@ namespace ReferenceBindTool.Editor
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var isShow = property.FindPropertyRelative("m_IsShow").boolValue;
+            var isShow = property.FindPropertyRelative("m_IsExpand").boolValue;
             return isShow ? 70 : 20;
         }
 
