@@ -52,6 +52,12 @@ namespace ReferenceBindTool.Editor
             item.children = new List<TreeViewItem>(components.Length+childCount+1);
             foreach (Component component in components)
             {
+                // 跳过 missing 
+                if (component == null )
+                {
+                    continue;
+                }
+                
                 if (transform == m_Transform && component is ReferenceBindComponent)
                 {
                     continue;

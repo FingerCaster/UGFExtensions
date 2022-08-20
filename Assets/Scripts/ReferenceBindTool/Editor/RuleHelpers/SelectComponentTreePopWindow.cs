@@ -22,7 +22,7 @@ namespace ReferenceBindTool.Editor
 
         public void Show(ReferenceBindComponent bindComponentList)
         {
-            var select = bindComponentList.BindComponents.ToDictionary(_ => _.BindObject.GetInstanceID(), _ => true);
+            var select = bindComponentList.BindComponents.Where(_=>_.BindObject != null).ToDictionary(_ => _.BindObject.GetInstanceID(), _ => true);
 
             if (m_Select == null)
             {
