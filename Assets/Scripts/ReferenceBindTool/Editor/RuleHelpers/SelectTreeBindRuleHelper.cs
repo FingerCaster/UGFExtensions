@@ -1,4 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
 
 namespace ReferenceBindTool.Editor
@@ -25,7 +28,32 @@ namespace ReferenceBindTool.Editor
         }
         public void BindComponents(ReferenceBindComponent referenceBindComponent)
         {
-            m_PopWindow.Show(referenceBindComponent);
+            var select = referenceBindComponent.BindComponents.Where(_=>_.BindObject != null).ToDictionary(_ => _.BindObject.GetInstanceID(), _ => true);
+
+            void OnComplete()
+            {
+                var tempList = new List<ReferenceBindComponent.BindObjectData>(referenceBindComponent.BindComponents.Count);
+                tempList.AddRange(referenceBindComponent.BindComponents);
+                referenceBindComponent.BindComponents.Clear();
+                foreach (var selectItem in select)
+                {
+                    if (selectItem.Value)
+                    {
+                        var bindData = tempList.Find(_ => _.BindObject.GetInstanceID() == selectItem.Key);
+                        Component component = GetComponent(selectItem.Key);
+                        string name = bindData == null ? referenceBindComponent.BindComponentsRuleHelper.GetDefaultFieldName(component) : bindData.FieldName;
+                        referenceBindComponent.AddBindComponent(name, component, false);
+                    }
+                }
+                referenceBindComponent.SyncBindObjects();
+            }
+
+            m_PopWindow.Show(referenceBindComponent.transform, select, OnComplete);
+        }
+        
+        Component GetComponent (int instanceID)
+        {
+            return (Component)EditorUtility.InstanceIDToObject(instanceID);
         }
     }
 }

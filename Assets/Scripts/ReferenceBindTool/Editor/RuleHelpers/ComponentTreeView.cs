@@ -12,11 +12,16 @@ namespace ReferenceBindTool.Editor
         
         public ComponentTreeView(TreeViewState state,Transform transform,Dictionary<int, bool> select) : base(state)
         {
+            Reload(transform, select);
+        }
+
+        public void Reload(Transform transform,Dictionary<int, bool> select)
+        {
             m_Transform = transform;
             m_Select = select;
-            Reload ();
+            base.Reload();
         }
-        
+
         protected override TreeViewItem BuildRoot()
         {
             return new TreeViewItem {id = 0, depth = -1};
