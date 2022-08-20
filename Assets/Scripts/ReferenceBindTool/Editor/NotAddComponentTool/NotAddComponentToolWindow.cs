@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using ReferenceBindTool.Editor.RuleHelpers;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEditor;
 
 namespace ReferenceBindTool.Editor
 {

@@ -1,23 +1,44 @@
-﻿using System.ComponentModel.Design;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
-using ReferenceBindTool.Editor.RuleHelpers;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ReferenceBindTool.Editor
 {
     public class DefaultBindAssetOrPrefabRuleHelper : IBindAssetOrPrefabRuleHelper
     {
-        
+        /// <summary>
+        /// 排除绑定对象所有规则
+        /// </summary>
+        private static List<Func<Object,bool>> m_ExcludeRules = new List<Func<Object,bool>>()
+        {
+            obj => obj is DefaultAsset && ProjectWindowUtil.IsFolder(obj.GetInstanceID()),
+            obj => obj is MonoScript,
+            obj => obj is AssetBundle,
+            obj => AssetDatabase.GetAssetPath(obj).StartsWith("Assets/StreamingAssets"),
+            obj =>AssetDatabase.GetAssetPath(obj).Split('/').ToList().Find(_=>_.Equals("Editor") || _.Equals("Resources"))!=null,
+        };
+
         /// <summary>
         /// 检查引用是否可以添加
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static bool CheckIsCanAdd(UnityEngine.Object obj)
+        private static bool CheckIsCanAdd(UnityEngine.Object obj)
         {
-            bool isFolder = obj is DefaultAsset && ProjectWindowUtil.IsFolder(obj.GetInstanceID());
-            return !isFolder;
+            bool isCanAdd = true;
+            foreach (var excludeRule in m_ExcludeRules)
+            {
+                if (excludeRule.Invoke(obj))
+                {
+                    isCanAdd = false;
+                    break;
+                }
+            }
+            return isCanAdd;
         }
         
         public string GetDefaultFieldName(Object obj)
@@ -36,7 +57,7 @@ namespace ReferenceBindTool.Editor
         {
             if (!CheckIsCanAdd(obj))
             {
-                Debug.LogError("不能添加目录!");
+                Debug.LogError($"不能添加对象:{AssetDatabase.GetAssetPath(obj)} 类型为:{obj.GetType()}!");
                 return;
             }    
             referenceBindComponent.AddBindAssetsOrPrefabs(fieldName,obj);

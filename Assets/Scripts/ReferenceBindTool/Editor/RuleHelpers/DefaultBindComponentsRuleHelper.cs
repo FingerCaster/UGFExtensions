@@ -139,7 +139,7 @@ namespace ReferenceBindTool.Editor
                 {
                     var bindData = tempList.Find(_ => _.BindObject == tempComponents[i]);
                     string fieldName = bindData == null ? tempFiledNames[i] : bindData.FieldName;
-                    referenceBindComponent.AddBindComponent(fieldName, tempComponents[i]);
+                    referenceBindComponent.AddBindComponent(fieldName, tempComponents[i],false);
                 }
             }
         }

@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using ReferenceBindTool.Editor.RuleHelpers;
 using UnityEditor;
 using UnityEngine;
 

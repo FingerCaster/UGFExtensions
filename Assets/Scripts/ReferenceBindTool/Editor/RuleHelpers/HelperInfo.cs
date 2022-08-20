@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using GameFramework;
 using UnityEditor;
 
-namespace ReferenceBindTool.Editor.RuleHelpers
+namespace ReferenceBindTool.Editor
 {
     public class HelperInfo<T>
     {
