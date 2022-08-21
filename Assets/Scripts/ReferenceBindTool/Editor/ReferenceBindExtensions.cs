@@ -18,8 +18,15 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         public static void RuleBindComponents(this ReferenceBindComponent self)
         {
-            self.BindComponentsRuleHelper.BindComponents(self);
-            self.SyncBindObjects();
+            self.BindComponentsRuleHelper.BindComponents(self.gameObject, self.BindComponents,bindList =>
+            {
+                self.BindComponents.Clear();
+                foreach ((string fieldName, Component bindComponent) item in bindList)
+                {
+                    self.AddBindComponent(item.fieldName,item.bindComponent,false);
+                }
+                self.SyncBindObjects();
+            });
         }
         
         /// <summary>
@@ -27,7 +34,14 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         public static void RuleBindAssetsOrPrefabs(this ReferenceBindComponent self,string fieldName,Object obj)
         {
-            self.BindAssetOrPrefabRuleHelper.BindAssetOrPrefab(self,fieldName,obj);
+            self.BindAssetOrPrefabRuleHelper.BindAssetOrPrefab(fieldName,obj,
+                isCanAdd =>
+                {
+                    if (isCanAdd)
+                    {
+                        self.AddBindAssetsOrPrefabs(fieldName, obj);
+                    }
+                });
             self.SyncBindObjects();
         }
 

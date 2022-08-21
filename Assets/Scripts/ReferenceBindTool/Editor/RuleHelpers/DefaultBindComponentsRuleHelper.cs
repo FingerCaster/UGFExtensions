@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using BindObjectData =  ReferenceBindTool.ReferenceBindComponent.BindObjectData;
 
 namespace ReferenceBindTool.Editor
 {
@@ -21,20 +22,18 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         /// <param name="ruleHelper"></param>
         /// <param name="target"></param>
-        /// <param name="filedNames"></param>
-        /// <param name="components"></param>
-        void GetBindData(DefaultBindComponentsRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components);
+        /// <param name="bindList"></param>
+        void GetBindData(DefaultBindComponentsRuleHelper ruleHelper,Transform target,List<(string,Component)> bindList);
     }
 
     public class DefaultBindRule : IBindRule
     {
         public string Prefix => "BD_";
 
-        private List<Type> BindTypes => new List<Type>()
+        private List<Type> m_BindTypes =  new List<Type>()
         {
             typeof(Transform),
             typeof(RectTransform),
-            typeof(Animation),
             typeof(Animation),
             typeof(Canvas),
             typeof(CanvasGroup),
@@ -45,8 +44,7 @@ namespace ReferenceBindTool.Editor
             typeof(Button),
             typeof(Image),
             typeof(RawImage),
-            // 取消bind Text 改为使用TMP
-            // typeof(Text),
+            typeof(Text),
             typeof(TMP_Text),
             typeof(InputField),
             typeof(TMP_InputField),
@@ -59,12 +57,17 @@ namespace ReferenceBindTool.Editor
             typeof(Dropdown),
             typeof(TMP_Dropdown),
             typeof(Camera),
-            // typeof(EnhancedScroller),
-            // typeof(EnhancedScrollerCellView),
             typeof(EventTrigger),
         };
-        
-        public void GetBindData(DefaultBindComponentsRuleHelper ruleHelper,Transform target, List<string> filedNames, List<Component> components)
+
+        public List<Type> BindTypes => m_BindTypes;
+
+        public DefaultBindRule()
+        {
+            m_BindTypes = m_BindTypes.Distinct().ToList();
+        }
+
+        public void GetBindData(DefaultBindComponentsRuleHelper ruleHelper,Transform target, List<(string,Component)> bindList)
         {
             if (target == null || string.IsNullOrEmpty(target.name) || !target.name.StartsWith(Prefix))
             {
@@ -76,8 +79,7 @@ namespace ReferenceBindTool.Editor
                 Component component = target.GetComponent(BindTypes[i]);
                 if (component != null)
                 {
-                    filedNames.Add(ruleHelper.GetDefaultFieldName(component));
-                    components.Add(component);
+                    bindList.Add((ruleHelper.GetDefaultFieldName(component),component));
                 }
             }
         }
@@ -89,20 +91,7 @@ namespace ReferenceBindTool.Editor
         {
             new DefaultBindRule(),
         };
-
-        public void GetBindComponents(Transform target, List<string> filedNames, List<Component> components)
-        {
-            for (int i = 0; i < m_BindRules.Count; i++)
-            {
-                if (!target.name.StartsWith(m_BindRules[i].Prefix))
-                {
-                    continue;
-                }
-
-                m_BindRules[i].GetBindData(this,target, filedNames, components);
-            }
-        }
-
+        
         public string GetDefaultFieldName(Component component)
         {
             string gameObjectName = component.gameObject.name;
@@ -121,27 +110,31 @@ namespace ReferenceBindTool.Editor
             return !Regex.IsMatch(fieldName, regex);
         }
 
-        public void BindComponents(ReferenceBindComponent referenceBindComponent)
+        public void BindComponents(GameObject gameObject, List<BindObjectData> bindComponents, Action<List<(string, Component)>> bindAction)
         {
-            Transform transform = referenceBindComponent.transform;
-            var tempList = new List<ReferenceBindComponent.BindObjectData>(referenceBindComponent.BindComponents.Count);
-            tempList.AddRange(referenceBindComponent.BindComponents);
-            referenceBindComponent.BindComponents.Clear();
-            Transform[] children = transform.GetComponentsInChildren<Transform>(true);
-            List<string> tempFiledNames = new List<string>();
-            List<Component> tempComponents = new List<Component>();
+            Transform[] children = gameObject.transform.GetComponentsInChildren<Transform>(true);
+            List<(string fieldName,Component bindComponent)> bindList = new List<(string,Component)>();
+            List<(string fieldName,Component bindComponent)> tempBindList = new List<(string,Component)>();
             foreach (Transform child in children)
             {
-                tempFiledNames.Clear();
-                tempComponents.Clear();
-                GetBindComponents(child, tempFiledNames, tempComponents);
-                for (int i = 0; i < tempFiledNames.Count; i++)
+                tempBindList.Clear();
+                foreach (var bindRule in m_BindRules)
                 {
-                    var bindData = tempList.Find(_ => _.BindObject == tempComponents[i]);
-                    string fieldName = bindData == null ? tempFiledNames[i] : bindData.FieldName;
-                    referenceBindComponent.AddBindComponent(fieldName, tempComponents[i],false);
+                    if (!child.name.StartsWith(bindRule.Prefix))
+                    {
+                        continue;
+                    }
+
+                    bindRule.GetBindData(this,child, tempBindList);
+                    for (int i = 0; i < tempBindList.Count; i++)
+                    {
+                        var bindData = bindComponents.Find(_ => _.BindObject == tempBindList[i].bindComponent);
+                        string fieldName = bindData == null ? tempBindList[i].fieldName : bindData.FieldName;
+                        bindList.Add((fieldName,tempBindList[i].bindComponent));
+                    }
                 }
             }
+            bindAction.Invoke(bindList);
         }
     }
 }

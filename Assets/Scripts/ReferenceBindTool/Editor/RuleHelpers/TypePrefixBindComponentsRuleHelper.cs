@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
+using BindObjectData = ReferenceBindTool.ReferenceBindComponent.BindObjectData;
 
 namespace ReferenceBindTool.Editor
 {
@@ -42,31 +43,6 @@ namespace ReferenceBindTool.Editor
             {"Drop",typeof(Dropdown)},
         };
         
-        public void GetBindComponents(Transform target, List<string> filedNames, List<Component> components)
-        {
-            string[] strArray = target.name.Split('_');
-
-            if (strArray.Length == 1)
-            {
-                return;
-            }
-            
-            for (int i = 0; i < strArray.Length - 1; i++)
-            {
-                string str = strArray[i];
-                if (m_PrefixesDict.TryGetValue(str, out var componentType))
-                {
-                    var component = target.GetComponent(componentType);
-                    filedNames.Add(GetDefaultFieldName(component));
-                    components.Add(component);
-                }
-                else
-                {
-                    Debug.LogWarning($"{target.name}的命名中{str}不存在对应的组件类型，绑定失败");
-                }
-            }
-        }
-
         public string GetDefaultFieldName(Component component)
         {
             string gameObjectName = component.gameObject.name;
@@ -91,25 +67,33 @@ namespace ReferenceBindTool.Editor
             return !Regex.IsMatch(fieldName, regex);
         }
 
-        public void BindComponents(ReferenceBindComponent referenceBindComponent)
+        public void BindComponents(GameObject gameObject, List<BindObjectData> bindComponents, Action<List<(string, Component)>> bindAction)
         {
-            Transform transform = referenceBindComponent.transform;
-            var tempList = new List<ReferenceBindComponent.BindObjectData>(referenceBindComponent.BindComponents.Count);
-            tempList.AddRange(referenceBindComponent.BindComponents);
-            referenceBindComponent.BindComponents.Clear();
-            Transform[] children = transform.GetComponentsInChildren<Transform>(true);
-            List<string> tempFiledNames = new List<string>();
-            List<Component> tempComponents = new List<Component>();
+            List<(string fieldName,Component bindComponent)> bindList = new List<(string,Component)>();
+            Transform[] children = gameObject.GetComponentsInChildren<Transform>(true);
             foreach (Transform child in children)
             {
-                tempFiledNames.Clear();
-                tempComponents.Clear();
-                GetBindComponents(child, tempFiledNames, tempComponents);
-                for (int i = 0; i < tempFiledNames.Count; i++)
+                string[] strArray = child.name.Split('_');
+
+                if (strArray.Length == 1)
                 {
-                    var bindData = tempList.Find(_ => _.BindObject == tempComponents[i]);
-                    string fieldName = bindData == null ? tempFiledNames[i] : bindData.FieldName;
-                    referenceBindComponent.AddBindComponent(fieldName, tempComponents[i],false);
+                    continue;
+                }
+            
+                for (int i = 0; i < strArray.Length - 1; i++)
+                {
+                    string str = strArray[i];
+                    if (m_PrefixesDict.TryGetValue(str, out var componentType))
+                    {
+                        var component = child.GetComponent(componentType);
+                        var bindData = bindComponents.Find(_ => _.BindObject == component);
+                        string fieldName = bindData == null ? GetDefaultFieldName(component) : bindData.FieldName;
+                        bindList.Add((fieldName,component));
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"{child.name}的命名中{str}不存在对应的组件类型，绑定失败");
+                    }
                 }
             }
         }

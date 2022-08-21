@@ -80,7 +80,10 @@ namespace ReferenceBindTool.Editor
                 m_AllPage += 1;
             }
 
-            m_CurrentPage = 0;
+            if (m_CurrentPage >= m_AllPage - 1)
+            {
+                m_CurrentPage = m_AllPage - 1 > 0? m_AllPage - 1 :0;
+            }
             m_PageField = m_CurrentPage.ToString();
         }
     }

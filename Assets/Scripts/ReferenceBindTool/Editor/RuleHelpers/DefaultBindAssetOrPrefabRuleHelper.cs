@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using static ReferenceBindTool.ReferenceBindComponent;
 using Object = UnityEngine.Object;
 
 namespace ReferenceBindTool.Editor
@@ -53,14 +54,14 @@ namespace ReferenceBindTool.Editor
             return !Regex.IsMatch(fieldName, regex);
         }
 
-        public void BindAssetOrPrefab(ReferenceBindComponent referenceBindComponent, string fieldName, Object obj)
+        public void BindAssetOrPrefab(string fieldName, Object obj, Action<bool> bindAction)
         {
-            if (!CheckIsCanAdd(obj))
+            bool isCanAdd = CheckIsCanAdd(obj);
+            if (!isCanAdd)
             {
                 Debug.LogError($"不能添加对象:{AssetDatabase.GetAssetPath(obj)} 类型为:{obj.GetType()}!");
-                return;
             }    
-            referenceBindComponent.AddBindAssetsOrPrefabs(fieldName,obj);
+            bindAction.Invoke(isCanAdd);
         }
     }
 }

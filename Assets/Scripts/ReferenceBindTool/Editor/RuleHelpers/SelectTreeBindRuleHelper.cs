@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
-
+using BindObjectData = ReferenceBindTool.ReferenceBindComponent.BindObjectData;
 namespace ReferenceBindTool.Editor
 {
     public class SelectTreeBindComponentsRuleHelper : IBindComponentsRuleHelper
@@ -19,41 +20,39 @@ namespace ReferenceBindTool.Editor
             string regex = "^[a-zA-Z_][a-zA-Z0-9_]*$";
             return !Regex.IsMatch(fieldName, regex);
         }
-        
-        private SelectComponentTreePopWindow m_PopWindow;
-        public SelectTreeBindComponentsRuleHelper()
-        {
-            m_PopWindow = new SelectComponentTreePopWindow();
 
-        }
-        public void BindComponents(ReferenceBindComponent referenceBindComponent)
+        public void BindComponents(GameObject gameObject, List<BindObjectData> bindComponents, Action<List<(string, Component)>> bindAction)
         {
-            var select = referenceBindComponent.BindComponents.Where(_=>_.BindObject != null).ToDictionary(_ => _.BindObject.GetInstanceID(), _ => true);
-
+            var select = bindComponents.Where(_=>_.BindObject != null).ToDictionary(_ => _.BindObject.GetInstanceID(), _ => true);
+            Component GetComponent (int instanceID)
+            {
+                return (Component)EditorUtility.InstanceIDToObject(instanceID);
+            }
             void OnComplete()
             {
-                var tempList = new List<ReferenceBindComponent.BindObjectData>(referenceBindComponent.BindComponents.Count);
-                tempList.AddRange(referenceBindComponent.BindComponents);
-                referenceBindComponent.BindComponents.Clear();
+                List<(string fieldName,Component bindComponent)> bindList = new List<(string,Component)>();
                 foreach (var selectItem in select)
                 {
                     if (selectItem.Value)
                     {
-                        var bindData = tempList.Find(_ => _.BindObject.GetInstanceID() == selectItem.Key);
+                        var bindData = bindComponents.Find(_ => _.BindObject.GetInstanceID() == selectItem.Key);
                         Component component = GetComponent(selectItem.Key);
-                        string name = bindData == null ? referenceBindComponent.BindComponentsRuleHelper.GetDefaultFieldName(component) : bindData.FieldName;
-                        referenceBindComponent.AddBindComponent(name, component, false);
+                        string fieldName = bindData == null ? GetDefaultFieldName(component) : bindData.FieldName;
+                        bindList.Add((fieldName,component));
                     }
                 }
-                referenceBindComponent.SyncBindObjects();
+                bindAction.Invoke(bindList);
             }
 
-            m_PopWindow.Show(referenceBindComponent.transform, select, OnComplete);
+            m_PopWindow.Show(gameObject.transform, select, OnComplete);
         }
-        
-        Component GetComponent (int instanceID)
+
+        private SelectComponentTreePopWindow m_PopWindow;
+        public SelectTreeBindComponentsRuleHelper()
         {
-            return (Component)EditorUtility.InstanceIDToObject(instanceID);
+            m_PopWindow = new SelectComponentTreePopWindow();
         }
+
+       
     }
 }

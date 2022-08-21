@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+using BindObjectData =  ReferenceBindTool.ReferenceBindComponent.BindObjectData;
 
 namespace ReferenceBindTool
 {
@@ -20,11 +23,13 @@ namespace ReferenceBindTool
         /// <param name="fieldName"></param>
         /// <returns>字段名是否无效</returns>
         bool CheckFieldNameIsInvalid(string fieldName);
-        
+
         /// <summary>
         /// 绑定符合规则的所有组件
         /// </summary>
-        /// <param name="referenceBindComponent">引用绑定组件</param>
-        void BindComponents(ReferenceBindComponent referenceBindComponent);
+        /// <param name="gameObject">绑定物体</param>
+        /// <param name="bindComponents">现在绑定的组件</param>
+        /// <param name="bindAction">绑定操作</param>
+        void BindComponents(GameObject gameObject,List<BindObjectData> bindComponents,Action<List<(string,Component)>> bindAction);
     }
 }

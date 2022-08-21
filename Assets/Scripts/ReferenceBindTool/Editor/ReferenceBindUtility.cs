@@ -66,7 +66,20 @@ namespace ReferenceBindTool.Editor
         {
             foreach (string assemblyName in s_AssemblyNames)
             {
-                Assembly assembly = Assembly.Load(assemblyName);
+                Assembly assembly = null;
+                try
+                {
+                    assembly = Assembly.Load(assemblyName);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (assembly == null)
+                {
+                    continue;
+                }
 
                 object instance = assembly.CreateInstance(helperTypeName);
                 if (instance != null)

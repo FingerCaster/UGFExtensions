@@ -71,6 +71,7 @@ namespace ReferenceBindTool.Editor
                 DrawSetting();
                 EditorGUILayout.Space();
                 DrawBindObjects();
+                m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
                 m_Page.Draw();
             }
             serializedObject.ApplyModifiedProperties();
@@ -337,7 +338,6 @@ namespace ReferenceBindTool.Editor
         private void ResetAllFieldName()
         {
             m_Target.ResetAllFieldName();
-            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -346,7 +346,6 @@ namespace ReferenceBindTool.Editor
         private void Refresh()
         {
             m_Target.Refresh();
-            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -355,7 +354,6 @@ namespace ReferenceBindTool.Editor
         private void Sort()
         {
             m_Target.Sort();
-            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -364,7 +362,6 @@ namespace ReferenceBindTool.Editor
         private void RemoveAll()
         {
             m_Target.RemoveAll();
-            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -373,7 +370,6 @@ namespace ReferenceBindTool.Editor
         private void RemoveNull()
         {
             m_Target.RemoveNull();
-            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         /// <summary>
@@ -382,7 +378,6 @@ namespace ReferenceBindTool.Editor
         private void AutoBindComponent()
         {
             m_Target.RuleBindComponents();
-            m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
         }
 
         #endregion
@@ -417,50 +412,59 @@ namespace ReferenceBindTool.Editor
         {
             int bindAopNeedDeleteIndex = -1;
             int bindComNeedDeleteIndex = -1;
-
-            EditorGUILayout.BeginVertical();
+            
             int i = m_Page.CurrentPage * m_Page.ShowCount;
-            int index = 0;
+            int count = i + m_Page.ShowCount;
+            
+            if (count > m_Target.GetAllBindObjectsCount())
+            {
+                count = m_Target.GetAllBindObjectsCount();
+            }
 
-            if (i < m_Target.BindAssetsOrPrefabs.Count)
+            if (count == 0)
+            {
+                return;
+            }
+            EditorGUILayout.BeginVertical();
+
+            int bindAssetShowCount = m_Target.BindAssetsOrPrefabs.Count - i;
+            
+            if (bindAssetShowCount>0)
             {
                 EditorGUILayout.LabelField("绑定的资源或预制体");
-            }
-
-            for (; i < m_Target.BindAssetsOrPrefabs.Count; i++, index++)
-            {
-                if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i], index))
+                for (; i < bindAssetShowCount; i++)
                 {
-                    bindAopNeedDeleteIndex = i;
+                    if (DrawBindObjectData(m_Target.BindAssetsOrPrefabs[i], i))
+                    {
+                        bindAopNeedDeleteIndex = i;
+                    }
                 }
             }
-
-            if (m_Target.BindComponents.Count > 0)
+            int bindComponentShowCount = count - i;
+            if (bindComponentShowCount > 0)
             {
                 EditorGUILayout.LabelField("绑定的组件");
-            }
-
-            for (i = 0; i < m_Target.BindComponents.Count; i++, index++)
-            {
-                if (DrawBindObjectData(m_Target.BindComponents[i], index))
+                int index = i > m_Target.BindAssetsOrPrefabs.Count ? 0 : m_Target.BindAssetsOrPrefabs.Count - i;
+                for (; index < bindComponentShowCount; index++,i++)
                 {
-                    bindComNeedDeleteIndex = i;
+                    if (DrawBindObjectData(m_Target.BindComponents[index], i))
+                    {
+                        bindComNeedDeleteIndex = index;
+                    }
                 }
             }
-
+            
             //删除data
             if (bindAopNeedDeleteIndex != -1)
             {
                 m_Target.BindAssetsOrPrefabs.RemoveAt(bindAopNeedDeleteIndex);
                 m_Target.SyncBindObjects();
-                m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
             }
 
             if (bindComNeedDeleteIndex != -1)
             {
                 m_Target.BindComponents.RemoveAt(bindComNeedDeleteIndex);
                 m_Target.SyncBindObjects();
-                m_Page.SetAllCount(m_Target.GetAllBindObjectsCount());
             }
 
             EditorGUILayout.EndVertical();

@@ -1,5 +1,7 @@
 ﻿
-using UnityEngine;
+using System;
+using Object = UnityEngine.Object;
+using BindObjectData =  ReferenceBindTool.ReferenceBindComponent.BindObjectData;
 
 namespace ReferenceBindTool
 {
@@ -22,9 +24,9 @@ namespace ReferenceBindTool
         /// <summary>
         /// 绑定符合规则的资源或预制体
         /// </summary>
-        /// <param name="referenceBindComponent">引用绑定组件</param>
         /// <param name="fieldName">字段名称</param>
         /// <param name="obj">对象</param>
-        void BindAssetOrPrefab(ReferenceBindComponent referenceBindComponent,string fieldName,Object obj);
+        /// <param name="bindAction">绑定操作</param>
+        void BindAssetOrPrefab(string fieldName,Object obj,Action<bool> bindAction);
     }
 }
