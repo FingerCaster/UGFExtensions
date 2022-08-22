@@ -497,7 +497,7 @@ namespace ReferenceBindTool.Editor
         private bool DrawBindObjectData(ReferenceBindComponent.BindObjectData bindObjectData, int index)
         {
             bool isDelete = false;
-            EditorGUILayout.BeginHorizontal();
+            Rect rect = EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField($"[{index}]", GUILayout.Width(40));
 
             EditorGUI.BeginChangeCheck();
@@ -519,7 +519,7 @@ namespace ReferenceBindTool.Editor
             }
 
             EditorGUILayout.EndHorizontal();
-
+            OnBindObjectDataClick(rect,bindObjectData);
 
             if (bindObjectData.FieldNameIsInvalid)
             {
@@ -534,6 +534,36 @@ namespace ReferenceBindTool.Editor
             return isDelete;
         }
 
+        private void OnBindObjectDataClick(Rect contextRect,ReferenceBindComponent.BindObjectData bindObjectData)
+        {
+            Event evt = Event.current;
+            if (evt.type == EventType.ContextClick)
+            {
+                Vector2 mousePos = evt.mousePosition;
+                if (contextRect.Contains (mousePos))
+                {
+                    EditorUtility.DisplayPopupMenu(new Rect(mousePos.x, mousePos.y, 0, 0), "Assets/DC", null);
+                    
+                    GenericMenu menu  = new GenericMenu ();
+ 
+                    menu.AddItem (new GUIContent ("Refresh FieldName"), false, data =>
+                    {
+                        bool isComponent = bindObjectData.BindObject is Component;
+                        bindObjectData.FieldName = isComponent ? 
+                            m_Target.BindComponentsRuleHelper.GetDefaultFieldName((Component)bindObjectData.BindObject) : 
+                            m_Target.BindAssetOrPrefabRuleHelper.GetDefaultFieldName(bindObjectData.BindObject);
+                        
+                        Refresh();
+                    }, bindObjectData);
+                    menu.ShowAsContext ();
+
+                    evt.Use();
+                }
+            }
+
+        }
         #endregion
     }
+    
+   
 }
