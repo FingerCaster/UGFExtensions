@@ -94,7 +94,7 @@ namespace ReferenceBindTool.Editor
                     : m_Target.BindAssetOrPrefabRuleHelperTypeName);
 
             m_BindAssetOrPrefabRuleHelperInfo =
-                new HelperInfo<IBindAssetOrPrefabRuleHelper>("m_BindAssetOrPrefabRule");
+                new HelperInfo<IBindAssetOrPrefabRuleHelper>("m_BindAssetOrPrefabRule",null);
 
             m_BindAssetOrPrefabRuleHelperInfo.Init(m_Target.BindAssetOrPrefabRuleHelperTypeName, typeName =>
             {
@@ -106,7 +106,7 @@ namespace ReferenceBindTool.Editor
                 ? typeof(DefaultBindComponentsRuleHelper).FullName
                 : m_Target.BindComponentsRuleHelperTypeName);
 
-            m_BindComponentsHelperInfo = new HelperInfo<IBindComponentsRuleHelper>("m_BindComponentsRule");
+            m_BindComponentsHelperInfo = new HelperInfo<IBindComponentsRuleHelper>("m_BindComponentsRule",null);
 
             m_BindComponentsHelperInfo.Init(m_Target.BindComponentsRuleHelperTypeName, typeName =>
             {
@@ -117,7 +117,10 @@ namespace ReferenceBindTool.Editor
                 ? typeof(DefaultCodeGeneratorRuleHelper).FullName
                 : m_Target.CodeGeneratorRuleHelperTypeName);
 
-            m_CodeGeneratorRuleHelperInfo = new HelperInfo<ICodeGeneratorRuleHelper>("m_CodeGeneratorRule");
+            m_CodeGeneratorRuleHelperInfo = new HelperInfo<ICodeGeneratorRuleHelper>("m_CodeGeneratorRule",new []
+            {
+                typeof(TransformFindCodeGeneratorRuleHelper).FullName
+            });
 
             m_CodeGeneratorRuleHelperInfo.Init(m_Target.CodeGeneratorRuleHelperTypeName, typeName =>
             {
@@ -334,9 +337,9 @@ namespace ReferenceBindTool.Editor
                 RemoveAll();
             }
 
-            if (GUILayout.Button("自动绑定组件"))
+            if (GUILayout.Button("绑定组件"))
             {
-                AutoBindComponent();
+                RuleBindComponent();
             }
 
             if (GUILayout.Button("生成绑定代码"))
@@ -349,7 +352,7 @@ namespace ReferenceBindTool.Editor
                 var bindDataList = new List<ReferenceBindComponent.BindObjectData>(m_Target.GetAllBindObjectsCount());
                 bindDataList.AddRange(m_Target.BindAssetsOrPrefabs);
                 bindDataList.AddRange(m_Target.BindComponents);
-                m_Target.CodeGeneratorRuleHelper.GeneratorCodeAndWriteToFile(bindDataList,m_Target.CodeGeneratorSettingData.Namespace, className, m_Target.CodeGeneratorSettingData.CodePath);
+                m_Target.CodeGeneratorRuleHelper.GeneratorCodeAndWriteToFile(bindDataList,m_Target.CodeGeneratorSettingData.Namespace, className, m_Target.CodeGeneratorSettingData.CodePath,null);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -396,9 +399,9 @@ namespace ReferenceBindTool.Editor
         }
 
         /// <summary>
-        /// 自动绑定组件
+        /// 规则绑定组件
         /// </summary>
-        private void AutoBindComponent()
+        private void RuleBindComponent()
         {
             m_Target.RuleBindComponents();
         }

@@ -9,7 +9,7 @@ namespace ReferenceBindTool.Editor
 {
     public class DefaultCodeGeneratorRuleHelper : ICodeGeneratorRuleHelper
     {
-        public string GetGeneratorCode(List<ReferenceBindComponent.BindObjectData> bindDataList, string  nameSpace,string className)
+        public string GetGeneratorCode(List<ReferenceBindComponent.BindObjectData> bindDataList, string  nameSpace,string className,object userData)
         {
             var repeatNameData =  bindDataList.Find(_ => _.IsRepeatName);
 
@@ -86,7 +86,7 @@ namespace ReferenceBindTool.Editor
             return stringBuilder.ToString();
         }
 
-        public bool GeneratorCodeAndWriteToFile(List<ReferenceBindComponent.BindObjectData> bindDataList, string  nameSpace, string className, string folderPath)
+        public bool GeneratorCodeAndWriteToFile(List<ReferenceBindComponent.BindObjectData> bindDataList, string  nameSpace, string className, string folderPath,object userData)
         {
             if (!Directory.Exists(folderPath))
             {
@@ -94,7 +94,7 @@ namespace ReferenceBindTool.Editor
                 return false;
             }
 
-            string str = GetGeneratorCode(bindDataList, nameSpace,className);
+            string str = GetGeneratorCode(bindDataList, nameSpace,className,userData);
             string filePath = $"{folderPath}/{className}.BindComponents.cs";
             if (File.Exists(filePath) && str == File.ReadAllText(filePath))
             {

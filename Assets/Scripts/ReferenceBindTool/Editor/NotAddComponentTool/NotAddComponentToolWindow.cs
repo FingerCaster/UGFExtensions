@@ -13,61 +13,35 @@ namespace ReferenceBindTool.Editor
         {
             var window = GetWindow<NotAddComponentToolWindow>();
             window.titleContent = new GUIContent("NotAddComponentToolWindow");
+            window.minSize = new Vector2(600, 450);
             window.Show();
         }
 
-        private NotAddComponentData m_NotAddComponentData = new NotAddComponentData();
+        private NotAddComponentData m_Target;
         private Page m_Page;
         [SerializeField] private SearchableData m_SettingDataSearchable;
-        private SerializedProperty m_SearchableSerializedProperty;
+        private SerializedProperty m_SettingDataSearchableProperty;
         private ReferenceBindCodeGeneratorSettingConfig m_CodeGeneratorSettingConfig;
         private bool m_SettingDataExpanded = true;
         private int m_LastSettingDataNameIndex;
         private bool m_SettingDataError;
-
         private HelperInfo<IBindComponentsRuleHelper> m_BindComponentsHelperInfo;
+        private HelperInfo<ICodeGeneratorRuleHelper> m_CodeGeneratorRuleHelperInfo;
 
         private bool m_IsInitError = false;
 
-        private void SetGameObject(GameObject gameObject)
-        {
-            m_NotAddComponentData.GameObject = gameObject;
-            m_SettingDataError = false;
-            
-            if (m_NotAddComponentData.CodeGeneratorSettingData == null)
-            {
-                m_NotAddComponentData.SetSettingData(m_CodeGeneratorSettingConfig.Settings[0]);
-            }
-            else
-            {
-                var data = m_CodeGeneratorSettingConfig.GetSettingData(m_NotAddComponentData.CodeGeneratorSettingData.Name);
-                if (data == null)
-                {
-                    Debug.LogError($"不存在名为‘{m_NotAddComponentData.CodeGeneratorSettingData.Name}’的AutoBindSettingData");
-                    m_SettingDataError = true;
-                    return;
-                }
-
-                m_NotAddComponentData.SetSettingData(
-                    m_CodeGeneratorSettingConfig.GetSettingData(m_NotAddComponentData.CodeGeneratorSettingData.Name));
-            }
-
-            m_NotAddComponentData.SetClassName(string.IsNullOrEmpty(m_NotAddComponentData.GeneratorCodeName)
-                ? m_NotAddComponentData.GameObject.name
-                : m_NotAddComponentData.GeneratorCodeName);
-     
-           
-        }
         private void OnEnable()
         {
             try
             {
-                m_Page = new Page(10, 0);
+                m_Target = new NotAddComponentData();
+                m_Page = new Page(10, m_Target.BindComponents.Count);
                 if (!CheckCodeGeneratorSettingData())
                 {
                     m_IsInitError = true;
                     return;
                 }
+
                 InitSearchable();
                 InitHelperInfos();
             }
@@ -77,7 +51,9 @@ namespace ReferenceBindTool.Editor
                 m_IsInitError = true;
             }
         }
+
         private GameObject m_CurrentGameObject;
+
         public void OnGUI()
         {
             if (m_IsInitError)
@@ -90,32 +66,67 @@ namespace ReferenceBindTool.Editor
                 m_IsCompiling = false;
                 OnCompileComplete();
             }
-            EditorGUI.BeginChangeCheck();
-            var currentGameObject = (GameObject) EditorGUILayout.ObjectField("GameObject", m_CurrentGameObject, typeof(GameObject), true);
-
-            if (EditorGUI.EndChangeCheck())
+            else if (!m_IsCompiling && EditorApplication.isCompiling)
             {
-                m_CurrentGameObject = currentGameObject;
+                m_IsCompiling = true;
+            }
+
+            m_CurrentGameObject =
+                (GameObject) EditorGUILayout.ObjectField("GameObject", m_CurrentGameObject, typeof(GameObject), true);
+
+            if (m_Target.GameObject != m_CurrentGameObject)
+            {
                 SetGameObject(m_CurrentGameObject);
             }
 
-            if (m_NotAddComponentData.GameObject == null)
+            if (m_Target.GameObject == null)
             {
                 return;
             }
 
             using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
             {
-                DrawTopButton();
+                DrawButtons();
                 EditorGUILayout.Space();
                 DrawHelperSelect();
                 EditorGUILayout.Space();
                 DrawSetting();
                 EditorGUILayout.Space();
                 DrawBindObjects();
+                m_Page.SetAllCount(m_Target.BindComponents.Count);
                 m_Page.Draw();
             }
+        }
 
+        private void SetGameObject(GameObject gameObject)
+        {
+            m_Target.GameObject = gameObject;
+            m_SettingDataError = false;
+
+            if (m_Target.CodeGeneratorSettingData == null)
+            {
+                m_Target.SetSettingData(m_CodeGeneratorSettingConfig.Settings[0]);
+            }
+            else
+            {
+                var data = m_CodeGeneratorSettingConfig.GetSettingData(m_Target.CodeGeneratorSettingData.Name);
+                if (data == null)
+                {
+                    Debug.LogError($"不存在名为‘{m_Target.CodeGeneratorSettingData.Name}’的AutoBindSettingData");
+                    m_SettingDataError = true;
+                    return;
+                }
+
+                m_Target.SetSettingData(
+                    m_CodeGeneratorSettingConfig.GetSettingData(m_Target.CodeGeneratorSettingData.Name));
+            }
+
+            m_Target.SetClassName(string.IsNullOrEmpty(m_Target.GeneratorCodeName)
+                ? m_Target.GameObject.name
+                : m_Target.GeneratorCodeName);
+
+
+            m_Target.BindComponents.Clear();
         }
 
         #region 规则帮助类
@@ -124,16 +135,27 @@ namespace ReferenceBindTool.Editor
 
         private void InitHelperInfos()
         {
-            m_NotAddComponentData.SetRuleHelperTypeName(string.IsNullOrEmpty(m_NotAddComponentData.RuleHelperTypeName)
+            m_Target.SetBindComponentsRuleHelperTypeName(string.IsNullOrEmpty(m_Target.BindComponentsRuleHelperTypeName)
                 ? typeof(DefaultBindComponentsRuleHelper).FullName
-                : m_NotAddComponentData.RuleHelperTypeName);
-            
-            m_BindComponentsHelperInfo = new HelperInfo<IBindComponentsRuleHelper>("m_BindComponentsRule");
-
-            m_BindComponentsHelperInfo.Init(m_NotAddComponentData.RuleHelperTypeName, typeName =>
+                : m_Target.BindComponentsRuleHelperTypeName);
+            m_BindComponentsHelperInfo = new HelperInfo<IBindComponentsRuleHelper>("m_BindComponentsRule", null);
+            m_BindComponentsHelperInfo.Init(m_Target.BindComponentsRuleHelperTypeName, typeName =>
             {
-                m_NotAddComponentData.SetRuleHelperTypeName(typeName);
-                return m_NotAddComponentData.RuleHelperTypeName;
+                m_Target.SetBindComponentsRuleHelperTypeName(typeName);
+                return m_Target.BindComponentsRuleHelperTypeName;
+            });
+
+            m_Target.SetCodeGeneratorRuleHelperTypeName(string.IsNullOrEmpty(m_Target.CodeGeneratorRuleHelperTypeName)
+                ? typeof(TransformFindCodeGeneratorRuleHelper).FullName
+                : m_Target.CodeGeneratorRuleHelperTypeName);
+            m_CodeGeneratorRuleHelperInfo = new HelperInfo<ICodeGeneratorRuleHelper>("m_CodeGeneratorRule", new[]
+            {
+                typeof(DefaultCodeGeneratorRuleHelper).FullName,
+            });
+            m_CodeGeneratorRuleHelperInfo.Init(m_Target.CodeGeneratorRuleHelperTypeName, typeName =>
+            {
+                m_Target.SetCodeGeneratorRuleHelperTypeName(typeName);
+                return m_Target.CodeGeneratorRuleHelperTypeName;
             });
 
             RefreshHelperTypeNames();
@@ -147,6 +169,7 @@ namespace ReferenceBindTool.Editor
         void RefreshHelperTypeNames()
         {
             m_BindComponentsHelperInfo.Refresh();
+            m_CodeGeneratorRuleHelperInfo.Refresh();
         }
 
         /// <summary>
@@ -155,6 +178,7 @@ namespace ReferenceBindTool.Editor
         private void DrawHelperSelect()
         {
             m_BindComponentsHelperInfo.Draw();
+            m_CodeGeneratorRuleHelperInfo.Draw();
         }
 
         #endregion
@@ -167,22 +191,27 @@ namespace ReferenceBindTool.Editor
         private void InitSearchable()
         {
             var settingDataNames = m_CodeGeneratorSettingConfig.Settings.Select(_ => _.Name).ToArray();
-            m_SettingDataSearchable = new SearchableData() {Select = 0, Names = settingDataNames};
-            m_SearchableSerializedProperty = new SerializedObject(this).FindProperty("m_SettingDataSearchable");
+            m_SettingDataSearchable = new SearchableData()
+            {
+                Select = 0,
+                Names = settingDataNames,
+            };
+
+            m_SettingDataSearchableProperty = new SerializedObject(this).FindProperty("m_SettingDataSearchable");
         }
 
         private void ReloadSearchableData(string currentName)
         {
-            string[] paths = AssetDatabase.FindAssets("t:AutoBindSettingConfig");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                Debug.LogError("不存在AutoBindSettingConfig");
+                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
                 return;
             }
 
             if (paths.Length > 1)
             {
-                Debug.LogError("AutoBindSettingConfig数量大于1");
+                Debug.LogError($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
                 return;
             }
 
@@ -190,12 +219,14 @@ namespace ReferenceBindTool.Editor
             m_CodeGeneratorSettingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
             if (m_CodeGeneratorSettingConfig.Settings.Count == 0)
             {
-                Debug.LogError("不存在AutoBindSettingData");
+                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingData)}");
                 return;
             }
+
             var settingDataNames = m_CodeGeneratorSettingConfig.Settings.Select(_ => _.Name).ToList();
 
-            int findIndex = m_CodeGeneratorSettingConfig.Settings.FindIndex(_ => _ == m_NotAddComponentData.CodeGeneratorSettingData);
+            int findIndex =
+                m_CodeGeneratorSettingConfig.Settings.FindIndex(_ => _ == m_Target.CodeGeneratorSettingData);
             if (findIndex == -1)
             {
                 m_SettingDataError = true;
@@ -204,9 +235,10 @@ namespace ReferenceBindTool.Editor
             {
                 m_SettingDataSearchable.Select = findIndex;
                 m_SettingDataSearchable.Names = settingDataNames.ToArray();
-                m_SearchableSerializedProperty = new SerializedObject(this).FindProperty("m_SettingDataSearchable");
+                m_SettingDataSearchableProperty = new SerializedObject(this).FindProperty("m_SettingDataSearchable");
             }
         }
+
         /// <summary>
         /// 绘制设置项
         /// </summary>
@@ -221,35 +253,36 @@ namespace ReferenceBindTool.Editor
 
             if (m_SettingDataError)
             {
-                EditorGUILayout.HelpBox($"不存在名为‘{m_NotAddComponentData.CodeGeneratorSettingData.Name}’的AutoBindSettingData",
+                EditorGUILayout.HelpBox($"不存在名为‘{m_Target.CodeGeneratorSettingData.Name}’的AutoBindSettingData",
                     MessageType.Error);
-                if (!string.IsNullOrEmpty(m_NotAddComponentData.CodeGeneratorSettingData.Name))
+                if (!string.IsNullOrEmpty(m_Target.CodeGeneratorSettingData.Name))
                 {
-                    if (GUILayout.Button($"创建 {m_NotAddComponentData.CodeGeneratorSettingData.Name} 绑定配置"))
+                    if (GUILayout.Button($"创建 {m_Target.CodeGeneratorSettingData.Name} 绑定配置"))
                     {
                         bool result =
-                            ReferenceBindUtility.AddAutoBindSetting(m_NotAddComponentData.CodeGeneratorSettingData.Name, "", "");
+                            ReferenceBindUtility.AddAutoBindSetting(m_Target.CodeGeneratorSettingData.Name, "", "");
                         if (!result)
                         {
                             EditorUtility.DisplayDialog("创建配置", "创建代码自动生成配置失败，请检查配置信息！", "确定");
                             return;
                         }
 
-                        m_NotAddComponentData.SetSettingData(m_NotAddComponentData.CodeGeneratorSettingData.Name);
+                        m_Target.SetSettingData(m_Target.CodeGeneratorSettingData.Name);
                         m_SettingDataError = false;
                     }
                 }
 
                 if (GUILayout.Button("使用默认配置"))
                 {
-                    m_NotAddComponentData.SetSettingData(m_CodeGeneratorSettingConfig.Default);
+                    m_Target.SetSettingData(m_CodeGeneratorSettingConfig.Default);
                     m_SettingDataError = false;
                 }
 
                 return;
             }
+
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(m_SearchableSerializedProperty);
+            EditorGUILayout.PropertyField(m_SettingDataSearchableProperty);
             if (m_SettingDataSearchable.Select != m_LastSettingDataNameIndex)
             {
                 if (m_SettingDataSearchable.Select >= m_CodeGeneratorSettingConfig.Settings.Count)
@@ -258,39 +291,40 @@ namespace ReferenceBindTool.Editor
                     return;
                 }
 
-                m_NotAddComponentData.SetSettingData(m_CodeGeneratorSettingConfig.Settings[m_SettingDataSearchable.Select]);
-                m_NotAddComponentData.SetClassName(string.IsNullOrEmpty(m_NotAddComponentData.GeneratorCodeName)
-                    ? m_NotAddComponentData.GameObject.name
-                    : m_NotAddComponentData.GeneratorCodeName);
+                m_Target.SetSettingData(m_CodeGeneratorSettingConfig.Settings[m_SettingDataSearchable.Select]);
+                m_Target.SetClassName(string.IsNullOrEmpty(m_Target.GeneratorCodeName)
+                    ? m_Target.GameObject.name
+                    : m_Target.GeneratorCodeName);
                 m_LastSettingDataNameIndex = m_SettingDataSearchable.Select;
             }
-            if (GUILayout.Button("Reload",GUILayout.Width(80)))
+
+            if (GUILayout.Button("Reload", GUILayout.Width(80)))
             {
                 ReloadSearchableData(m_SettingDataSearchable.Names[m_SettingDataSearchable.Select]);
             }
-            EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.PrefixLabel("命名空间：");
-            EditorGUILayout.LabelField(m_NotAddComponentData.CodeGeneratorSettingData.Namespace);
+            EditorGUILayout.LabelField(m_Target.CodeGeneratorSettingData.Namespace);
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-            m_NotAddComponentData.SetClassName(EditorGUILayout.TextField(new GUIContent("类名："), m_NotAddComponentData.GeneratorCodeName));
+            m_Target.SetClassName(EditorGUILayout.TextField(new GUIContent("类名："), m_Target.GeneratorCodeName));
 
             if (GUILayout.Button("物体名"))
             {
-                m_NotAddComponentData.SetClassName(m_NotAddComponentData.GameObject.name);
+                m_Target.SetClassName(m_Target.GameObject.name);
             }
 
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel("代码保存路径：");
-            EditorGUILayout.LabelField(m_NotAddComponentData.CodeGeneratorSettingData.CodePath);
+            EditorGUILayout.LabelField(m_Target.CodeGeneratorSettingData.CodePath);
             EditorGUILayout.EndHorizontal();
-            if (string.IsNullOrEmpty(m_NotAddComponentData.CodeGeneratorSettingData.CodePath))
+            if (string.IsNullOrEmpty(m_Target.CodeGeneratorSettingData.CodePath))
             {
                 EditorGUILayout.HelpBox("代码保存路径不能为空!", MessageType.Error);
             }
@@ -328,134 +362,134 @@ namespace ReferenceBindTool.Editor
 
         #endregion
 
-        #region 顶部功能按钮
+        #region 按钮
 
         /// <summary>
-        /// 绘制顶部按钮
+        /// 绘制功能按钮
         /// </summary>
-        private void DrawTopButton()
+        private void DrawButtons()
         {
             EditorGUILayout.BeginHorizontal();
 
-            // if (GUILayout.Button("排序"))
-            // {
-            //     Sort();
-            // }
-            //
-            // if (GUILayout.Button("刷新对象"))
-            // {
-            //     Refresh();
-            // }
-            //
-            // if (GUILayout.Button("重置组建字段名"))
-            // {
-            //     ResetAllFieldName();
-            // }
-            //
-            // if (GUILayout.Button("删除空对象"))
-            // {
-            //     RemoveNull();
-            // }
-            //
-            // if (GUILayout.Button("全部删除"))
-            // {
-            //     RemoveAll();
-            // }
-
-            if (GUILayout.Button("自动绑定组件"))
+            if (GUILayout.Button("排序"))
             {
-                AutoBindComponent();
+                Sort();
             }
 
-            // if (GUILayout.Button("生成绑定代码"))
-            // {
-            //     string className = !string.IsNullOrEmpty(m_NotAddComponentData.GeneratorCodeName)
-            //         ? m_NotAddComponentData.GeneratorCodeName
-            //         : m_NotAddComponentData.GameObject.name;
-            //
-            //     ReferenceBindUtility.GenAutoBindCode(m_NotAddComponentData, className, m_NotAddComponentData.CodeGeneratorSettingData.CodePath);
-            // }
+            if (GUILayout.Button("刷新对象"))
+            {
+                Refresh();
+            }
+
+            if (GUILayout.Button("重置组建字段名"))
+            {
+                ResetAllFieldName();
+            }
+
+            if (GUILayout.Button("删除空对象"))
+            {
+                RemoveNull();
+            }
+
+            if (GUILayout.Button("全部删除"))
+            {
+                RemoveAll();
+            }
+
+            if (GUILayout.Button("绑定组件"))
+            {
+                RuleBindComponents();
+            }
+
+            if (GUILayout.Button("生成绑定代码"))
+            {
+                string className = !string.IsNullOrEmpty(m_Target.GeneratorCodeName)
+                    ? m_Target.GeneratorCodeName
+                    : m_Target.GameObject.name;
+
+                m_Target.CodeGeneratorRuleHelper.GeneratorCodeAndWriteToFile(m_Target.BindComponents,
+                    m_Target.CodeGeneratorSettingData.Namespace, className, m_Target.CodeGeneratorSettingData.CodePath,
+                    m_Target.GameObject.transform);
+            }
 
             EditorGUILayout.EndHorizontal();
         }
 
-        // /// <summary>
-        // /// 重置所有字段名
-        // /// </summary>
-        // private void ResetAllFieldName()
-        // {
-        //     m_NotAddComponentData.ResetAllFieldName();
-        //     m_Page.SetAllCount(m_NotAddComponentData.BindComponents.Count);
-        // }
-        //
-        // /// <summary>
-        // /// 刷新数据
-        // /// </summary>
-        // private void Refresh()
-        // {
-        //     m_NotAddComponentData.Refresh();
-        //     m_Page.SetAllCount(m_NotAddComponentData.BindComponents.Count);
-        // }
-        //
-        // /// <summary>
-        // /// 排序
-        // /// </summary>
-        // private void Sort()
-        // {
-        //     m_NotAddComponentData.Sort();
-        //     m_Page.SetAllCount(m_NotAddComponentData.BindComponents.Count);
-        // }
-        //
-        // /// <summary>
-        // /// 全部删除
-        // /// </summary>
-        // private void RemoveAll()
-        // {
-        //     m_NotAddComponentData.RemoveAll();
-        //     m_Page.SetAllCount(m_NotAddComponentData.BindComponents.Count);
-        // }
-        //
-        // /// <summary>
-        // /// 删除Missing Or Null
-        // /// </summary>
-        // private void RemoveNull()
-        // {
-        //     m_NotAddComponentData.RemoveNull();
-        //     m_Page.SetAllCount(m_NotAddComponentData.BindComponents.Count);
-        // }
+        /// <summary>
+        /// 重置所有字段名
+        /// </summary>
+        private void ResetAllFieldName()
+        {
+            m_Target.ResetAllFieldName();
+        }
+
+        /// <summary>
+        /// 刷新数据
+        /// </summary>
+        private void Refresh()
+        {
+            m_Target.Refresh();
+        }
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        private void Sort()
+        {
+            m_Target.Sort();
+        }
+
+        /// <summary>
+        /// 全部删除
+        /// </summary>
+        private void RemoveAll()
+        {
+            m_Target.RemoveAll();
+        }
+
+        /// <summary>
+        /// 删除Missing Or Null
+        /// </summary>
+        private void RemoveNull()
+        {
+            m_Target.RemoveNull();
+        }
 
         /// <summary>
         /// 自动绑定组件
         /// </summary>
-        private void AutoBindComponent()
+        private void RuleBindComponents()
         {
-            m_NotAddComponentData.RuleBindComponents();
-            m_Page.SetAllCount(m_NotAddComponentData.BindComponents.Count);
+            m_Target.RuleBindComponents();
         }
 
         #endregion
-        
+
         #region 绑定对象信息
 
         private void DrawBindObjects()
         {
             int bindComNeedDeleteIndex = -1;
 
-            EditorGUILayout.BeginVertical();
             int i = m_Page.CurrentPage * m_Page.ShowCount;
-
-
-            for (i = 0; i < m_NotAddComponentData.BindComponents.Count; i++)
+            int count = i + m_Page.ShowCount;
+            if (count > m_Target.BindComponents.Count)
             {
-                if (DrawBindObjectData(m_NotAddComponentData.BindComponents[i],i))
+                count = m_Target.BindComponents.Count;
+            }
+
+            EditorGUILayout.BeginVertical();
+            for (; i < count; i++)
+            {
+                if (DrawBindObjectData(m_Target.BindComponents[i], i))
                 {
                     bindComNeedDeleteIndex = i;
                 }
             }
-            
+
             if (bindComNeedDeleteIndex != -1)
             {
-                m_NotAddComponentData.BindComponents.RemoveAt(bindComNeedDeleteIndex);
+                m_Target.BindComponents.RemoveAt(bindComNeedDeleteIndex);
             }
 
             EditorGUILayout.EndVertical();
@@ -464,7 +498,7 @@ namespace ReferenceBindTool.Editor
         private bool DrawBindObjectData(ReferenceBindComponent.BindObjectData bindObjectData, int index)
         {
             bool isDelete = false;
-            EditorGUILayout.BeginHorizontal();
+            Rect rect = EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField($"[{index}]", GUILayout.Width(40));
 
             EditorGUI.BeginChangeCheck();
@@ -472,7 +506,7 @@ namespace ReferenceBindTool.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 bindObjectData.FieldName = fieldName;
-                //Refresh();
+                Refresh();
             }
 
             GUI.enabled = false;
@@ -486,9 +520,9 @@ namespace ReferenceBindTool.Editor
             }
 
             EditorGUILayout.EndHorizontal();
+            OnBindObjectDataClick(rect, bindObjectData);
 
-
-            if (bindObjectData.FileNameIsInvalid)
+            if (bindObjectData.FieldNameIsInvalid)
             {
                 EditorGUILayout.HelpBox("绑定对象命名无效 不符合规则。 请修改!", MessageType.Error);
             }
@@ -499,6 +533,29 @@ namespace ReferenceBindTool.Editor
             }
 
             return isDelete;
+        }
+
+        private void OnBindObjectDataClick(Rect contextRect, ReferenceBindComponent.BindObjectData bindObjectData)
+        {
+            Event evt = Event.current;
+            if (evt.type == EventType.ContextClick)
+            {
+                Vector2 mousePos = evt.mousePosition;
+                if (contextRect.Contains(mousePos))
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Refresh FieldName"), false, data =>
+                    {
+                        bindObjectData.FieldName = m_Target.BindComponentsRuleHelper.GetDefaultFieldName(
+                            (Component) bindObjectData.BindObject);
+
+                        Refresh();
+                    }, bindObjectData);
+                    menu.ShowAsContext();
+
+                    evt.Use();
+                }
+            }
         }
 
         #endregion

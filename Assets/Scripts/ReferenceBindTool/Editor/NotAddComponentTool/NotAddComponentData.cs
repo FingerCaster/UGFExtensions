@@ -38,19 +38,39 @@ namespace ReferenceBindTool.Editor
             get => m_GeneratorCodeName;
             set => m_GeneratorCodeName = value;
         }
-        public IBindComponentsRuleHelper RuleHelper
+        public IBindComponentsRuleHelper BindComponentsRuleHelper
         {
             get;
             set;
         }
+        /// <summary>
+        /// 代码生成规则
+        /// </summary>
+        public ICodeGeneratorRuleHelper CodeGeneratorRuleHelper
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// 生成代码规则
+        /// </summary>
+        public string CodeGeneratorRuleHelperTypeName
+        {
+            get => m_CodeGeneratorRuleHelperTypeName;
+            set => m_CodeGeneratorRuleHelperTypeName = value;
+        }
+        /// <summary>
+        /// 生成代码规则
+        /// </summary>
+        private string m_CodeGeneratorRuleHelperTypeName;
 
-        private string m_RuleHelperTypeName  = typeof(DefaultBindComponentsRuleHelper).FullName;
+        private string m_BindComponentsRuleHelperTypeName;
 
         
-        public string RuleHelperTypeName
+        public string BindComponentsRuleHelperTypeName
         {
-            get => m_RuleHelperTypeName;
-            set => m_RuleHelperTypeName = value;
+            get => m_BindComponentsRuleHelperTypeName;
+            set => m_BindComponentsRuleHelperTypeName = value;
         }
     }
 }

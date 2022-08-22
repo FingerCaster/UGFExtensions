@@ -38,8 +38,9 @@ namespace ReferenceBindTool
         /// <param name="bindDataList">绑定数据</param>
         /// <param name="nameSpace">生成代码的命名空间</param>
         /// <param name="className">脚本名</param>
+        /// <param name="userData">自定义数据</param>
         /// <returns>生成的代码字符串</returns>
-        string GetGeneratorCode(List<ReferenceBindComponent.BindObjectData> bindDataList, string nameSpace,string className);
+        string GetGeneratorCode(List<ReferenceBindComponent.BindObjectData> bindDataList, string nameSpace,string className,object userData);
 
 
         /// <summary>
@@ -49,7 +50,8 @@ namespace ReferenceBindTool
         /// <param name="nameSpace">生成代码的命名空间</param>
         /// <param name="className">脚本名</param>
         /// <param name="folderPath">文件夹地址</param>
+        /// <param name="userData">自定义数据</param>
         /// <returns>生成代码写入文件成功</returns>
-        bool GeneratorCodeAndWriteToFile(List<ReferenceBindComponent.BindObjectData> bindDataList, string nameSpace,string className,string folderPath);
+        bool GeneratorCodeAndWriteToFile(List<ReferenceBindComponent.BindObjectData> bindDataList, string nameSpace,string className,string folderPath,object userData);
     }
 }
