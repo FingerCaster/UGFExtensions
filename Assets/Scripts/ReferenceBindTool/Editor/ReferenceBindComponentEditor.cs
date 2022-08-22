@@ -542,10 +542,7 @@ namespace ReferenceBindTool.Editor
                 Vector2 mousePos = evt.mousePosition;
                 if (contextRect.Contains (mousePos))
                 {
-                    EditorUtility.DisplayPopupMenu(new Rect(mousePos.x, mousePos.y, 0, 0), "Assets/DC", null);
-                    
                     GenericMenu menu  = new GenericMenu ();
- 
                     menu.AddItem (new GUIContent ("Refresh FieldName"), false, data =>
                     {
                         bool isComponent = bindObjectData.BindObject is Component;
