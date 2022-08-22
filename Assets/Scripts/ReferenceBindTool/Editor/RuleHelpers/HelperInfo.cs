@@ -47,7 +47,7 @@ namespace ReferenceBindTool.Editor
         {
             List<string> helperTypeNameList = new List<string>();
 
-            helperTypeNameList.AddRange(ReferenceBindUtility.GetTypeNames(typeof(T)));
+            helperTypeNameList.AddRange(HelperUtility.GetTypeNames(typeof(T)));
             m_HelperTypeNames = helperTypeNameList.ToArray();
             if (m_HelperTypeNames.Length == 0)
             {

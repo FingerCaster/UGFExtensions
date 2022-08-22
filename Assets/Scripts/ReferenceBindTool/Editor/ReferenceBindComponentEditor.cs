@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace ReferenceBindTool.Editor
 
         private HelperInfo<IBindComponentsRuleHelper> m_BindComponentsHelperInfo;
         private HelperInfo<IBindAssetOrPrefabRuleHelper> m_BindAssetOrPrefabRuleHelperInfo;
+        private HelperInfo<ICodeGeneratorRuleHelper> m_CodeGeneratorRuleHelperInfo;
 
         private bool m_IsInitError = false;
         private void OnEnable()
@@ -57,6 +59,10 @@ namespace ReferenceBindTool.Editor
             {
                 m_IsCompiling = false;
                 OnCompileComplete();
+            }
+            else if (!m_IsCompiling && EditorApplication.isCompiling)
+            {
+                m_IsCompiling = true;
             }
 
             serializedObject.Update();
@@ -106,6 +112,17 @@ namespace ReferenceBindTool.Editor
             {
                 m_Target.SetBindComponentsRuleHelperTypeName(typeName);
                 return m_Target.BindComponentsRuleHelperTypeName;
+            }); 
+            m_Target.SetCodeGeneratorRuleHelperTypeName(string.IsNullOrEmpty(m_Target.CodeGeneratorRuleHelperTypeName)
+                ? typeof(DefaultCodeGeneratorRuleHelper).FullName
+                : m_Target.CodeGeneratorRuleHelperTypeName);
+
+            m_CodeGeneratorRuleHelperInfo = new HelperInfo<ICodeGeneratorRuleHelper>("m_CodeGeneratorRule");
+
+            m_CodeGeneratorRuleHelperInfo.Init(m_Target.CodeGeneratorRuleHelperTypeName, typeName =>
+            {
+                m_Target.SetCodeGeneratorRuleHelperTypeName(typeName);
+                return m_Target.CodeGeneratorRuleHelperTypeName;
             });
 
             RefreshHelperTypeNames();
@@ -121,6 +138,7 @@ namespace ReferenceBindTool.Editor
         {
             m_BindAssetOrPrefabRuleHelperInfo.Refresh();
             m_BindComponentsHelperInfo.Refresh();
+            m_CodeGeneratorRuleHelperInfo.Refresh();
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -131,6 +149,7 @@ namespace ReferenceBindTool.Editor
         {
             m_BindAssetOrPrefabRuleHelperInfo.Draw();
             m_BindComponentsHelperInfo.Draw();
+            m_CodeGeneratorRuleHelperInfo.Draw();
         }
         #endregion
         
@@ -326,7 +345,11 @@ namespace ReferenceBindTool.Editor
                     ? m_Target.GeneratorCodeName
                     : m_Target.gameObject.name;
 
-                ReferenceBindUtility.GenAutoBindCode(m_Target, className, m_Target.CodeGeneratorSettingData.CodePath);
+
+                var bindDataList = new List<ReferenceBindComponent.BindObjectData>(m_Target.GetAllBindObjectsCount());
+                bindDataList.AddRange(m_Target.BindAssetsOrPrefabs);
+                bindDataList.AddRange(m_Target.BindComponents);
+                m_Target.CodeGeneratorRuleHelper.GeneratorCodeAndWriteToFile(bindDataList,m_Target.CodeGeneratorSettingData.Namespace, className, m_Target.CodeGeneratorSettingData.CodePath);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -445,9 +468,10 @@ namespace ReferenceBindTool.Editor
             {
                 EditorGUILayout.LabelField("绑定的组件");
                 int index = i > m_Target.BindAssetsOrPrefabs.Count ? 0 : m_Target.BindAssetsOrPrefabs.Count - i;
+                int startIndex =  i - m_Target.BindAssetsOrPrefabs.Count;
                 for (; index < bindComponentShowCount; index++,i++)
                 {
-                    if (DrawBindObjectData(m_Target.BindComponents[index], i))
+                    if (DrawBindObjectData(m_Target.BindComponents[index+startIndex], i))
                     {
                         bindComNeedDeleteIndex = index;
                     }
@@ -497,7 +521,7 @@ namespace ReferenceBindTool.Editor
             EditorGUILayout.EndHorizontal();
 
 
-            if (bindObjectData.FileNameIsInvalid)
+            if (bindObjectData.FieldNameIsInvalid)
             {
                 EditorGUILayout.HelpBox("绑定对象命名无效 不符合规则。 请修改!", MessageType.Error);
             }

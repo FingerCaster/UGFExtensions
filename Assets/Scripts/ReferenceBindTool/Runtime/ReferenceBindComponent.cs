@@ -68,7 +68,7 @@ namespace ReferenceBindTool
             /// <summary>
             /// 字段名称是否无效
             /// </summary>
-            public bool FileNameIsInvalid
+            public bool FieldNameIsInvalid
             {
                 get => m_FiedNameIsInvalid;
                 set => m_FiedNameIsInvalid = value;
@@ -115,6 +115,10 @@ namespace ReferenceBindTool
         /// </summary>
         [SerializeField] private string m_BindAssetOrPrefabRuleHelperTypeName;
 
+        /// <summary>
+        /// 生成代码规则
+        /// </summary>
+        [SerializeField] private string m_CodeGeneratorRuleHelperTypeName;
         /// <summary>
         /// 所有绑定组件
         /// </summary>
@@ -193,6 +197,14 @@ namespace ReferenceBindTool
             get;
             set;
         }
+        /// <summary>
+        /// 代码生成规则
+        /// </summary>
+        public ICodeGeneratorRuleHelper CodeGeneratorRuleHelper
+        {
+            get;
+            set;
+        }
         
         /// <summary>
         /// 自动绑定组件规则类型名称
@@ -209,6 +221,15 @@ namespace ReferenceBindTool
         {
             get => m_BindAssetOrPrefabRuleHelperTypeName;
             set => m_BindAssetOrPrefabRuleHelperTypeName = value;
+        }
+
+        /// <summary>
+        /// 生成代码规则
+        /// </summary>
+        public string CodeGeneratorRuleHelperTypeName
+        {
+            get => m_CodeGeneratorRuleHelperTypeName;
+            set => m_CodeGeneratorRuleHelperTypeName = value;
         }
 #endif
 

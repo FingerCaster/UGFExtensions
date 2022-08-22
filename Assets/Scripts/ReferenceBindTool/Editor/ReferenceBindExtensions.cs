@@ -142,9 +142,21 @@ namespace ReferenceBindTool.Editor
                 }
             }
 
+            if (!isRepeat)
+            {
+                for (int i = 0; i < self.BindComponents.Count; i++)
+                {
+                    if (self.BindComponents[i].FieldName == name)
+                    {
+                        isRepeat = true;
+                        break;
+                    }
+                }
+            }
+
             self.BindAssetsOrPrefabs.Add(new ReferenceBindComponent.BindObjectData(isRepeat, name, bindObject)
             {
-                FileNameIsInvalid = self.BindAssetOrPrefabRuleHelper.CheckFieldNameIsInvalid(name)
+                FieldNameIsInvalid = self.BindAssetOrPrefabRuleHelper.CheckFieldNameIsInvalid(name)
             });
             self.SyncBindObjects();
         }
@@ -168,18 +180,31 @@ namespace ReferenceBindTool.Editor
             }
 
             bool isRepeat = false;
-            for (int j = 0; j < self.BindComponents.Count; j++)
+            for (int i = 0; i < self.BindComponents.Count; i++)
             {
-                if (self.BindComponents[j].FieldName == name)
+                if (self.BindComponents[i].FieldName == name)
                 {
                     isRepeat = true;
                     break;
                 }
             }
 
+            if (!isRepeat)
+            {
+                for (int i = 0; i < self.BindAssetsOrPrefabs.Count; i++)
+                {
+                    if (self.BindAssetsOrPrefabs[i].FieldName == name)
+                    {
+                        isRepeat = true;
+                        break;
+                    }
+                }
+            }
+            
+
             self.BindComponents.Add(new BindObjectData(isRepeat, name, bindComponent)
             {
-                FileNameIsInvalid = self.BindComponentsRuleHelper.CheckFieldNameIsInvalid(name)
+                FieldNameIsInvalid = self.BindComponentsRuleHelper.CheckFieldNameIsInvalid(name)
             });
             if (isSyncBindObject)
             {
@@ -352,7 +377,7 @@ namespace ReferenceBindTool.Editor
 
             self.BindComponentsRuleHelperTypeName = ruleHelperName;
             IBindComponentsRuleHelper helper =
-                (IBindComponentsRuleHelper)ReferenceBindUtility.CreateHelperInstance(self.BindComponentsRuleHelperTypeName);
+                (IBindComponentsRuleHelper)HelperUtility.CreateHelperInstance(self.BindComponentsRuleHelperTypeName);
             self.BindComponentsRuleHelper = helper;
             EditorUtility.SetDirty(self);
         }
@@ -371,8 +396,27 @@ namespace ReferenceBindTool.Editor
 
             self.BindAssetOrPrefabRuleHelperTypeName = ruleHelperName;
             IBindAssetOrPrefabRuleHelper helper =
-                (IBindAssetOrPrefabRuleHelper) ReferenceBindUtility.CreateHelperInstance(self.BindAssetOrPrefabRuleHelperTypeName);
+                (IBindAssetOrPrefabRuleHelper) HelperUtility.CreateHelperInstance(self.BindAssetOrPrefabRuleHelperTypeName);
             self.BindAssetOrPrefabRuleHelper = helper;
+            EditorUtility.SetDirty(self);
+        }
+        
+        /// <summary>
+        /// 设置代码生成规则帮助类
+        /// </summary>
+        /// <param name="self"></param>
+        /// <param name="ruleHelperName"></param>
+        public static void SetCodeGeneratorRuleHelperTypeName(this ReferenceBindComponent self, string ruleHelperName)
+        {
+            if (self.CodeGeneratorRuleHelperTypeName == ruleHelperName && self.CodeGeneratorRuleHelper != null)
+            {
+                return;
+            }
+
+            self.CodeGeneratorRuleHelperTypeName = ruleHelperName;
+            ICodeGeneratorRuleHelper helper =
+                (ICodeGeneratorRuleHelper)HelperUtility.CreateHelperInstance(self.CodeGeneratorRuleHelperTypeName);
+            self.CodeGeneratorRuleHelper = helper;
             EditorUtility.SetDirty(self);
         }
     }
