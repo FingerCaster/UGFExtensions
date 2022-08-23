@@ -139,7 +139,7 @@
 
 ​		代码生成设置配置。 全局只需要生成一份 用于保存代码生成配置数据
 
-​		![image-20220823144903489](C:\Users\scz\AppData\Roaming\Typora\typora-user-images\image-20220823144903489.png)
+​		![image](https://tva4.sinaimg.cn/large/e1b1a94bgy1h5gq148vadj20en056gm0.jpg)
 
 ​		`类名` 生成的代码的名称。可以使用默认的物体名 或者自己制定
 
