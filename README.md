@@ -17,13 +17,17 @@
 
 ## 7.[SpriteCollection扩展](./Assets/Scripts/SpriteCollectionExtension)
 
-## 8.[ComponentAutoBindTool](./Assets/Scripts/ComponentBindTool)
+## 8.~~ComponentAutoBindTool~~ 已删除。请使用ReferenceBindTool
 
 ## 9.[TextureExtension](./Assets/Scripts/TextureExtension)
 
 ## 10.[时间轮组件](./Assets/Scripts/TimingWheel)
 
 ## 11.[MergeFileToVFS](./Assets/Scripts/MergeFileToVFSExtension)
+
+## 12.[引用绑定工具 ReferenceBindTool](./Assets/Scripts/ReferenceBindTool)
+
+
 
 # 引用库 致谢
 
