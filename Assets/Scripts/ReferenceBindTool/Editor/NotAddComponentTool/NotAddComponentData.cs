@@ -25,9 +25,9 @@ namespace ReferenceBindTool.Editor
         
         private string m_GeneratorCodeName;
         
-        private ReferenceBindCodeGeneratorSettingData m_CodeGeneratorSettingData;
+        private CodeGeneratorSettingData m_CodeGeneratorSettingData;
         
-        public ReferenceBindCodeGeneratorSettingData CodeGeneratorSettingData
+        public CodeGeneratorSettingData CodeGeneratorSettingData
         {
             get => m_CodeGeneratorSettingData;
             set => m_CodeGeneratorSettingData = value;

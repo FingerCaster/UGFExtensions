@@ -291,7 +291,7 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         /// <param name="self"></param>
         /// <param name="data"></param>
-        public static void SetSettingData(this ReferenceBindComponent self, ReferenceBindCodeGeneratorSettingData data)
+        public static void SetSettingData(this ReferenceBindComponent self, CodeGeneratorSettingData data)
         {
             if (self.CodeGeneratorSettingData == data)
             {
@@ -304,9 +304,9 @@ namespace ReferenceBindTool.Editor
                 int findIndex = self.SettingDataSearchable.Names.ToList().FindIndex(_ => _ == data.Name);
                 if (findIndex == -1)
                 {
-                    string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                    string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
                     string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-                    var settingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
+                    var settingConfig = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(path);
                     var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
                     self.SettingDataSearchable.Select = settingDataNames.FindIndex(_ => _ == data.Name);
                     self.SettingDataSearchable.Names = settingDataNames.ToArray();
@@ -333,9 +333,9 @@ namespace ReferenceBindTool.Editor
                 int findIndex = self.SettingDataSearchable.Names.ToList().FindIndex(_ => _ == name);
                 if (findIndex == -1)
                 {
-                    string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                    string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
                     string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-                    var settingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
+                    var settingConfig = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(path);
                     var settingDataNames = settingConfig.Settings.Select(_ => _.Name).ToList();
 
                     self.SettingDataSearchable.Select = settingDataNames.FindIndex(_ => _ == name);

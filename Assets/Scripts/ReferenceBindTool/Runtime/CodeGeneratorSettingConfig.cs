@@ -9,7 +9,7 @@ namespace ReferenceBindTool
     /// <summary>
     /// 引用绑定绑定全局设置
     /// </summary>
-    public class ReferenceBindCodeGeneratorSettingConfig : ScriptableObject
+    public class CodeGeneratorSettingConfig : ScriptableObject
     {
         /// <summary>
         /// 默认配置名称
@@ -20,22 +20,22 @@ namespace ReferenceBindTool
         /// 所有设置
         /// </summary>
         [SerializeField]
-        private List<ReferenceBindCodeGeneratorSettingData> m_Settings =
-            new List<ReferenceBindCodeGeneratorSettingData>();
+        private List<CodeGeneratorSettingData> m_Settings =
+            new List<CodeGeneratorSettingData>();
 
-        public List<ReferenceBindCodeGeneratorSettingData> Settings
+        public List<CodeGeneratorSettingData> Settings
         {
             get => m_Settings;
         }
 
-        public ReferenceBindCodeGeneratorSettingData Default
+        public CodeGeneratorSettingData Default
         {
             get
             {
                 var data = GetSettingData(DefaultStr);
                 if (data == null)
                 {
-                    data = new ReferenceBindCodeGeneratorSettingData(DefaultStr);
+                    data = new CodeGeneratorSettingData(DefaultStr);
                     m_Settings.Add(data);
                 }
 
@@ -48,7 +48,7 @@ namespace ReferenceBindTool
         /// </summary>
         /// <param name="settingName">配置名称</param>
         /// <returns></returns>
-        public ReferenceBindCodeGeneratorSettingData GetSettingData(string settingName)
+        public CodeGeneratorSettingData GetSettingData(string settingName)
         {
             int index = m_Settings.FindIndex(_ => _.Name == settingName);
             if (index == -1)
@@ -64,7 +64,7 @@ namespace ReferenceBindTool
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public bool AddSettingData(ReferenceBindCodeGeneratorSettingData data)
+        public bool AddSettingData(CodeGeneratorSettingData data)
         {
             int index = m_Settings.FindIndex(_ => _.Name == data.Name);
             if (index == -1)
@@ -79,17 +79,17 @@ namespace ReferenceBindTool
         [MenuItem("Tools/ReferenceBindTools/CreateBindSettingConfig")]
         public static void CreateBindSettingConfig()
         {
-            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
             if (paths.Length >= 1)
             {
                 string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-                EditorUtility.DisplayDialog("警告", $"已存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}，路径:{path}", "确认");
+                EditorUtility.DisplayDialog("警告", $"已存在{nameof(CodeGeneratorSettingConfig)}，路径:{path}", "确认");
                 return;
             }
 
-            ReferenceBindCodeGeneratorSettingConfig codeGeneratorSettingConfig =
-                CreateInstance<ReferenceBindCodeGeneratorSettingConfig>();
-            codeGeneratorSettingConfig.m_Settings.Add(new ReferenceBindCodeGeneratorSettingData(DefaultStr));
+            CodeGeneratorSettingConfig codeGeneratorSettingConfig =
+                CreateInstance<CodeGeneratorSettingConfig>();
+            codeGeneratorSettingConfig.m_Settings.Add(new CodeGeneratorSettingData(DefaultStr));
 
             AssetDatabase.CreateAsset(codeGeneratorSettingConfig, "Assets/BindSettingConfig.asset");
             AssetDatabase.SaveAssets();

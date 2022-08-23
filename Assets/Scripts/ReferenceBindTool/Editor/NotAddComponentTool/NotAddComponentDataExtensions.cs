@@ -108,7 +108,7 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         /// <param name="self"></param>
         /// <param name="data"></param>
-        public static void SetSettingData(this NotAddComponentData self, ReferenceBindCodeGeneratorSettingData data)
+        public static void SetSettingData(this NotAddComponentData self, CodeGeneratorSettingData data)
         {
             if (self.CodeGeneratorSettingData == data)
             {

@@ -21,7 +21,7 @@ namespace ReferenceBindTool.Editor
         private Page m_Page;
         [SerializeField] private SearchableData m_SettingDataSearchable;
         private SerializedProperty m_SettingDataSearchableProperty;
-        private ReferenceBindCodeGeneratorSettingConfig m_CodeGeneratorSettingConfig;
+        private CodeGeneratorSettingConfig m_CodeGeneratorSettingConfig;
         private bool m_SettingDataExpanded = true;
         private int m_LastSettingDataNameIndex;
         private bool m_SettingDataError;
@@ -202,24 +202,24 @@ namespace ReferenceBindTool.Editor
 
         private void ReloadSearchableData(string currentName)
         {
-            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                Debug.LogError($"不存在{nameof(CodeGeneratorSettingConfig)}");
                 return;
             }
 
             if (paths.Length > 1)
             {
-                Debug.LogError($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
+                Debug.LogError($"{nameof(CodeGeneratorSettingConfig)}数量大于1");
                 return;
             }
 
             string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-            m_CodeGeneratorSettingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
+            m_CodeGeneratorSettingConfig = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(path);
             if (m_CodeGeneratorSettingConfig.Settings.Count == 0)
             {
-                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingData)}");
+                Debug.LogError($"不存在{nameof(CodeGeneratorSettingData)}");
                 return;
             }
 
@@ -336,24 +336,24 @@ namespace ReferenceBindTool.Editor
         /// <returns></returns>
         private bool CheckCodeGeneratorSettingData()
         {
-            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                Debug.LogError($"不存在{nameof(CodeGeneratorSettingConfig)}");
                 return false;
             }
 
             if (paths.Length > 1)
             {
-                Debug.LogError($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
+                Debug.LogError($"{nameof(CodeGeneratorSettingConfig)}数量大于1");
                 return false;
             }
 
             string path = AssetDatabase.GUIDToAssetPath(paths[0]);
-            m_CodeGeneratorSettingConfig = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(path);
+            m_CodeGeneratorSettingConfig = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(path);
             if (m_CodeGeneratorSettingConfig.Settings.Count == 0)
             {
-                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingData)}");
+                Debug.LogError($"不存在{nameof(CodeGeneratorSettingData)}");
                 return false;
             }
 

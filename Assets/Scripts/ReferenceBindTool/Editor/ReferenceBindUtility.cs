@@ -19,16 +19,16 @@ namespace ReferenceBindTool.Editor
         /// <param name="isAutoCreateDir"></param>
         public static void SetBindSetting(string name, string nameSpace, string path, bool isAutoCreateDir)
         {
-            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                Debug.LogError($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                Debug.LogError($"不存在{nameof(CodeGeneratorSettingConfig)}");
                 return;
             }
 
             if (paths.Length > 1)
             {
-                Debug.LogError($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
+                Debug.LogError($"{nameof(CodeGeneratorSettingConfig)}数量大于1");
                 return;
             }
 
@@ -39,7 +39,7 @@ namespace ReferenceBindTool.Editor
                 Directory.CreateDirectory(path);
             }
 
-            var setting = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(settingPath);
+            var setting = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(settingPath);
             var settingData = setting.GetSettingData(name);
             settingData.Namespace = nameSpace;
             settingData.CodePath = path;
@@ -53,21 +53,21 @@ namespace ReferenceBindTool.Editor
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static ReferenceBindCodeGeneratorSettingData GetAutoBindSetting(string name)
+        public static CodeGeneratorSettingData GetAutoBindSetting(string name)
         {
-            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                throw new Exception($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                throw new Exception($"不存在{nameof(CodeGeneratorSettingConfig)}");
             }
 
             if (paths.Length > 1)
             {
-                throw new Exception($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
+                throw new Exception($"{nameof(CodeGeneratorSettingConfig)}数量大于1");
             }
 
             string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
-            var setting = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(settingPath);
+            var setting = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(settingPath);
             return setting.GetSettingData(name);
         }
 
@@ -80,25 +80,25 @@ namespace ReferenceBindTool.Editor
         /// <returns></returns>
         public static bool AddAutoBindSetting(string name, string folder, string nameSpace)
         {
-            string[] paths = AssetDatabase.FindAssets($"t:{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+            string[] paths = AssetDatabase.FindAssets($"t:{nameof(CodeGeneratorSettingConfig)}");
             if (paths.Length == 0)
             {
-                throw new Exception($"不存在{nameof(ReferenceBindCodeGeneratorSettingConfig)}");
+                throw new Exception($"不存在{nameof(CodeGeneratorSettingConfig)}");
             }
 
             if (paths.Length > 1)
             {
-                throw new Exception($"{nameof(ReferenceBindCodeGeneratorSettingConfig)}数量大于1");
+                throw new Exception($"{nameof(CodeGeneratorSettingConfig)}数量大于1");
             }
 
             string settingPath = AssetDatabase.GUIDToAssetPath(paths[0]);
-            var setting = AssetDatabase.LoadAssetAtPath<ReferenceBindCodeGeneratorSettingConfig>(settingPath);
+            var setting = AssetDatabase.LoadAssetAtPath<CodeGeneratorSettingConfig>(settingPath);
             if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            bool result = setting.AddSettingData(new ReferenceBindCodeGeneratorSettingData(name, folder, nameSpace));
+            bool result = setting.AddSettingData(new CodeGeneratorSettingData(name, folder, nameSpace));
             EditorUtility.SetDirty(setting);
             AssetDatabase.SaveAssets();
             return result;

@@ -8,7 +8,7 @@ namespace ReferenceBindTool
     /// 引用绑定工具代码生成配置数据类
     /// </summary>
     [Serializable]
-    public class ReferenceBindCodeGeneratorSettingData
+    public class CodeGeneratorSettingData
     {
         /// <summary>
         /// 配置名
@@ -27,12 +27,12 @@ namespace ReferenceBindTool
         /// </summary>
         [SerializeField] private bool m_IsExpand = false;
 
-        public ReferenceBindCodeGeneratorSettingData(string name)
+        public CodeGeneratorSettingData(string name)
         {
             m_Name = name;
         }
 
-        public ReferenceBindCodeGeneratorSettingData(string name, string codeFolderPath, string nameSpace)
+        public CodeGeneratorSettingData(string name, string codeFolderPath, string nameSpace)
         {
             m_Name = name;
             m_CodeFolderPath = codeFolderPath;

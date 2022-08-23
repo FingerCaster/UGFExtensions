@@ -57,7 +57,7 @@ namespace ReferenceBindTool.Editor
 
             stringBuilder.AppendLine("");
 
-            stringBuilder.AppendLine($"{indentation}\tprivate void GetBindObjects(GameObject go)");
+            stringBuilder.AppendLine($"{indentation}\tprivate void InitBindObjects(GameObject go)");
             stringBuilder.AppendLine($"{indentation}\t{{");
 
 

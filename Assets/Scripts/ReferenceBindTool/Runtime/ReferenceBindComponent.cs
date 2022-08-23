@@ -84,7 +84,7 @@ namespace ReferenceBindTool
         /// <summary>
         /// 自动绑定设置数据
         /// </summary>
-        [SerializeField] private ReferenceBindCodeGeneratorSettingData m_CodeGeneratorSettingData;
+        [SerializeField] private CodeGeneratorSettingData m_CodeGeneratorSettingData;
 
         /// <summary>
         /// 所有绑定组件
@@ -158,7 +158,7 @@ namespace ReferenceBindTool
         /// <summary>
         /// 自动绑定设置数据
         /// </summary>
-        public ReferenceBindCodeGeneratorSettingData CodeGeneratorSettingData
+        public CodeGeneratorSettingData CodeGeneratorSettingData
         {
             get => m_CodeGeneratorSettingData;
             set => m_CodeGeneratorSettingData = value;
