@@ -96,6 +96,7 @@ namespace ReferenceBindTool.Editor
                     }
                 }
             }
+            bindAction.Invoke(bindList);
         }
     }
 }
