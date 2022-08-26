@@ -86,6 +86,11 @@ namespace ReferenceBindTool.Editor
                     if (m_PrefixesDict.TryGetValue(str, out var componentType))
                     {
                         var component = child.GetComponent(componentType);
+                        if (component == null)
+                        {
+                            Debug.LogWarning($"{child.name}上不存在对应的组件{componentType},绑定失败");
+                            continue;
+                        }
                         var bindData = bindComponents.Find(_ => _.BindObject == component);
                         string fieldName = bindData == null ? GetDefaultFieldName(component) : bindData.FieldName;
                         bindList.Add((fieldName,component));
