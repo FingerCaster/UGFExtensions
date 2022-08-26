@@ -34,6 +34,10 @@ namespace ReferenceBindTool.Editor
 
                 foreach (Component component in bindDataSelect.BindComponents)
                 {
+                    if (component == null)
+                    {
+                        continue;
+                    }
                     var bindData = bindComponents.Find(_ => _.BindObject == component);
                     string fieldName = bindData == null ? GetDefaultFieldName(component) : bindData.FieldName;
                     bindList.Add((fieldName,component));

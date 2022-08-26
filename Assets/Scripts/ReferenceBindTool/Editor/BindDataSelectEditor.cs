@@ -53,8 +53,14 @@ namespace ReferenceBindTool.Editor
             EditorGUILayout.Space();
 
             int needDeleteIndex = -1;
+            List<int> needDeleteList = new List<int>();
             for (int i = 0; i < m_BindComponents.arraySize; i++)
             {
+                if (m_BindComponents.GetArrayElementAtIndex(i).objectReferenceValue == null)
+                {
+                    needDeleteList.Add(i);
+                    continue;
+                }
                 EditorGUILayout.BeginHorizontal();
                 GUI.enabled = false;
                 EditorGUILayout.LabelField("Type：", GUILayout.Width(40));
@@ -71,6 +77,14 @@ namespace ReferenceBindTool.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
+            }
+            
+            if (needDeleteList.Count > 0)
+            {
+                for (int i = needDeleteList.Count - 1; i >= 0; i--)
+                {
+                    m_BindComponents.DeleteArrayElementAtIndex(needDeleteList[i]);
+                }
             }
 
             if (needDeleteIndex != -1)
