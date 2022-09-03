@@ -10,7 +10,7 @@ namespace UGFExtensions
             set;
         }
 
-        public string StandaloneAppUrl
+        public string WindowsAppUrl
         {
             get;
             set;
