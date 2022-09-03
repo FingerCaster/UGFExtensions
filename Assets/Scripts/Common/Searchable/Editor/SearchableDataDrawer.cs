@@ -5,61 +5,52 @@ using UnityEngine;
 namespace RoboRyanTron.SearchableEnum.Editor
 {
     [CustomPropertyDrawer(typeof(SearchableData))]
-    public  class SearchableDataDrawer : PropertyDrawer
+    public class SearchableDataDrawer : PropertyDrawer
     {
-        private int m_IdHash =  "SearchableData".GetHashCode();
-        private string[] m_Names = null;
-        SerializedProperty m_select = null;
-        private bool m_IsInit = false;
-        private void Init(SerializedProperty property)
-        {
-            if (!m_IsInit)
-            {
-                m_select = property.FindPropertyRelative("m_Select");
-                SerializedProperty names = property.FindPropertyRelative("m_Names");
-                if (m_Names== null)
-                {
-                    m_Names = new string[names.arraySize];
-                    for (int i = 0; i < m_Names.Length; i++)
-                    {
-                        m_Names[i] = names.GetArrayElementAtIndex(i).stringValue;
-                    }
-                }
-            }
-            m_IsInit = true;
-        }
+        private int m_IdHash = "SearchableData".GetHashCode();
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            Init(property);
+            SerializedProperty selectProperty = property.FindPropertyRelative("m_Select");
+            SerializedProperty namesProperty = property.FindPropertyRelative("m_Names");
+
             int id = GUIUtility.GetControlID(m_IdHash, FocusType.Keyboard, position);
-            
+
             label = EditorGUI.BeginProperty(position, label, property);
             position = EditorGUI.PrefixLabel(position, id, label);
 
             GUIContent buttonText;
             // If the enum has changed, a blank entry
-            if (m_select.intValue < 0 ||m_select.intValue >= m_Names.Length) {
+            if (selectProperty.intValue < 0 || selectProperty.intValue >= namesProperty.arraySize)
+            {
                 buttonText = new GUIContent();
             }
-            else {
-                buttonText = new GUIContent(m_Names[m_select.intValue]);
+            else
+            {
+                buttonText = new GUIContent(namesProperty.GetArrayElementAtIndex(selectProperty.intValue).stringValue);
             }
-            
+
             if (DropdownButton(id, position, buttonText))
             {
                 Action<int> onSelect = i =>
                 {
-                    m_select.intValue = i;
+                    selectProperty.intValue = i;
                     property.serializedObject.ApplyModifiedProperties();
                 };
-             
-               
-                SearchablePopup.Show(position,m_Names , m_select.intValue, onSelect);
+                string[] names = new string[namesProperty.arraySize];
+
+                names = new string[namesProperty.arraySize];
+                for (int i = 0; i < namesProperty.arraySize; i++)
+                {
+                    names[i] = namesProperty.GetArrayElementAtIndex(i).stringValue;
+                }
+
+                SearchablePopup.Show(position, names, selectProperty.intValue, onSelect);
             }
+
             EditorGUI.EndProperty();
         }
-        
+
         /// <summary>
         /// A custom button drawer that allows for a controlID so that we can
         /// sync the button ID and the label ID to allow for keyboard
@@ -76,18 +67,21 @@ namespace RoboRyanTron.SearchableEnum.Editor
                         Event.current.Use();
                         return true;
                     }
+
                     break;
                 case EventType.KeyDown:
-                    if (GUIUtility.keyboardControl == id && current.character =='\n')
+                    if (GUIUtility.keyboardControl == id && current.character == '\n')
                     {
                         Event.current.Use();
                         return true;
                     }
+
                     break;
                 case EventType.Repaint:
                     EditorStyles.popup.Draw(position, content, id, false);
                     break;
             }
+
             return false;
         }
     }

@@ -51,7 +51,9 @@ namespace RoboRyanTron.SearchableEnum.Editor
         /// popup more responsive to mouse movement.
         /// </summary>
         private static void Repaint()
-        { EditorWindow.focusedWindow.Repaint(); }
+        {
+            EditorWindow.focusedWindow.Repaint();
+        }
         
         /// <summary> Draw a generic box. </summary>
         /// <param name="rect">Where to draw.</param>
