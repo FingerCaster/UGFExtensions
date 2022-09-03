@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ReferenceBindTool.Editor
+namespace ReferenceBindTool
 {
     public class BindDataSelect : MonoBehaviour
     {

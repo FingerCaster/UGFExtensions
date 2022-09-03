@@ -37,7 +37,7 @@ namespace ReferenceBindTool.Editor
             }
 
             string displayName = FieldNameForDisplay(m_FieldName);
-            int selectedIndex = EditorGUILayout.Popup(Utility.Text.Format("{0} Helper", displayName),
+            int selectedIndex = EditorGUILayout.Popup($"{displayName} Helper",
                 m_HelperTypeNameIndex, m_HelperTypeNames);
             if (selectedIndex != m_HelperTypeNameIndex)
             {
