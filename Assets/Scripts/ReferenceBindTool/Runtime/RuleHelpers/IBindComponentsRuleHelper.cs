@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BindObjectData =  ReferenceBindTool.ReferenceBindComponent.BindObjectData;
@@ -33,3 +34,4 @@ namespace ReferenceBindTool
         void BindComponents(GameObject gameObject,List<BindObjectData> bindComponents,Action<List<(string,Component)>> bindAction);
     }
 }
+#endif

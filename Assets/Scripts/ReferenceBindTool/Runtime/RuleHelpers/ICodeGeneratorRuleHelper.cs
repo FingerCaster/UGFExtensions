@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReferenceBindTool
@@ -55,3 +56,4 @@ namespace ReferenceBindTool
         bool GeneratorCodeAndWriteToFile(List<ReferenceBindComponent.BindObjectData> bindDataList, string nameSpace,string className,string folderPath,object userData);
     }
 }
+#endif

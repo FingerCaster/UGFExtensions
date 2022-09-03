@@ -1,4 +1,4 @@
-﻿
+﻿#if UNITY_EDITOR
 using System;
 using Object = UnityEngine.Object;
 using BindObjectData =  ReferenceBindTool.ReferenceBindComponent.BindObjectData;
@@ -30,3 +30,4 @@ namespace ReferenceBindTool
         void BindAssetOrPrefab(string fieldName,Object obj,Action<bool> bindAction);
     }
 }
+#endif
