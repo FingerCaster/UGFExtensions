@@ -25,7 +25,7 @@
 
 ## 11.[MergeFileToVFS](./Assets/Scripts/MergeFileToVFSExtension)
 
-## 12.[引用绑定工具 ReferenceBindTool](./Assets/Scripts/ReferenceBindTool)
+## 12.[引用绑定工具 ReferenceBindTool](https://github.com/FingerCaster/ReferenceBindTool)
 
 
 
