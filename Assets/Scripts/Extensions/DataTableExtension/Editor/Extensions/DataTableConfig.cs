@@ -20,7 +20,7 @@ namespace DE.Editor
         /// <summary>
         /// 数据表C#实体类生成文件夹路径
         /// </summary>
-        public const string CSharpCodePath = "Assets/Scripts/Extensions/DataTableExtension/Runtime/DataTable";
+        public const string CSharpCodePath = "Assets/Scripts/Test/DataTableExtension/DataTable";
 
         /// <summary>
         /// 数据表C#实体类模板存放路径
@@ -30,7 +30,7 @@ namespace DE.Editor
         /// <summary>
         /// 数据表扩展类文件夹路径
         /// </summary>
-        public static readonly string ExtensionDirectoryPath = "Assets/Scripts/Extensions/DataTableExtension/Runtime/Extensions";
+        public static readonly string ExtensionDirectoryPath = "Assets/Scripts/Test/DataTableExtension/Extensions";
 
         /// <summary>
         /// 数据表命名空间
