@@ -3,7 +3,7 @@
 
 
 
-## 1.[数据表扩展](./Assets/Scripts/DataTableExtension)  
+## 1.[数据表扩展](./Assets/Scripts/Extensions/DataTableExtension)  
 
 ## 2.[Await/Async扩展](./Assets/Scripts/AwaitExtension)
 
