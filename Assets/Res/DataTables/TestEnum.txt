@@ -1,0 +1,5 @@
+﻿#	测试表格生成						
+#	Id	TestEnum	TestEnum1	TestEnumList	TestEnumArray	TestEnumDic	TestString
+#	int	Test.TestEnum	Test.TestEnum1	list<Test.TestEnum>	Test.TestEnum[]	dictionary<Test.TestEnum,int>	string
+#	编号	测试枚举	测试枚举1	测试枚举list	测试枚举Array	测试枚举字典	测试带换行的字符串
+	1	1	Test3	Test3,2,Test4	1,2,3	{1#1}|{2#2}|{3#3}	测试带换行的字符串1\n测试带换行的字符串2\n测试带换行的字符串3" '
