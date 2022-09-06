@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: a0261ba9f4be469c81ea6adc28e08dc9, type: 3}
   m_Name: DataTableConfig
   m_EditorClassIdentifier: 
   DataTableFolderPath: Assets/Res/DataTables
-  ExcelsFolder: F:/GithubDownload/UGFExtensions/Assets/../Excels/
-  CSharpCodePath: /DataTableensions/DataTableExtension/Runtime/DataTable
+  ExcelsFolder: Assets/../Excels/
+  CSharpCodePath: Assets/Extensions/DataTableExtension/Runtime/DataTable
   CSharpCodeTemplateFileName: Assets/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt
   ExtensionDirectoryPath: Assets/Extensions/DataTableExtension/Runtime/Extensions
   NameSpace: UGFExtensions
