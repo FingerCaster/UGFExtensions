@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Extensions.DataTableExtension.Editor;
 using GameFramework;
 using OfficeOpenXml;
 using UnityEditor;
-using UnityEngine;
 
 namespace DE.Editor.DataTableTools
 {
