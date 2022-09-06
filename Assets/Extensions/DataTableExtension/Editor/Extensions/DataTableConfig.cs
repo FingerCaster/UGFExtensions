@@ -179,7 +179,6 @@ namespace DE.Editor
             {
 #if UNITY_2017_3_OR_NEWER
                 //asmdef
-                "Test",
 #endif
                 "Assembly-CSharp"
             };
