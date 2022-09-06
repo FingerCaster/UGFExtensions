@@ -25,9 +25,6 @@ MonoBehaviour:
   - UnityGameFramework.Editor
   - DE.Editor
   - Assembly-CSharp-Editor
-  TxtFilePaths: []
-  DataTableNames: []
-  ExcelFilePaths: []
   NameRow: 1
   TypeRow: 2
   CommentRow: 3
