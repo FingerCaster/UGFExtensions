@@ -19,7 +19,6 @@ MonoBehaviour:
   ExtensionDirectoryPath: Assets/Extensions/DataTableExtension/Runtime/Extensions
   NameSpace: UGFExtensions
   AssemblyNames:
-  - Test
   - Assembly-CSharp
   EditorAssemblyNames:
   - UnityGameFramework.Editor
