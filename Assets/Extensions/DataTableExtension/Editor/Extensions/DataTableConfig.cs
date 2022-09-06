@@ -6,7 +6,7 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 
-namespace Extensions.DataTableExtension.Editor
+namespace DE.Editor
 {
     /// <summary>
     /// 数据表编辑器配置相关数据
