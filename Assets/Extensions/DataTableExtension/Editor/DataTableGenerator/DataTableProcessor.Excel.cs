@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Extensions.DataTableExtension.Editor;
 using GameFramework;
 using OfficeOpenXml;
 using UnityEngine;
@@ -29,10 +30,10 @@ namespace DE.Editor.DataTableTools
             rawColumnCount = sheet.Dimension.End.Column;
             for (int i = 1; i <= sheet.Dimension.End.Row; i++)
             {
-                if (i>DataTableConfig.ContentStartRow)
+                if (i>DataTableConfig.GetDataTableConfig().ContentStartRow)
                 {
                     //跳过没有id的空行
-                    if (sheet.Cells[i, DataTableConfig.IdColumn+1].Value == null)
+                    if (sheet.Cells[i, DataTableConfig.GetDataTableConfig().IdColumn+1].Value == null)
                     {
                         continue;
                     }

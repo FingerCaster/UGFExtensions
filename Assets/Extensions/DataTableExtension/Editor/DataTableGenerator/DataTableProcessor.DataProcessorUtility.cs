@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Extensions.DataTableExtension.Editor;
 using GameFramework;
 using UnityEngine;
 
@@ -48,7 +49,7 @@ namespace DE.Editor.DataTableTools
             
             private static void AddEnumType(List<DataProcessor> addList)
             {
-                foreach (var assemblyName in DataTableConfig.AssemblyNames)
+                foreach (var assemblyName in DataTableConfig.GetDataTableConfig().AssemblyNames)
                 {
                     Assembly assembly = null;
                     try
