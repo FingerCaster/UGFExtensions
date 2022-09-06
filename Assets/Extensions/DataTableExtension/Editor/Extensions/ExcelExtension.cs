@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using DE.Editor.DataTableTools;
+using Extensions.DataTableExtension.Editor;
 using OfficeOpenXml;
 using UnityEngine;
 using UnityEditor;
@@ -69,9 +70,9 @@ namespace DE.Editor
                             int columnCount = sheet.Dimension.End.Column;
                             for (int i = 1; i <= sheet.Dimension.End.Row; i++)
                             {
-                                if (i > DataTableConfig.ContentStartRow)
+                                if (i > DataTableConfig.GetDataTableConfig().ContentStartRow)
                                 {
-                                    if (sheet.Cells[i, DataTableConfig.IdColumn + 1].Value == null)
+                                    if (sheet.Cells[i, DataTableConfig.GetDataTableConfig().IdColumn + 1].Value == null)
                                     {
                                         continue;
                                     }

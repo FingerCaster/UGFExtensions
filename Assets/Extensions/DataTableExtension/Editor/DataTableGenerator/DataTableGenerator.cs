@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Extensions.DataTableExtension.Editor;
 using GameFramework;
 using OfficeOpenXml;
 using UnityEngine;
@@ -16,11 +16,11 @@ namespace DE.Editor.DataTableTools
         private static readonly Regex EndWithNumberRegex = new Regex(@"\d+$");
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
         private static List<string> _nameSpace = new List<string>();
-
+        private static DataTableConfig s_DataTableConfig;
         public static DataTableProcessor CreateDataTableProcessor(string dataTableName)
         {
             return new DataTableProcessor(
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.DataTableFolderPath, dataTableName + ".txt")),
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().DataTableFolderPath, dataTableName + ".txt")),
                 Encoding.UTF8, 1, 2,
                 null, 3, 4, 1);
         }
@@ -54,7 +54,7 @@ namespace DE.Editor.DataTableTools
         public static void GenerateDataFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
             var binaryDataFileName =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.DataTableFolderPath,
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().DataTableFolderPath,
                     dataTableName + ".bytes"));
             if (!dataTableProcessor.GenerateDataFile(binaryDataFileName) && File.Exists(binaryDataFileName))
                 File.Delete(binaryDataFileName);
@@ -62,7 +62,7 @@ namespace DE.Editor.DataTableTools
         public static void GenerateFileSystemFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
             var binaryDataFileName =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.DataTableFolderPath,
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().DataTableFolderPath,
                     dataTableName + ".bytes"));
             if (!dataTableProcessor.GenerateFileSystemFile(binaryDataFileName) && File.Exists(binaryDataFileName))
                 File.Delete(binaryDataFileName);
@@ -70,7 +70,7 @@ namespace DE.Editor.DataTableTools
 
         public static void GenerateCodeFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
-            dataTableProcessor.SetCodeTemplate(DataTableConfig.CSharpCodeTemplateFileName, Encoding.UTF8);
+            dataTableProcessor.SetCodeTemplate(DataTableConfig.GetDataTableConfig().CSharpCodeTemplateFileName, Encoding.UTF8);
             dataTableProcessor.SetCodeGenerator(DataTableCodeGenerator);
             bool isChanged = CheckIsChanged(dataTableProcessor, dataTableName);
             if (!isChanged)
@@ -80,7 +80,7 @@ namespace DE.Editor.DataTableTools
             }
 
             var csharpCodeFileName =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.CSharpCodePath, "DR" + dataTableName + ".cs"));
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().CSharpCodePath, "DR" + dataTableName + ".cs"));
             if (!dataTableProcessor.GenerateCodeFile(csharpCodeFileName, Encoding.UTF8, dataTableName) &&
                 File.Exists(csharpCodeFileName))
                 File.Delete(csharpCodeFileName);
@@ -88,12 +88,12 @@ namespace DE.Editor.DataTableTools
 
         private static bool CheckIsChanged(DataTableProcessor dataTableProcessor, string dataTableName)
         {
-            string oldCsharpCodePath = Path.Combine(DataTableConfig.CSharpCodePath, "DR" + dataTableName + ".cs");
+            string oldCsharpCodePath = Path.Combine(DataTableConfig.GetDataTableConfig().CSharpCodePath, "DR" + dataTableName + ".cs");
             if (!File.Exists(oldCsharpCodePath))
             {
                 return true;
             }
-            var stringBuilder = new StringBuilder(File.ReadAllText(DataTableConfig.CSharpCodeTemplateFileName, Encoding.UTF8));
+            var stringBuilder = new StringBuilder(File.ReadAllText(DataTableConfig.GetDataTableConfig().CSharpCodeTemplateFileName, Encoding.UTF8));
             DataTableCodeGenerator(dataTableProcessor, stringBuilder, dataTableName);
             string csharpCode = GetNotHeadString(stringBuilder.ToString());
             string oldCsharpCode = GetNotHeadString(File.ReadAllText(oldCsharpCodePath));
@@ -112,7 +112,7 @@ namespace DE.Editor.DataTableTools
             var dataTableName = (string) userData;
 
             codeContent.Replace("__DATA_TABLE_CREATE_TIME__", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-            codeContent.Replace("__DATA_TABLE_NAME_SPACE__", DataTableConfig.NameSpace);
+            codeContent.Replace("__DATA_TABLE_NAME_SPACE__", DataTableConfig.GetDataTableConfig().NameSpace);
             codeContent.Replace("__DATA_TABLE_CLASS_NAME__", "DR" + dataTableName);
             codeContent.Replace("__DATA_TABLE_COMMENT__", dataTableProcessor.GetValue(0, 1) + "。");
             codeContent.Replace("__DATA_TABLE_ID_COMMENT__",

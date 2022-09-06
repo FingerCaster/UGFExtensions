@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Extensions.DataTableExtension.Editor;
 using GameFramework;
 using OfficeOpenXml;
 using UnityEditor;
@@ -43,7 +44,7 @@ namespace DE.Editor.DataTableTools
                             for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
                             {
                                 var sheet = excelPackage.Workbook.Worksheets[i];
-                                var row = sheet.Cells.Where(_ => _.Rows == DataTableConfig.TypeRow).ToArray();
+                                var row = sheet.Cells.Where(_ => _.Rows == DataTableConfig.GetDataTableConfig().TypeRow).ToArray();
                                 var rawValue = row.Select(_ => _.Value.ToString().Trim('\"'));
                                 types.AddRange(rawValue);
                             }
@@ -120,7 +121,7 @@ namespace DE.Editor.DataTableTools
         {
             var sb = new StringBuilder();
             AddNameSpaces(sb);
-            sb.AppendLine($"namespace {DataTableConfig.NameSpace}");
+            sb.AppendLine($"namespace {DataTableConfig.GetDataTableConfig().NameSpace}");
             sb.AppendLine("{");
             sb.AppendLine("\tpublic static partial class DataTableExtension");
             sb.AppendLine("\t{");
@@ -191,7 +192,7 @@ namespace DE.Editor.DataTableTools
         {
             var sb = new StringBuilder();
             AddNameSpaces(sb);
-            sb.AppendLine($"namespace {DataTableConfig.NameSpace}");
+            sb.AppendLine($"namespace {DataTableConfig.GetDataTableConfig().NameSpace}");
             sb.AppendLine("{");
             sb.AppendLine("\tpublic static partial class DataTableExtension");
             sb.AppendLine("\t{");
@@ -257,7 +258,7 @@ namespace DE.Editor.DataTableTools
             var sb = new StringBuilder();
             AddNameSpaces(sb);
 
-            sb.AppendLine($"namespace {DataTableConfig.NameSpace}");
+            sb.AppendLine($"namespace {DataTableConfig.GetDataTableConfig().NameSpace}");
             sb.AppendLine("{");
             sb.AppendLine("\tpublic static partial class BinaryReaderExtension");
             sb.AppendLine("\t{");
@@ -319,7 +320,7 @@ namespace DE.Editor.DataTableTools
             var sb = new StringBuilder();
             AddNameSpaces(sb);
 
-            sb.AppendLine($"namespace {DataTableConfig.NameSpace}");
+            sb.AppendLine($"namespace {DataTableConfig.GetDataTableConfig().NameSpace}");
             sb.AppendLine("{");
             sb.AppendLine("\tpublic static partial class BinaryReaderExtension");
             sb.AppendLine("\t{");
@@ -378,7 +379,7 @@ namespace DE.Editor.DataTableTools
         private static void GenerateCodeFile(string fileName, string value)
         {
             var filePath =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.ExtensionDirectoryPath, fileName + ".cs"));
+                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().ExtensionDirectoryPath, fileName + ".cs"));
             if (File.Exists(filePath)) File.Delete(filePath);
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -395,7 +396,7 @@ namespace DE.Editor.DataTableTools
             var sb = new StringBuilder();
             AddNameSpaces(sb);
 
-            sb.AppendLine($"namespace {DataTableConfig.NameSpace}");
+            sb.AppendLine($"namespace {DataTableConfig.GetDataTableConfig().NameSpace}");
             sb.AppendLine("{");
             sb.AppendLine("\tpublic static partial class DataTableExtension");
             sb.AppendLine("\t{");
@@ -517,7 +518,7 @@ namespace DE.Editor.DataTableTools
             var sb = new StringBuilder();
             AddNameSpaces(sb);
 
-            sb.AppendLine($"namespace {DataTableConfig.NameSpace}");
+            sb.AppendLine($"namespace {DataTableConfig.GetDataTableConfig().NameSpace}");
             sb.AppendLine("{");
             sb.AppendLine("\tpublic static partial class BinaryReaderExtension");
             sb.AppendLine("\t{");
