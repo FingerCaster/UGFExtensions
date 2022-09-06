@@ -226,13 +226,13 @@ namespace UGFExtensions
 			}
 			return array;
 		}
-		public static Test.TestEnum[] ReadTestTestEnumArray(this BinaryReader binaryReader)
+		public static UGFExtensions.Test.TestEnum[] ReadUGFExtensionsTestTestEnumArray(this BinaryReader binaryReader)
 		{
 			int count = binaryReader.Read7BitEncodedInt32();
-			Test.TestEnum[] array = new Test.TestEnum[count];
+			UGFExtensions.Test.TestEnum[] array = new UGFExtensions.Test.TestEnum[count];
 			for (int i = 0; i < count; i++)
 			{
-				array[i] = (Test.TestEnum)binaryReader.Read7BitEncodedInt32();
+				array[i] = (UGFExtensions.Test.TestEnum)binaryReader.Read7BitEncodedInt32();
 			}
 			return array;
 		}

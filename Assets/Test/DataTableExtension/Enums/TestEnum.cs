@@ -1,4 +1,4 @@
-﻿namespace Test
+﻿namespace UGFExtensions.Test
 {
     public enum TestEnum
     {

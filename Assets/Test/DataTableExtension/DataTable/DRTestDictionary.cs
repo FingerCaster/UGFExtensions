@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2022-09-05 17:37:57.744
+// 生成时间：2022-09-06 21:30:13.124
 //------------------------------------------------------------
 
 using GameFramework;
@@ -52,7 +52,7 @@ namespace UGFExtensions
 
         public override bool ParseDataRow(string dataRowString, object userData)
         {
-            string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
+            string[] columnStrings = dataRowString.Split(UGFExtensions.DataTableExtension.DataSplitSeparators);
             for (int i = 0; i < columnStrings.Length; i++)
             {
                 columnStrings[i] = columnStrings[i].Trim(DataTableExtension.DataTrimSeparators);

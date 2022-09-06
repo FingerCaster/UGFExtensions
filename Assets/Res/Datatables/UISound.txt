@@ -1,0 +1,4 @@
+﻿#	声音配置表				
+#	Id		AssetName	Priority	Volume
+#	int		string	int	float
+#	声音编号	策划备注	资源名称	优先级（默认0，128最高，-128最低）	音量（0~1）

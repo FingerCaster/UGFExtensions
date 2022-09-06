@@ -292,15 +292,15 @@ namespace UGFExtensions
 
 			return array;
 		}
-		public static Test.TestEnum[] ParseTestTestEnumArray(string value)
+		public static UGFExtensions.Test.TestEnum[] ParseUGFExtensionsTestTestEnumArray(string value)
 		{
 			if (string.IsNullOrEmpty(value) || value.ToLowerInvariant().Equals("null"))
 				return null;
 			string[] splitValue = value.Split(',');
-			Test.TestEnum[] array = new Test.TestEnum[splitValue.Length];
+			UGFExtensions.Test.TestEnum[] array = new UGFExtensions.Test.TestEnum[splitValue.Length];
 			for (int i = 0; i < splitValue.Length; i++)
 			{
-				array[i] = EnumParse<Test.TestEnum>(splitValue[i]);
+				array[i] = EnumParse<UGFExtensions.Test.TestEnum>(splitValue[i]);
 			}
 
 			return array;

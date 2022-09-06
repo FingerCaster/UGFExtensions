@@ -44,14 +44,24 @@ namespace DE.Editor.DataTableTools
                             for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
                             {
                                 var sheet = excelPackage.Workbook.Worksheets[i];
-                                var row = sheet.Cells.Where(_ => _.Rows == DataTableConfig.GetDataTableConfig().TypeRow).ToArray();
-                                var rawValue = row.Select(_ => _.Value.ToString().Trim('\"'));
-                                types.AddRange(rawValue);
+                                int typeRow = DataTableConfig.GetDataTableConfig().TypeRow;
+                                
+                                if (sheet.Dimension.Rows<typeRow)
+                                {
+                                    throw new Exception("数据表格式不正确。请检查");
+                                }
+                                for (int j = 1; j <= sheet.Dimension.Columns; j++)
+                                {
+                                    string rawValue = sheet.Cells[typeRow+1, j].Value?.ToString().Trim('\"');
+                                    if (!string.IsNullOrEmpty(rawValue))
+                                    {
+                                        types.Add(rawValue);
+                                    }
+                                }
                             }
                         }
                     }
                 }
-
                 types = types.Distinct().ToList();
             }
 

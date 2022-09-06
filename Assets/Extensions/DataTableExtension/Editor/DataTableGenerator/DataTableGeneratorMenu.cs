@@ -12,10 +12,13 @@ namespace DE.Editor.DataTableTools
 {
     public sealed class DataTableGeneratorMenu
     {
-        [MenuItem("DataTable/Generate DataTables/From Txt", priority= 2)]
+        [MenuItem("DataTable/Generate DataTables/From Txt", priority = 2)]
         public static void GenerateDataTablesFromTxtNotFileSystem()
         {
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,DataTableConfig.GetDataTableConfig().TxtFilePaths, 2);
+            DataTableConfig.GetDataTableConfig().RefreshDataTables();
+
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,
+                DataTableConfig.GetDataTableConfig().TxtFilePaths, 2);
             foreach (var dataTableName in DataTableConfig.GetDataTableConfig().DataTableNames)
             {
                 var dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
@@ -32,15 +35,18 @@ namespace DE.Editor.DataTableTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("DataTable/Generate DataTables/From Excel", priority= 2)]
+        [MenuItem("DataTable/Generate DataTables/From Excel", priority = 2)]
         public static void GenerateDataTablesFormExcelNotFileSystem()
         {
+            DataTableConfig.GetDataTableConfig().RefreshDataTables();
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,DataTableConfig.GetDataTableConfig().ExcelFilePaths, 2);
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,
+                DataTableConfig.GetDataTableConfig().ExcelFilePaths, 2);
             foreach (var excelFile in DataTableConfig.GetDataTableConfig().ExcelFilePaths)
             {
                 using (FileStream fileStream =
-                    new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                       new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
                     {
@@ -65,10 +71,13 @@ namespace DE.Editor.DataTableTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("DataTable/Generate DataTables/From Txt Use FileSystem", priority= 20)]
+        [MenuItem("DataTable/Generate DataTables/From Txt Use FileSystem", priority = 20)]
         public static void GenerateDataTablesFromTxtFileSystem()
         {
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,DataTableConfig.GetDataTableConfig().TxtFilePaths, 2);
+            DataTableConfig.GetDataTableConfig().RefreshDataTables();
+
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Txt,
+                DataTableConfig.GetDataTableConfig().TxtFilePaths, 2);
             foreach (var dataTableName in DataTableConfig.GetDataTableConfig().DataTableNames)
             {
                 var dataTableProcessor = DataTableGenerator.CreateDataTableProcessor(dataTableName);
@@ -85,15 +94,18 @@ namespace DE.Editor.DataTableTools
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("DataTable/Generate DataTables/From Excel Use FileSystem", priority= 20)]
+        [MenuItem("DataTable/Generate DataTables/From Excel Use FileSystem", priority = 20)]
         public static void GenerateDataTablesFormExcelFileSystem()
         {
+            DataTableConfig.GetDataTableConfig().RefreshDataTables();
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,DataTableConfig.GetDataTableConfig().ExcelFilePaths, 2);
+            ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,
+                DataTableConfig.GetDataTableConfig().ExcelFilePaths, 2);
             foreach (var excelFile in DataTableConfig.GetDataTableConfig().ExcelFilePaths)
             {
                 using (FileStream fileStream =
-                    new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                       new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
                     {
@@ -114,21 +126,25 @@ namespace DE.Editor.DataTableTools
                     }
                 }
             }
+
             AssetDatabase.Refresh();
         }
-        
+
         [MenuItem("DataTable/Generate DataTables/Excel To Txt", priority = 32)]
         public static void ExcelToTxt()
         {
+            DataTableConfig.GetDataTableConfig().RefreshDataTables();
             if (!Directory.Exists(DataTableConfig.GetDataTableConfig().ExcelsFolder))
             {
                 Debug.LogError($"{DataTableConfig.GetDataTableConfig().ExcelsFolder} is not exist!");
                 return;
             }
-            ExcelExtension.ExcelToTxt(DataTableConfig.GetDataTableConfig().ExcelsFolder,DataTableConfig.GetDataTableConfig().DataTableFolderPath);
+
+            ExcelExtension.ExcelToTxt(DataTableConfig.GetDataTableConfig().ExcelsFolder,
+                DataTableConfig.GetDataTableConfig().DataTableFolderPath);
             AssetDatabase.Refresh();
         }
-        
+
         [MenuItem("DataTable/CreateDataTableConfig", priority = 3)]
         public static void CreateDataTableConfig()
         {

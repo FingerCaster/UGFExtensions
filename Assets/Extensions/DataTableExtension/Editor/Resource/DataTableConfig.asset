@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DataTableFolderPath: Assets/Res/DataTables
   ExcelsFolder: D:/GithubDownload/UGFExtensions/Assets/../Excels/
-  CSharpCodePath: Assets/Scripts/Extensions/DataTableExtension/Runtime/DataTable
-  CSharpCodeTemplateFileName: Assets/Scripts/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt
-  ExtensionDirectoryPath: Assets/Scripts/Extensions/DataTableExtension/Runtime/Extensions
+  CSharpCodePath: Assets/Test/DataTableExtension/DataTable
+  CSharpCodeTemplateFileName: Assets/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt
+  ExtensionDirectoryPath: Assets/Test/DataTableExtension/Extensions
   NameSpace: UGFExtensions
   AssemblyNames:
   - Test
@@ -25,9 +25,6 @@ MonoBehaviour:
   - UnityGameFramework.Editor
   - DE.Editor
   - Assembly-CSharp-Editor
-  TxtFilePaths: []
-  DataTableNames: []
-  ExcelFilePaths: []
   NameRow: 1
   TypeRow: 2
   CommentRow: 3

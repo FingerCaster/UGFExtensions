@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2022-09-05 17:37:58.498
+// 生成时间：2022-09-06 21:05:03.797
 //------------------------------------------------------------
 
 using GameFramework;
@@ -35,7 +35,7 @@ namespace UGFExtensions
         /// <summary>
         /// 获取测试枚举。
         /// </summary>
-        public Test.TestEnum TestEnum
+        public UGFExtensions.Test.TestEnum TestEnum
         {
             get;
             private set;
@@ -44,7 +44,7 @@ namespace UGFExtensions
         /// <summary>
         /// 获取测试枚举1。
         /// </summary>
-        public Test.TestEnum1 TestEnum1
+        public UGFExtensions.Test.TestEnum1 TestEnum1
         {
             get;
             private set;
@@ -53,7 +53,7 @@ namespace UGFExtensions
         /// <summary>
         /// 获取测试枚举list。
         /// </summary>
-        public List<Test.TestEnum> TestEnumList
+        public List<UGFExtensions.Test.TestEnum> TestEnumList
         {
             get;
             private set;
@@ -62,7 +62,7 @@ namespace UGFExtensions
         /// <summary>
         /// 获取测试枚举Array。
         /// </summary>
-        public Test.TestEnum[] TestEnumArray
+        public UGFExtensions.Test.TestEnum[] TestEnumArray
         {
             get;
             private set;
@@ -70,7 +70,7 @@ namespace UGFExtensions
 
         public override bool ParseDataRow(string dataRowString, object userData)
         {
-            string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
+            string[] columnStrings = dataRowString.Split(UGFExtensions.DataTableExtension.DataSplitSeparators);
             for (int i = 0; i < columnStrings.Length; i++)
             {
                 columnStrings[i] = columnStrings[i].Trim(DataTableExtension.DataTrimSeparators);
@@ -79,10 +79,10 @@ namespace UGFExtensions
             int index = 0;
             index++;
             m_Id = int.Parse(columnStrings[index++]);
-			TestEnum = DataTableExtension.EnumParse<Test.TestEnum>(columnStrings[index++]);
-			TestEnum1 = DataTableExtension.EnumParse<Test.TestEnum1>(columnStrings[index++]);
-			TestEnumList = DataTableExtension.ParseTestTestEnumList(columnStrings[index++]);
-			TestEnumArray = DataTableExtension.ParseTestTestEnumArray(columnStrings[index++]);
+			TestEnum = DataTableExtension.EnumParse<UGFExtensions.Test.TestEnum>(columnStrings[index++]);
+			TestEnum1 = DataTableExtension.EnumParse<UGFExtensions.Test.TestEnum1>(columnStrings[index++]);
+			TestEnumList = DataTableExtension.ParseUGFExtensionsTestTestEnumList(columnStrings[index++]);
+			TestEnumArray = DataTableExtension.ParseUGFExtensionsTestTestEnumArray(columnStrings[index++]);
             GeneratePropertyArray();
             return true;
         }
@@ -94,10 +94,10 @@ namespace UGFExtensions
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
-					TestEnum = (Test.TestEnum)binaryReader.Read7BitEncodedInt32();
-					TestEnum1 = (Test.TestEnum1)binaryReader.Read7BitEncodedInt32();
-					TestEnumList = binaryReader.ReadTestTestEnumList();
-					TestEnumArray = binaryReader.ReadTestTestEnumArray();
+					TestEnum = (UGFExtensions.Test.TestEnum)binaryReader.Read7BitEncodedInt32();
+					TestEnum1 = (UGFExtensions.Test.TestEnum1)binaryReader.Read7BitEncodedInt32();
+					TestEnumList = binaryReader.ReadUGFExtensionsTestTestEnumList();
+					TestEnumArray = binaryReader.ReadUGFExtensionsTestTestEnumArray();
                 }
             }
 
@@ -105,7 +105,7 @@ namespace UGFExtensions
             return true;
         }
 
-        private KeyValuePair<int, Test.TestEnum1>[] m_TestEnum = null;
+        private KeyValuePair<int, UGFExtensions.Test.TestEnum1>[] m_TestEnum = null;
 
         public int TestEnumCount
         {
@@ -115,9 +115,9 @@ namespace UGFExtensions
             }
         }
 
-        public Test.TestEnum1 GetTestEnum(int id)
+        public UGFExtensions.Test.TestEnum1 GetTestEnum(int id)
         {
-            foreach (KeyValuePair<int, Test.TestEnum1> i in m_TestEnum)
+            foreach (KeyValuePair<int, UGFExtensions.Test.TestEnum1> i in m_TestEnum)
             {
                 if (i.Key == id)
                 {
@@ -128,7 +128,7 @@ namespace UGFExtensions
             throw new GameFrameworkException(Utility.Text.Format("GetTestEnum with invalid id '{0}'.", id.ToString()));
         }
 
-        public Test.TestEnum1 GetTestEnumAt(int index)
+        public UGFExtensions.Test.TestEnum1 GetTestEnumAt(int index)
         {
             if (index < 0 || index >= m_TestEnum.Length)
             {
@@ -140,9 +140,9 @@ namespace UGFExtensions
 
         private void GeneratePropertyArray()
         {
-            m_TestEnum = new KeyValuePair<int, Test.TestEnum1>[]
+            m_TestEnum = new KeyValuePair<int, UGFExtensions.Test.TestEnum1>[]
             {
-                new KeyValuePair<int, Test.TestEnum1>(1, TestEnum1),
+                new KeyValuePair<int, UGFExtensions.Test.TestEnum1>(1, TestEnum1),
             };
         }
     }

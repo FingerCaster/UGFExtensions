@@ -171,7 +171,7 @@ namespace DE.Editor.DataTableTools
                 .AppendLine("        public override bool ParseDataRow(string dataRowString, object userData)")
                 .AppendLine("        {")
                 .AppendLine(
-                    "            string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);")
+                    "            string[] columnStrings = dataRowString.Split(UGFExtensions.DataTableExtension.DataSplitSeparators);")
                 .AppendLine("            for (int i = 0; i < columnStrings.Length; i++)")
                 .AppendLine("            {")
                 .AppendLine(

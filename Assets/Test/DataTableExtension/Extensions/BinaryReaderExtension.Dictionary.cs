@@ -26,13 +26,13 @@ namespace UGFExtensions
 			}
 			return dictionary;
 		}
-		public static Dictionary<Test.TestEnum,int> ReadTestTestEnumInt32Dictionary(this BinaryReader binaryReader)
+		public static Dictionary<UGFExtensions.Test.TestEnum,int> ReadUGFExtensionsTestTestEnumInt32Dictionary(this BinaryReader binaryReader)
 		{
 			int count = binaryReader.Read7BitEncodedInt32();
-			Dictionary<Test.TestEnum,int> dictionary = new Dictionary<Test.TestEnum,int>(count);
+			Dictionary<UGFExtensions.Test.TestEnum,int> dictionary = new Dictionary<UGFExtensions.Test.TestEnum,int>(count);
 			for (int i = 0; i < count; i++)
 			{
-				dictionary.Add((Test.TestEnum) binaryReader.Read7BitEncodedInt32(),(int) binaryReader.Read7BitEncodedInt32());
+				dictionary.Add((UGFExtensions.Test.TestEnum) binaryReader.Read7BitEncodedInt32(),(int) binaryReader.Read7BitEncodedInt32());
 			}
 			return dictionary;
 		}

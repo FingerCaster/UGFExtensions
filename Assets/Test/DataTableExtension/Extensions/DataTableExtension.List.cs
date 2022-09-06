@@ -270,15 +270,15 @@ namespace UGFExtensions
 			}
 			return list;
 		}
-		public static List<Test.TestEnum> ParseTestTestEnumList(string value)
+		public static List<UGFExtensions.Test.TestEnum> ParseUGFExtensionsTestTestEnumList(string value)
 		{
 			if (string.IsNullOrEmpty(value) || value.ToLowerInvariant().Equals("null"))
 				return null;
 			string[] splitValue = value.Split(',');
-			List<Test.TestEnum> list = new List<Test.TestEnum>(splitValue.Length);
+			List<UGFExtensions.Test.TestEnum> list = new List<UGFExtensions.Test.TestEnum>(splitValue.Length);
 			for (int i = 0; i < splitValue.Length; i++)
 			{
-				list.Add(EnumParse<Test.TestEnum>(splitValue[i]));
+				list.Add(EnumParse<UGFExtensions.Test.TestEnum>(splitValue[i]));
 			}
 			return list;
 		}

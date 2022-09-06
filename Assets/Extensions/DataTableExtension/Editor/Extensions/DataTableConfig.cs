@@ -70,29 +70,45 @@ namespace Extensions.DataTableExtension.Editor
         /// <summary>
         /// 数据表文件路径
         /// </summary>
-        [ReadOnly]
+        [NonSerialized]
         public string[] TxtFilePaths;
 
         /// <summary>
         /// 数据表文件名
         /// </summary>
-        [ReadOnly]
+        [NonSerialized]
         public string[] DataTableNames;
 
         /// <summary>
         /// Excel表文件路径
         /// </summary>
-        [ReadOnly]
+        [NonSerialized]
         public string[] ExcelFilePaths;
         
+        
+         //所有行列 是逻辑行列从0 开始 但是eppplus 需要从1开始遍历 使用时需要+1
+        /// <summary>
+        /// 字段名所在行
+        /// </summary>
         public int NameRow;
+        /// <summary>
+        /// 类型名所在行
+        /// </summary>
         public int TypeRow;
+        /// <summary>
+        /// 注释所在行
+        /// </summary>
         public int CommentRow;
+        /// <summary>
+        /// 内容开始行
+        /// </summary>
         public int ContentStartRow;
+        /// <summary>
+        /// id所在列
+        /// </summary>
+        public int IdColumn;
 
-        public int IdColumn = 1;
-
-        private void RefreshDataTables()
+        public void RefreshDataTables()
         {
             if (Directory.Exists(DataTableFolderPath))
             {
@@ -130,7 +146,6 @@ namespace Extensions.DataTableExtension.Editor
 
                 s_DataTableConfig = dataTableConfig;
             }
-            s_DataTableConfig.RefreshDataTables();
             return s_DataTableConfig;
         }
 
@@ -156,9 +171,9 @@ namespace Extensions.DataTableExtension.Editor
             DataTableConfig codeGeneratorSettingConfig = CreateInstance<DataTableConfig>();
             codeGeneratorSettingConfig.DataTableFolderPath = "Assets/Res/DataTables";
             codeGeneratorSettingConfig.ExcelsFolder = $"{Application.dataPath}/../Excels/";
-            codeGeneratorSettingConfig.CSharpCodePath = "Assets/Scripts/Extensions/DataTableExtension/Runtime/DataTable";
-            codeGeneratorSettingConfig.CSharpCodeTemplateFileName = "Assets/Scripts/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt";
-            codeGeneratorSettingConfig.ExtensionDirectoryPath = "Assets/Scripts/Extensions/DataTableExtension/Runtime/Extensions";
+            codeGeneratorSettingConfig.CSharpCodePath = "Assets/Extensions/DataTableExtension/Runtime/DataTable";
+            codeGeneratorSettingConfig.CSharpCodeTemplateFileName = "Assets/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt";
+            codeGeneratorSettingConfig.ExtensionDirectoryPath = "Assets/Extensions/DataTableExtension/Runtime/Extensions";
             codeGeneratorSettingConfig.NameSpace = "UGFExtensions";
             codeGeneratorSettingConfig.AssemblyNames = new []
             {
@@ -182,7 +197,6 @@ namespace Extensions.DataTableExtension.Editor
             codeGeneratorSettingConfig.CommentRow = 3;
             codeGeneratorSettingConfig.ContentStartRow = 4;
             codeGeneratorSettingConfig.IdColumn = 1;
-            codeGeneratorSettingConfig.RefreshDataTables();
             AssetDatabase.CreateAsset(codeGeneratorSettingConfig, s_DataTableConfigPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
