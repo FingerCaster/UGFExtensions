@@ -170,7 +170,7 @@ namespace DE.Editor
             
             DataTableConfig codeGeneratorSettingConfig = CreateInstance<DataTableConfig>();
             codeGeneratorSettingConfig.DataTableFolderPath = "Assets/Res/DataTables";
-            codeGeneratorSettingConfig.ExcelsFolder = $"{Application.dataPath}/../Excels/";
+            codeGeneratorSettingConfig.ExcelsFolder = $"Assets/../Excels/";
             codeGeneratorSettingConfig.CSharpCodePath = "Assets/Extensions/DataTableExtension/Runtime/DataTable";
             codeGeneratorSettingConfig.CSharpCodeTemplateFileName = "Assets/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt";
             codeGeneratorSettingConfig.ExtensionDirectoryPath = "Assets/Extensions/DataTableExtension/Runtime/Extensions";
