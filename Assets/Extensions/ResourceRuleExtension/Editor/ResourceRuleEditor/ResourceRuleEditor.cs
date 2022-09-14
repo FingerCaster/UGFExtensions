@@ -478,7 +478,7 @@ namespace UGFExtensions.Editor.ResourceTools
                                     string relativeAssetName = file.FullName.Substring(Application.dataPath.Length + 1);
                                     string relativeAssetNameWithoutExtension =
                                         Utility.Path.GetRegularPath(
-                                            relativeAssetName.Substring(0, relativeAssetName.IndexOf('.')));
+                                            relativeAssetName.Substring(0, relativeAssetName.LastIndexOf('.')));
 
                                     string assetName = Path.Combine("Assets", relativeAssetName);
                                     string assetGUID = AssetDatabase.AssetPathToGUID(assetName);
@@ -531,7 +531,7 @@ namespace UGFExtensions.Editor.ResourceTools
                                             file.FullName.Substring(Application.dataPath.Length + 1);
                                         string relativeAssetNameWithoutExtension =
                                             Utility.Path.GetRegularPath(
-                                                relativeAssetName.Substring(0, relativeAssetName.IndexOf('.')));
+                                                relativeAssetName.Substring(0, relativeAssetName.LastIndexOf('.')));
 
                                         string assetName = Path.Combine("Assets", relativeAssetName);
                                         string assetGUID = AssetDatabase.AssetPathToGUID(assetName);
