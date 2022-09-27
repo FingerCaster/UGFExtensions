@@ -258,9 +258,12 @@ namespace UGFExtensions.SpriteCollection
             set { m_Sprites.CopyFrom(value); }
         }
 
+        private Dictionary<string, Sprite> m_Temp = new Dictionary<string, Sprite>();
         public void Pack()
         {
-            m_Sprites.Clear();
+            bool isDirty = false;
+            
+            int count = m_Objects.Count;
             for (int i = m_Objects.Count - 1; i >= 0; i--)
             {
                 if (!ObjectFilter(m_Objects[i]))
@@ -268,20 +271,50 @@ namespace UGFExtensions.SpriteCollection
                     m_Objects.RemoveAt(i);
                 }
             }
-
             m_Objects = m_Objects.Distinct().ToList();
-
+            isDirty |= m_Objects.Count != count;
+            m_Temp.Clear();
             for (int i = 0; i < m_Objects.Count; i++)
             {
                 Object obj = m_Objects[i];
-                HandlePackable(obj);
+                HandlePackable(obj,m_Temp);
             }
 
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+            if (m_Sprites.Count!= m_Temp.Count)
+            {
+                SetSprites();
+                isDirty = true;
+            }
+            else
+            {
+                foreach (KeyValuePair<string, Sprite> item in m_Sprites)
+                {
+                    if (!m_Temp.TryGetValue(item.Key, out var sp) || sp != item.Value) 
+                    {
+                        isDirty = true;
+                        SetSprites();
+                        break;
+                    }
+                }
+            }
+            
+            if (isDirty)
+            {
+                EditorUtility.SetDirty(this);
+                AssetDatabase.SaveAssets();
+            }
         }
 
-        void HandlePackable(Object obj)
+        void SetSprites()
+        {
+            m_Sprites.Clear();
+            foreach (KeyValuePair<string,Sprite> keyValue in m_Temp)
+            {
+                m_Sprites.Add(keyValue);
+            }
+        }
+
+        void HandlePackable(Object obj, Dictionary<string, Sprite> temp)
         {
             string path = AssetDatabase.GetAssetPath(obj);
             if (obj is Sprite sp)
@@ -289,12 +322,12 @@ namespace UGFExtensions.SpriteCollection
                 Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
                 if (objects.Length == 2)
                 {
-                    m_Sprites[path] = sp;
+                    temp[path] = sp;
                 }
                 else
                 {
                     string regularPath = Utility.Path.GetRegularPath(Path.Combine(path, sp.name));
-                    m_Sprites[regularPath] = sp;
+                    temp[regularPath] = sp;
                 }
             }
             else if (obj is Texture2D)
@@ -302,7 +335,7 @@ namespace UGFExtensions.SpriteCollection
                 Object[] objects = AssetDatabase.LoadAllAssetsAtPath(path);
                 if (objects.Length == 2)
                 {
-                    m_Sprites[path] = GetSprites(objects)[0];
+                    temp[path] = GetSprites(objects)[0];
                 }
                 else
                 {
@@ -310,7 +343,7 @@ namespace UGFExtensions.SpriteCollection
                     for (int j = 0; j < sprites.Length; j++)
                     {
                         string regularPath = Utility.Path.GetRegularPath(Path.Combine(path, sprites[j].name));
-                        m_Sprites[regularPath] = sprites[j];
+                        temp[regularPath] = sprites[j];
                     }
                 }
             }
@@ -323,7 +356,7 @@ namespace UGFExtensions.SpriteCollection
                     Object[] objects = AssetDatabase.LoadAllAssetsAtPath(file);
                     if (objects.Length == 2)
                     {
-                        m_Sprites[file] = GetSprites(objects)[0];
+                        temp[file] = GetSprites(objects)[0];
                     }
                     else
                     {
@@ -331,7 +364,7 @@ namespace UGFExtensions.SpriteCollection
                         for (int j = 0; j < sprites.Length; j++)
                         {
                             string regularPath = Utility.Path.GetRegularPath(Path.Combine(file, sprites[j].name));
-                            m_Sprites[regularPath] = sprites[j];
+                            temp[regularPath] = sprites[j];
                         }
                     }
                 }
@@ -341,7 +374,7 @@ namespace UGFExtensions.SpriteCollection
                 Object[] objs = spriteAtlas.GetPackables();
                 for (int i = 0; i < objs.Length; i++)
                 {
-                    HandlePackable(objs[i]);
+                    HandlePackable(objs[i], temp);
                 }
             }
         }
