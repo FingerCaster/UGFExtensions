@@ -467,7 +467,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11454530, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_UIGroupHelperTypeName
-      value: UGFExtensions.UGuiGroupHelper
+      value: UGFExtensions.Test.UGuiGroupHelper
       objectReference: {fileID: 0}
     - target: {fileID: 11454530, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_UIGroups.Array.data[0].m_Name
@@ -475,7 +475,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11461470, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_LocalizationHelperTypeName
-      value: UGFExtensions.XmlLocalizationHelper
+      value: UGFExtensions.Test.XmlLocalizationHelper
       objectReference: {fileID: 0}
     - target: {fileID: 11497722, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_ResourceMode
@@ -495,14 +495,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11499388, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
       propertyPath: m_JsonHelperTypeName
-      value: 
+      value: UGFExtensions.Test.LitJsonHelper
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
 --- !u!4 &513367061 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 430602, guid: adb3eb1c35fcff14f89fba7b05c9d71c,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 430602, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
   m_PrefabInstance: {fileID: 513367060}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &652614797
@@ -657,10 +656,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4c8494330e440299f2f6a0461e36f4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BuildInfoTextAsset: {fileID: 4900000, guid: 99ffb5c4931eb6a4cac90d63e2aa5e6e,
-    type: 3}
-  m_DefaultDictionaryTextAsset: {fileID: 4900000, guid: bab96db1a0634e24bb258477bd8f013b,
-    type: 3}
+  m_BuildInfoTextAsset: {fileID: 4900000, guid: 99ffb5c4931eb6a4cac90d63e2aa5e6e, type: 3}
+  m_DefaultDictionaryTextAsset: {fileID: 4900000, guid: bab96db1a0634e24bb258477bd8f013b, type: 3}
 --- !u!1 &892764399
 GameObject:
   m_ObjectHideFlags: 0
@@ -1004,8 +1001,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
 --- !u!4 &1795846457 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 433714, guid: adb3eb1c35fcff14f89fba7b05c9d71c,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 433714, guid: adb3eb1c35fcff14f89fba7b05c9d71c, type: 3}
   m_PrefabInstance: {fileID: 513367060}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1943493615

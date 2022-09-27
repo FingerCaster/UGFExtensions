@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // 此文件由工具自动生成，请勿直接修改。
-// 生成时间：2022-09-06 21:30:13.124
+// 生成时间：2022-09-27 10:36:31.472
 //------------------------------------------------------------
 
 using GameFramework;
@@ -50,6 +50,24 @@ namespace UGFExtensions
             private set;
         }
 
+        /// <summary>
+        /// 获取测试整数1。
+        /// </summary>
+        public int TestInt1
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取测试整数2。
+        /// </summary>
+        public int TestInt2
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(UGFExtensions.DataTableExtension.DataSplitSeparators);
@@ -64,6 +82,8 @@ namespace UGFExtensions
             index++;
 			TestIntIntDictionary = DataTableExtension.ParseInt32Int32Dictionary(columnStrings[index++]);
 			TestIntVector3Dictionary = DataTableExtension.ParseInt32Vector3Dictionary(columnStrings[index++]);
+			TestInt1 = int.Parse(columnStrings[index++]);
+			TestInt2 = int.Parse(columnStrings[index++]);
             GeneratePropertyArray();
             return true;
         }
@@ -77,6 +97,8 @@ namespace UGFExtensions
                     m_Id = binaryReader.Read7BitEncodedInt32();
 					TestIntIntDictionary = binaryReader.ReadInt32Int32Dictionary();
 					TestIntVector3Dictionary = binaryReader.ReadInt32Vector3Dictionary();
+                    TestInt1 = binaryReader.Read7BitEncodedInt32();
+                    TestInt2 = binaryReader.Read7BitEncodedInt32();
                 }
             }
 
@@ -84,9 +106,46 @@ namespace UGFExtensions
             return true;
         }
 
+        private KeyValuePair<int, int>[] m_TestInt = null;
+
+        public int TestIntCount
+        {
+            get
+            {
+                return m_TestInt.Length;
+            }
+        }
+
+        public int GetTestInt(int id)
+        {
+            foreach (KeyValuePair<int, int> i in m_TestInt)
+            {
+                if (i.Key == id)
+                {
+                    return i.Value;
+                }
+            }
+
+            throw new GameFrameworkException(Utility.Text.Format("GetTestInt with invalid id '{0}'.", id.ToString()));
+        }
+
+        public int GetTestIntAt(int index)
+        {
+            if (index < 0 || index >= m_TestInt.Length)
+            {
+                throw new GameFrameworkException(Utility.Text.Format("GetTestIntAt with invalid index '{0}'.", index.ToString()));
+            }
+
+            return m_TestInt[index].Value;
+        }
+
         private void GeneratePropertyArray()
         {
-
+            m_TestInt = new KeyValuePair<int, int>[]
+            {
+                new KeyValuePair<int, int>(1, TestInt1),
+                new KeyValuePair<int, int>(2, TestInt2),
+            };
         }
     }
 }

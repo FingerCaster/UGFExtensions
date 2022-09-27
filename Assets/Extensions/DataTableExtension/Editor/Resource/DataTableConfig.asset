@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DataTableConfig
   m_EditorClassIdentifier: 
   DataTableFolderPath: Assets/Res/DataTables
-  ExcelsFolder: Assets/UGFExtensions/Assets/../Excels/
+  ExcelsFolder: Assets/../Excels/
   CSharpCodePath: Assets/Test/DataTableExtension/DataTable
   CSharpCodeTemplateFileName: Assets/Extensions/DataTableExtension/Editor/Resource/DataTableCodeTemplate.txt
   ExtensionDirectoryPath: Assets/Test/DataTableExtension/Extensions
