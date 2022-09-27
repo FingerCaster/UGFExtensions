@@ -421,9 +421,10 @@ namespace DE.Editor.DataTableTools
                     // 编号列
                     continue;
 
+   
                 var name = dataTableProcessor.GetName(i);
                 if (!EndWithNumberRegex.IsMatch(name)) continue;
-
+                
                 var propertyCollectionName = EndWithNumberRegex.Replace(name, string.Empty);
                 var id = int.Parse(EndWithNumberRegex.Match(name).Value);
 
@@ -437,9 +438,18 @@ namespace DE.Editor.DataTableTools
 
                 if (propertyCollection == null)
                 {
-                    propertyCollection =
-                        new PropertyCollection(propertyCollectionName, dataTableProcessor.GetLanguageKeyword(i));
+                    propertyCollection = new PropertyCollection(propertyCollectionName, dataTableProcessor.GetLanguageKeyword(i));
                     propertyCollections.Add(propertyCollection);
+                }
+                else
+                {
+                    if (propertyCollection.LanguageKeyword != dataTableProcessor.GetLanguageKeyword(i))
+                    {
+                       Debug.LogWarning(
+                            $"GenerateDataTablePropertyArray failed, type mismatch, need type {propertyCollection.LanguageKeyword}," +
+                            $"{name} type is {dataTableProcessor.GetLanguageKeyword(i)}");
+                       continue;
+                    }
                 }
 
                 propertyCollection.AddItem(id, name);
