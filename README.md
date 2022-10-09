@@ -17,7 +17,7 @@
 
 ## 7.[SpriteCollection扩展](./Assets/Extensions/SpriteCollectionExtension)
 
-## 8.~~ComponentAutoBindTool~~ 已删除。请使用ReferenceBindTool
+## 8.~~ComponentAutoBindTool~~ 已删除。请使用[ReferenceBindTool](https://github.com/FingerCaster/ReferenceBindTool)
 
 ## 9.[TextureExtension](./Assets/Extensions/TextureExtension)
 
