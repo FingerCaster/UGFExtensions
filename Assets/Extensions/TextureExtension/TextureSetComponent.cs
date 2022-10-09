@@ -49,6 +49,15 @@ namespace UGFExtensions.Texture
             set => m_LoadTextureObjectsLinkedList = value;
         }
 #endif
+        /// <summary>
+        /// 序号
+        /// </summary>
+        private int m_SerialId = 0;
+        /// <summary>
+        /// 取消加载序号集合
+        /// </summary>
+        public HashSet<int> m_CancelId;
+
         private IEnumerator Start()
         {
             yield return new WaitForEndOfFrame();
@@ -71,8 +80,7 @@ namespace UGFExtensions.Texture
             ReleaseUnused();
         }
 
-        private int m_SerialId = 0;
-        public HashSet<int> m_CancelId;
+        
 
         /// <summary>
         /// 回收无引用的Texture。

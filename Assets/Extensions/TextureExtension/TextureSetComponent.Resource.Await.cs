@@ -30,9 +30,16 @@ namespace UGFExtensions.Texture
                 {
                     cancellationToken?.Add(Cancel);
                     texture = await m_ResourceComponent.LoadAssetAsync<Texture2D>(setTexture2dObject.Texture2dFilePath);
-                    m_TexturePool.Register(
-                        TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,
-                            TextureLoad.FromResource, m_ResourceComponent), true);
+                    if (!m_TexturePool.CanSpawn(setTexture2dObject.Texture2dFilePath))
+                    {
+                        m_TexturePool.Register(
+                            TextureItemObject.Create(setTexture2dObject.Texture2dFilePath, texture,
+                                TextureLoad.FromResource, m_ResourceComponent), true);
+                    }
+                    else
+                    {
+                        m_TexturePool.Spawn(setTexture2dObject.Texture2dFilePath);
+                    }
                 }
                 finally
                 {
