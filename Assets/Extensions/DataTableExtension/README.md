@@ -106,12 +106,16 @@ PS: 调用 `Generate DataTables` 方法时会自动调用 `GenerateExtensionByAn
 ## 配置表按需读取说明
 
 1. 使用Unity菜单栏中 `DataTable/Generate DataTables/From Txt Use FileSystem`  根据Txt 格式Datatable 生成数据实体类及二进制文件
-2. 使用Unity菜单栏中 `DataTable/Generate DataTables/From Excel Use FileSystem`  根据Excel 格式Datatable 生成数据实体类及二进制文件
+
+   或者使用Unity菜单栏中 `DataTable/Generate DataTables/From Excel Use FileSystem`  根据Excel 格式Datatable 生成数据实体类及二进制文件
+
 3. 加载需要使用`DataTableExtensionComponent`   其中接口均为 同步读取。
    * 按需加载数据表 需要先加载配置 `LoadDataTableRowConfig`  参数为 资源的 Assets全路径
    * 加载时使用`GetDataRow` 获取对应行数据 
    * 加载全部数据 使用`GetAllDataRows`
-4. 打包AB 时 数据表加载 必需要设置为 `Load From Binary`
+   
+3. 打包AB 时 数据表加载 必需要设置为 `Load From Binary`
+
 5. 不支持webgl
 
 # 引用库
