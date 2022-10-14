@@ -17,15 +17,13 @@
 
 ## 7.[SpriteCollection扩展](./Assets/Extensions/SpriteCollectionExtension)
 
-## 8.~~ComponentAutoBindTool~~ 已删除。请使用[ReferenceBindTool](https://github.com/FingerCaster/ReferenceBindTool)
+## 8.[TextureExtension](./Assets/Extensions/TextureExtension)
 
-## 9.[TextureExtension](./Assets/Extensions/TextureExtension)
+## 9.[时间轮组件](./Assets/Extensions/TimingWheel)
 
-## 10.[时间轮组件](./Assets/Extensions/TimingWheel)
+## 10.[MergeFileToVFS](./Assets/Extensions/MergeFileToVFSExtension)
 
-## 11.[MergeFileToVFS](./Assets/Extensions/MergeFileToVFSExtension)
-
-## 12.[引用绑定工具 ReferenceBindTool](https://github.com/FingerCaster/ReferenceBindTool)
+## 11.[引用绑定工具 ReferenceBindTool](https://github.com/FingerCaster/ReferenceBindTool)
 
 
 
