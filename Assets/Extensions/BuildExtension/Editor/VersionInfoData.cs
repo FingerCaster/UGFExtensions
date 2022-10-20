@@ -186,7 +186,7 @@ namespace UGFExtensions.Build.Editor
         }
         public string ToVersionInfoJson()
         {
-            return MiniJson.Serialize(ToVersionInfo());
+            throw new NotImplementedException("请自行实现Json 序列化. Serialize(ToVersionInfo())");
         }
 
         public void AutoIncrementInternalGameVersion()
