@@ -53,14 +53,22 @@ namespace UGFExtensions.Editor
         public bool FindCode()
         {
             var windowInstance = m_ConsoleWindowFileInfo.GetValue(null);
-            var activeText = m_ActiveTextInfo.GetValue(windowInstance);
-            string[] contentStrings = activeText.ToString().Split('\n');
-            List<string> filePath = new List<string>();
-            for (int index = 0; index < contentStrings.Length; index++)
+            var contentStrings = m_ActiveTextInfo.GetValue(windowInstance).ToString().Split('\n');
+
+            var filePath = new List<string>();
+            bool firstLog = false;
+            foreach (var item in contentStrings)
             {
-                if (contentStrings[index].Contains("at"))
+                if (firstLog == false)
                 {
-                    filePath.Add(contentStrings[index]);
+                    // to ignore exception log
+                    firstLog = item.StartsWith("UnityEngine.Debug:Log");
+                    continue;
+                }
+
+                if (item.Contains("at"))
+                {
+                    filePath.Add(item);
                 }
             }
 
