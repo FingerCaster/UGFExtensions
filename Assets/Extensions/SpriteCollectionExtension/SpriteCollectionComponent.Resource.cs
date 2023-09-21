@@ -55,10 +55,9 @@ namespace UGFExtensions.SpriteCollection
                 return;
             }
             
-            if (m_WaitSetObjects.ContainsKey(setSpriteObject.CollectionPath))
+            if (m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out var setSpriteObjects))
             {
-                var loadSp = m_WaitSetObjects[setSpriteObject.CollectionPath];
-                loadSp.AddLast(setSpriteObject);
+                setSpriteObjects.AddLast(setSpriteObject);
             }
             else
             {
