@@ -19,10 +19,9 @@ namespace UGFExtensions.SpriteCollection
                 return;
             }
 
-            if (m_WaitSetObjects.ContainsKey(setSpriteObject.CollectionPath))
+            if (m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out var setSpriteObjects))
             {
-                var loadSp = m_WaitSetObjects[setSpriteObject.CollectionPath];
-                loadSp.AddLast(setSpriteObject);
+                setSpriteObjects.AddLast(setSpriteObject);
             }
             else
             {
@@ -40,7 +39,7 @@ namespace UGFExtensions.SpriteCollection
             SpriteCollection collection = await m_ResourceComponent.LoadAssetAsync<SpriteCollection>(setSpriteObject.CollectionPath);
             m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection,m_ResourceComponent), false);
             m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
-            m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages);
+            if (!m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages)) return;
             LinkedListNode<ISetSpriteObject> current = awaitSetImages?.First;
             while (current != null)
             {
@@ -49,6 +48,10 @@ namespace UGFExtensions.SpriteCollection
                 m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(current.Value, collection));
                 current = current.Next;
             }
+
+            m_WaitSetObjects.Remove(setSpriteObject.CollectionPath);
+
+
         }
     }
 }

@@ -29,7 +29,7 @@ namespace UGFExtensions.SpriteCollection
             SpriteCollection collection = (SpriteCollection)asset;
             m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection,m_ResourceComponent), false);
             m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
-            m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages);
+            if (!m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages)) return;
             LinkedListNode<ISetSpriteObject> current = awaitSetImages?.First;
             while (current != null)
             {
@@ -38,6 +38,7 @@ namespace UGFExtensions.SpriteCollection
                 m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(current.Value, collection));
                 current = current.Next;
             }
+            m_WaitSetObjects.Remove(setSpriteObject.CollectionPath);
         }
         
         /// <summary>
