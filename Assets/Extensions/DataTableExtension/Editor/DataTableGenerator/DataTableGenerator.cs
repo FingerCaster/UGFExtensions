@@ -174,7 +174,7 @@ namespace DE.Editor.DataTableTools
                 .AppendLine("            for (int i = 0; i < columnStrings.Length; i++)")
                 .AppendLine("            {")
                 .AppendLine(
-                    "                columnStrings[i] = columnStrings[i].Trim(DataTableExtension.DataTrimSeparators);")
+                    "                columnStrings[i] = columnStrings[i].Trim(UGFExtensions.DataTableExtension.DataTrimSeparators);")
                 .AppendLine("            }")
                 .AppendLine()
                 .AppendLine("            int index = 0;");
@@ -276,7 +276,7 @@ namespace DE.Editor.DataTableTools
                     if (dataTableProcessor.IsEnumrColumn(i))
                     {
                         stringBuilder.AppendLine(
-                            $"\t\t\t{dataTableProcessor.GetName(i)} = DataTableExtension.EnumParse<{dataTableProcessor.GetLanguageKeyword(i)}>(columnStrings[index++]);");
+                            $"\t\t\t{dataTableProcessor.GetName(i)} = UGFExtensions.DataTableExtension.EnumParse<{dataTableProcessor.GetLanguageKeyword(i)}>(columnStrings[index++]);");
                         continue;
                     }
 

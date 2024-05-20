@@ -176,7 +176,7 @@ namespace DE.Editor.DataTableTools
                 {
                     if (item.Value.IsEnum)
                     {
-                        sb.AppendLine($"\t\t\t\tarray[i] = EnumParse<{item.Value.LanguageKeyword}>(splitValue[i]);");
+                        sb.AppendLine($"\t\t\t\tarray[i] = Enum.Parse<{item.Value.LanguageKeyword}>(splitValue[i]);");
                     }
                     else
                     {
@@ -242,7 +242,7 @@ namespace DE.Editor.DataTableTools
                 {
                     if (item.Value.IsEnum)
                     {
-                        sb.AppendLine($"\t\t\t\tlist.Add(EnumParse<{item.Value.LanguageKeyword}>(splitValue[i]));");
+                        sb.AppendLine($"\t\t\t\tlist.Add(Enum.Parse<{item.Value.LanguageKeyword}>(splitValue[i]));");
                     }
                     else
                     {
@@ -447,14 +447,14 @@ namespace DE.Editor.DataTableTools
                         if (dataProcessorT1.LanguageKeyword == "string")
                             if (dataProcessorT2.IsEnum)
                                 sb.AppendLine(
-                                    $"\t\t\t\tdictionary.Add(keyValue[0].Substring(1),EnumParse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
+                                    $"\t\t\t\tdictionary.Add(keyValue[0].Substring(1),Enum.Parse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
                             else
                                 sb.AppendLine(
                                     $"\t\t\t\tdictionary.Add(keyValue[0].Substring(1),Parse{dataProcessorT2.Type.Name}(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
                         else if (dataProcessorT2.IsEnum)
                         {
                             sb.AppendLine(
-                                $"\t\t\t\tdictionary.Add({dataProcessorT1.Type.Name}.Parse(keyValue[0].Substring(1)),EnumParse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
+                                $"\t\t\t\tdictionary.Add({dataProcessorT1.Type.Name}.Parse(keyValue[0].Substring(1)),Enum.Parse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
                         }
                         else
                             sb.AppendLine(
@@ -468,14 +468,14 @@ namespace DE.Editor.DataTableTools
                         if (dataProcessorT2.LanguageKeyword == "string")
                             if (dataProcessorT1.IsEnum)
                                 sb.AppendLine(
-                                    $"\t\t\t\tdictionary.Add(EnumParse<{dataProcessorT1.LanguageKeyword}>(keyValue[0].Substring(1)),keyValue[1].Substring(0, keyValue[1].Length - 1));");
+                                    $"\t\t\t\tdictionary.Add(Enum.Parse<{dataProcessorT1.LanguageKeyword}>(keyValue[0].Substring(1)),keyValue[1].Substring(0, keyValue[1].Length - 1));");
                             else
                                 sb.AppendLine(
                                     $"\t\t\t\tdictionary.Add(Parse{dataProcessorT1.Type.Name}(keyValue[0].Substring(1)),keyValue[1].Substring(0, keyValue[1].Length - 1));");
                         else if (dataProcessorT1.IsEnum)
                         {
                             sb.AppendLine(
-                                $"\t\t\t\tdictionary.Add(EnumParse<{dataProcessorT1.LanguageKeyword}>(keyValue[0].Substring(1)),{dataProcessorT2.Type.Name}.Parse(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
+                                $"\t\t\t\tdictionary.Add(Enum.Parse<{dataProcessorT1.LanguageKeyword}>(keyValue[0].Substring(1)),{dataProcessorT2.Type.Name}.Parse(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
                         }
                         else
                             sb.AppendLine(
@@ -487,13 +487,13 @@ namespace DE.Editor.DataTableTools
                         {
                             sb.AppendLine(
                                 dataProcessorT1.IsEnum
-                                    ? $"\t\t\t\tdictionary.Add(EnumParse<{dataProcessorT1.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)),EnumParse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));"
-                                    : $"\t\t\t\tdictionary.Add(Parse{dataProcessorT1.Type.Name}(keyValue[0].Substring(1)),EnumParse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
+                                    ? $"\t\t\t\tdictionary.Add(Enum.Parse<{dataProcessorT1.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)),Enum.Parse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));"
+                                    : $"\t\t\t\tdictionary.Add(Parse{dataProcessorT1.Type.Name}(keyValue[0].Substring(1)),Enum.Parse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)));");
                         }
                         else if (dataProcessorT1.IsEnum)
                         {
                             sb.AppendLine(
-                                $"\t\t\t\tdictionary.Add(EnumParse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)),Parse{dataProcessorT2.Type.Name}(keyValue[0].Substring(1)));");
+                                $"\t\t\t\tdictionary.Add(Enum.Parse<{dataProcessorT2.LanguageKeyword}>(keyValue[1].Substring(0, keyValue[1].Length - 1)),Parse{dataProcessorT2.Type.Name}(keyValue[0].Substring(1)));");
                         }
                         else
                         {
