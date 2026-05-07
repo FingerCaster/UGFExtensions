@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using GameFramework;
 using GameFramework.DataTable;
@@ -27,14 +29,158 @@ namespace UGFExtensions.Await
             new Dictionary<string, TaskCompletionSource<bool>>();
 
         private static readonly HashSet<int> s_WebSerialIDs = new HashSet<int>();
-        private static readonly List<WebResult> s_DelayReleaseWebResult = new List<WebResult>();
 
         private static readonly HashSet<int> s_DownloadSerialIds = new HashSet<int>();
-        private static readonly List<DownLoadResult> s_DelayReleaseDownloadResult = new List<DownLoadResult>();
+
+        private static readonly HashSet<string> s_AllowedHttpHosts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 #if UNITY_EDITOR
         private static bool s_IsSubscribeEvent = false;
 #endif
+
+        public static void SetAllowedHttpHosts(params string[] hosts)
+        {
+            s_AllowedHttpHosts.Clear();
+            if (hosts == null)
+            {
+                return;
+            }
+
+            foreach (string host in hosts)
+            {
+                if (!string.IsNullOrWhiteSpace(host))
+                {
+                    s_AllowedHttpHosts.Add(host.Trim());
+                }
+            }
+        }
+
+        private static bool IsValidHttpUri(string uri)
+        {
+            if (string.IsNullOrWhiteSpace(uri) || !Uri.TryCreate(uri, UriKind.Absolute, out Uri parsedUri))
+            {
+                return false;
+            }
+
+            if (!parsedUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(parsedUri.UserInfo) ||
+                !string.IsNullOrEmpty(parsedUri.Query) ||
+                !string.IsNullOrEmpty(parsedUri.Fragment))
+            {
+                return false;
+            }
+
+            string host = parsedUri.Host;
+            if (string.IsNullOrWhiteSpace(host) ||
+                host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+                host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!s_AllowedHttpHosts.Contains(host))
+            {
+                return false;
+            }
+
+            if (IPAddress.TryParse(host, out IPAddress address))
+            {
+                return !IsPrivateOrLoopbackAddress(address);
+            }
+
+            try
+            {
+                IPAddress[] addresses = Dns.GetHostAddresses(host);
+                if (addresses.Length == 0)
+                {
+                    return false;
+                }
+
+                foreach (IPAddress resolvedAddress in addresses)
+                {
+                    if (IsPrivateOrLoopbackAddress(resolvedAddress))
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsSafeDownloadPath(string downloadPath)
+        {
+            if (string.IsNullOrWhiteSpace(downloadPath) || downloadPath.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+            {
+                return false;
+            }
+
+            string normalized = downloadPath.Replace('\\', '/');
+            string[] segments = normalized.Split('/');
+            foreach (string segment in segments)
+            {
+                if (string.IsNullOrEmpty(segment) || segment == "." || segment == "..")
+                {
+                    return false;
+                }
+            }
+
+            if (!Path.IsPathRooted(downloadPath))
+            {
+                return true;
+            }
+
+            string fullPath = Path.GetFullPath(downloadPath);
+            return IsPathInRoot(fullPath, Application.persistentDataPath) ||
+                   IsPathInRoot(fullPath, Application.temporaryCachePath);
+        }
+
+        private static bool IsPathInRoot(string path, string root)
+        {
+            string fullPath = Path.GetFullPath(path);
+            string fullRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            return fullPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsPrivateOrLoopbackAddress(IPAddress address)
+        {
+            if (IPAddress.IsLoopback(address))
+            {
+                return true;
+            }
+
+            byte[] bytes = address.GetAddressBytes();
+            if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                return bytes[0] == 0 ||
+                       bytes[0] == 10 ||
+                       bytes[0] == 127 ||
+                       bytes[0] == 169 && bytes[1] == 254 ||
+                       bytes[0] == 192 && bytes[1] == 168 ||
+                       bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31;
+            }
+
+            if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                return address.IsIPv6LinkLocal || address.IsIPv6SiteLocal ||
+                       address.Equals(IPAddress.IPv6Loopback) ||
+                       address.Equals(IPAddress.IPv6None) ||
+                       address.Equals(IPAddress.IPv6Any) ||
+                       address.IsIPv4MappedToIPv6 && IsPrivateOrLoopbackAddress(address.MapToIPv4()) ||
+                       bytes[0] == 0xfe && (bytes[1] & 0xc0) == 0x80 ||
+                       bytes[0] == 0xfc || bytes[0] == 0xfd;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// 注册需要的事件 (需再流程入口处调用 防止框架重启导致事件被取消问题)
@@ -331,6 +477,11 @@ namespace UGFExtensions.Await
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
+            if (webRequestComponent == null || !IsValidHttpUri(webRequestUri))
+            {
+                return Task.FromResult(WebResult.Create(null, true, "Web request uri is invalid.", userdata));
+            }
+
             var tsc = new TaskCompletionSource<WebResult>();
             int serialId = webRequestComponent.AddWebRequest(webRequestUri, wwwForm,
                 AwaitDataWrap<WebResult>.Create(userdata, tsc));
@@ -347,6 +498,11 @@ namespace UGFExtensions.Await
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
+            if (webRequestComponent == null || !IsValidHttpUri(webRequestUri))
+            {
+                return Task.FromResult(WebResult.Create(null, true, "Web request uri is invalid.", userdata));
+            }
+
             var tsc = new TaskCompletionSource<WebResult>();
             int serialId = webRequestComponent.AddWebRequest(webRequestUri, postData,
                 AwaitDataWrap<WebResult>.Create(userdata, tsc));
@@ -363,21 +519,11 @@ namespace UGFExtensions.Await
                 {
                     WebResult result = WebResult.Create(ne.GetWebResponseBytes(), false, string.Empty,
                         webRequestUserdata.UserData);
-                    s_DelayReleaseWebResult.Add(result);
                     webRequestUserdata.Source.TrySetResult(result);
                     ReferencePool.Release(webRequestUserdata);
                 }
 
                 s_WebSerialIDs.Remove(ne.SerialId);
-                if (s_WebSerialIDs.Count == 0)
-                {
-                    for (int i = 0; i < s_DelayReleaseWebResult.Count; i++)
-                    {
-                        ReferencePool.Release(s_DelayReleaseWebResult[i]);
-                    }
-
-                    s_DelayReleaseWebResult.Clear();
-                }
             }
         }
 
@@ -390,20 +536,10 @@ namespace UGFExtensions.Await
                 {
                     WebResult result = WebResult.Create(null, true, ne.ErrorMessage, webRequestUserdata.UserData);
                     webRequestUserdata.Source.TrySetResult(result);
-                    s_DelayReleaseWebResult.Add(result);
                     ReferencePool.Release(webRequestUserdata);
                 }
 
                 s_WebSerialIDs.Remove(ne.SerialId);
-                if (s_WebSerialIDs.Count == 0)
-                {
-                    for (int i = 0; i < s_DelayReleaseWebResult.Count; i++)
-                    {
-                        ReferencePool.Release(s_DelayReleaseWebResult[i]);
-                    }
-
-                    s_DelayReleaseWebResult.Clear();
-                }
             }
         }
 
@@ -418,6 +554,11 @@ namespace UGFExtensions.Await
 #if UNITY_EDITOR
             TipsSubscribeEvent();
 #endif
+            if (downloadComponent == null || !IsSafeDownloadPath(downloadPath) || !IsValidHttpUri(downloadUri))
+            {
+                return Task.FromResult(DownLoadResult.Create(true, "Download path or uri is invalid.", userdata));
+            }
+
             var tcs = new TaskCompletionSource<DownLoadResult>();
             int serialId = downloadComponent.AddDownload(downloadPath, downloadUri,
                 AwaitDataWrap<DownLoadResult>.Create(userdata, tcs));
@@ -433,21 +574,11 @@ namespace UGFExtensions.Await
                 if (ne.UserData is AwaitDataWrap<DownLoadResult> awaitDataWrap)
                 {
                     DownLoadResult result = DownLoadResult.Create(false, string.Empty, awaitDataWrap.UserData);
-                    s_DelayReleaseDownloadResult.Add(result);
                     awaitDataWrap.Source.TrySetResult(result);
                     ReferencePool.Release(awaitDataWrap);
                 }
 
                 s_DownloadSerialIds.Remove(ne.SerialId);
-                if (s_DownloadSerialIds.Count == 0)
-                {
-                    for (int i = 0; i < s_DelayReleaseDownloadResult.Count; i++)
-                    {
-                        ReferencePool.Release(s_DelayReleaseDownloadResult[i]);
-                    }
-
-                    s_DelayReleaseDownloadResult.Clear();
-                }
             }
         }
 
@@ -459,21 +590,11 @@ namespace UGFExtensions.Await
                 if (ne.UserData is AwaitDataWrap<DownLoadResult> awaitDataWrap)
                 {
                     DownLoadResult result = DownLoadResult.Create(true, ne.ErrorMessage, awaitDataWrap.UserData);
-                    s_DelayReleaseDownloadResult.Add(result);
                     awaitDataWrap.Source.TrySetResult(result);
                     ReferencePool.Release(awaitDataWrap);
                 }
 
                 s_DownloadSerialIds.Remove(ne.SerialId);
-                if (s_DownloadSerialIds.Count == 0)
-                {
-                    for (int i = 0; i < s_DelayReleaseDownloadResult.Count; i++)
-                    {
-                        ReferencePool.Release(s_DelayReleaseDownloadResult[i]);
-                    }
-
-                    s_DelayReleaseDownloadResult.Clear();
-                }
             }
         }
     }

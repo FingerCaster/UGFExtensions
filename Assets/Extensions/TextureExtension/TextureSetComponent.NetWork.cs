@@ -28,6 +28,12 @@ namespace UGFExtensions.Texture
         /// <param name="saveFilePath">保存网络图片到本地的路径</param>
         public int SetTextureByNetwork(ISetTexture2dObject setTexture2dObject, string saveFilePath = null)
         {
+            if (setTexture2dObject == null || !IsValidUri(setTexture2dObject.Texture2dFilePath))
+            {
+                return -1;
+            }
+
+            string validSaveFilePath = IsValidFileKey(saveFilePath) ? saveFilePath : null;
             int serialId = -1;
             if (m_TexturePool.CanSpawn(setTexture2dObject.Texture2dFilePath))
             {
@@ -37,7 +43,8 @@ namespace UGFExtensions.Texture
             else
             {
                 serialId = m_SerialId++;
-                m_WebRequestComponent.AddWebRequest(setTexture2dObject.Texture2dFilePath, WebGetTextureData.Create(setTexture2dObject,this,saveFilePath,serialId));
+                m_WebRequestComponent.AddWebRequest(setTexture2dObject.Texture2dFilePath,
+                    WebGetTextureData.Create(setTexture2dObject,this,validSaveFilePath,serialId));
             }
 
             return serialId;
@@ -51,7 +58,9 @@ namespace UGFExtensions.Texture
             {
                 return;
             }
-            Log.Error("Can not download Texture2D from '{1}' with error message '{2}'.",webRequestSuccessEventArgs.WebRequestUri,webRequestSuccessEventArgs.ErrorMessage);
+            Log.Error("Can not download Texture2D from '{0}' with error message '{1}'.",
+                GetSafeUriForLog(webRequestSuccessEventArgs.WebRequestUri),
+                webRequestSuccessEventArgs.ErrorMessage);
             ReferencePool.Release(webGetTextureData);
         }
 
@@ -63,9 +72,15 @@ namespace UGFExtensions.Texture
             {
                 return;
             }
-            Texture2D tex = new Texture2D(0, 0, TextureFormat.RGBA32, false);
             var bytes = webRequestSuccessEventArgs.GetWebResponseBytes();
-            tex.LoadImage(bytes);
+            if (!TryLoadTextureFromBytes(bytes, out Texture2D tex))
+            {
+                Log.Error("Can not decode Texture2D from '{0}' because response bytes are invalid or exceed limit.",
+                    GetSafeUriForLog(webRequestSuccessEventArgs.WebRequestUri));
+                ReferencePool.Release(webGetTextureData);
+                return;
+            }
+
             if (!string.IsNullOrEmpty(webGetTextureData.FilePath))
             {
                 SaveTexture(webGetTextureData.FilePath, bytes);

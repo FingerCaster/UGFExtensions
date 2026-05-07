@@ -1,11 +1,9 @@
-using GameFramework;
-
 namespace UGFExtensions.Await
 {
     /// <summary>
     /// web 访问结果
     /// </summary>
-    public class WebResult : IReference
+    public class WebResult
     {
         /// <summary>
         /// web请求 返回数据
@@ -27,28 +25,15 @@ namespace UGFExtensions.Await
 
         public static WebResult Create(byte[] bytes, bool isError, string errorMessage, object userData)
         {
-            WebResult webResult = ReferencePool.Acquire<WebResult>();
-            webResult.Bytes = bytes;
-            webResult.IsError = isError;
-            webResult.ErrorMessage = errorMessage;
-            webResult.UserData = userData;
-            return webResult;
+            return new WebResult(bytes, isError, errorMessage, userData);
         }
-        
-        public WebResult Init(byte[] bytes, bool isError, string errorMessage, object userData)
+
+        private WebResult(byte[] bytes, bool isError, string errorMessage, object userData)
         {
-            this.Bytes = bytes;
-            this.IsError = isError;
-            this.ErrorMessage = errorMessage;
-            this.UserData = userData;
-            return this;
-        }
-        public void Clear()
-        {
-            Bytes = null;
-            IsError = false;
-            ErrorMessage = string.Empty;
-            UserData = null;
+            Bytes = bytes;
+            IsError = isError;
+            ErrorMessage = errorMessage;
+            UserData = userData;
         }
     }
 }

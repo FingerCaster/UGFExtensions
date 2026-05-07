@@ -110,6 +110,10 @@ namespace UGFExtensions.Texture
 
         private void SetTexture(ISetTexture2dObject setTexture2dObject, Texture2D texture,int serialId = -1)
         {
+            if (setTexture2dObject == null || texture == null)
+            {
+                return;
+            }
             m_LoadTextureObjectsLinkedList.AddLast(LoadTextureObject.Create(setTexture2dObject, texture));
             if (!m_CancelId.Contains(serialId))
             {

@@ -14,6 +14,12 @@ namespace UGFExtensions.Texture
         /// <param name="saveFilePath">保存网络图片到本地的路径</param>
         public async void SetTextureByNetworkAsync(ISetTexture2dObject setTexture2dObject,string saveFilePath = null, ETCancellationToken etCancellationToken = null)
         {
+            if (setTexture2dObject == null || !IsValidUri(setTexture2dObject.Texture2dFilePath))
+            {
+                return;
+            }
+
+            string validSaveFilePath = IsValidFileKey(saveFilePath) ? saveFilePath : null;
             int serialId = -1;
 
             Texture2D texture = null;
@@ -36,11 +42,14 @@ namespace UGFExtensions.Texture
                     var data = await m_WebRequestComponent.AddWebRequestAsync(setTexture2dObject.Texture2dFilePath);
                     if (!data.IsError)
                     {
-                        texture = new Texture2D(0, 0, TextureFormat.RGBA32, false);
-                        texture.LoadImage(data.Bytes);
-                        if (!string.IsNullOrEmpty(saveFilePath))
+                        if (!TryLoadTextureFromBytes(data.Bytes, out texture))
                         {
-                            SaveTexture(saveFilePath, data.Bytes);
+                            return;
+                        }
+
+                        if (!string.IsNullOrEmpty(validSaveFilePath))
+                        {
+                            SaveTexture(validSaveFilePath, data.Bytes);
                         }
 
                         m_TexturePool.Register(

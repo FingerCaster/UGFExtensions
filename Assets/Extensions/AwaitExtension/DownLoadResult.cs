@@ -1,12 +1,9 @@
-using System;
-using GameFramework;
-
 namespace UGFExtensions.Await
 {
     /// <summary>
     /// DownLoad 结果
     /// </summary>
-    public class DownLoadResult : IReference
+    public class DownLoadResult
     {
         /// <summary>
         /// 是否有错误
@@ -23,18 +20,14 @@ namespace UGFExtensions.Await
 
         public static DownLoadResult Create(bool isError, string errorMessage, object userData)
         {
-            DownLoadResult downLoadResult = ReferencePool.Acquire<DownLoadResult>();
-            downLoadResult.IsError = isError;
-            downLoadResult.ErrorMessage = errorMessage;
-            downLoadResult.UserData = userData;
-            return downLoadResult;
+            return new DownLoadResult(isError, errorMessage, userData);
         }
 
-        public void Clear()
+        private DownLoadResult(bool isError, string errorMessage, object userData)
         {
-            IsError = false;
-            ErrorMessage = string.Empty;
-            UserData = null;
+            IsError = isError;
+            ErrorMessage = errorMessage;
+            UserData = userData;
         }
     }
 }
