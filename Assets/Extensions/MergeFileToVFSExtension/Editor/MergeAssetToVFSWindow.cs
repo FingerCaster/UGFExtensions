@@ -107,7 +107,8 @@ namespace UGFExtensions
 
         private bool IsPickable(Object obj)
         {
-            return MergeAssetUtility.GetAssetType(obj) != AssetType.None;
+            return MergeAssetUtility.GetAssetType(obj) != AssetType.None &&
+                   AssetDatabase.GetAssetPath(obj).StartsWith("Assets/", System.StringComparison.Ordinal);
         }
 
         private void AddAssetData(Object obj)

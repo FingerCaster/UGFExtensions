@@ -345,6 +345,7 @@ namespace UGFExtensions.Editor.ResourceTools
 
         private void Save()
         {
+            ValidateConfiguration();
             if (LoadAssetAtPath<ResourceRuleEditorData>(m_CurrentConfigPath) == null)
             {
                 AssetDatabase.CreateAsset(m_Configuration, m_CurrentConfigPath);
@@ -366,6 +367,7 @@ namespace UGFExtensions.Editor.ResourceTools
 
             m_SourceAssetExceptTypeFilterGUIDArray = AssetDatabase.FindAssets(m_SourceAssetExceptTypeFilter);
             m_SourceAssetExceptLabelFilterGUIDArray = AssetDatabase.FindAssets(m_SourceAssetExceptLabelFilter);
+            ValidateConfiguration();
             AnalysisResourceFilters();
             if (SaveCollection())
             {
@@ -386,6 +388,7 @@ namespace UGFExtensions.Editor.ResourceTools
 
             m_SourceAssetExceptTypeFilterGUIDArray = AssetDatabase.FindAssets(m_SourceAssetExceptTypeFilter);
             m_SourceAssetExceptLabelFilterGUIDArray = AssetDatabase.FindAssets(m_SourceAssetExceptLabelFilter);
+            ValidateConfiguration();
             AnalysisResourceFilters();
             if (SaveCollection())
             {
@@ -631,6 +634,90 @@ namespace UGFExtensions.Editor.ResourceTools
         private bool SaveCollection()
         {
             return m_ResourceCollection.Save();
+        }
+
+        private void ValidateConfiguration()
+        {
+            if (m_Configuration == null || m_Configuration.rules == null)
+            {
+                return;
+            }
+
+            foreach (ResourceRule rule in m_Configuration.rules)
+            {
+                ValidateRule(rule);
+            }
+        }
+
+        private void ValidateRule(ResourceRule rule)
+        {
+            if (rule == null)
+            {
+                throw new GameFrameworkException("Resource rule can not be null.");
+            }
+
+            rule.assetsDirectoryPath = NormalizeAssetDirectoryPath(rule.assetsDirectoryPath);
+            rule.searchPatterns = NormalizeSearchPatterns(rule.searchPatterns);
+            rule.name = Utility.Path.GetRegularPath(rule.name ?? string.Empty);
+            rule.fileSystem = Utility.Path.GetRegularPath(rule.fileSystem ?? string.Empty);
+            rule.groups = rule.groups ?? string.Empty;
+
+            if (rule.name.Contains("..") || rule.fileSystem.Contains(".."))
+            {
+                throw new GameFrameworkException("Resource rule path-like field is invalid.");
+            }
+        }
+
+        private string NormalizeAssetDirectoryPath(string assetDirectoryPath)
+        {
+            assetDirectoryPath = Utility.Path.GetRegularPath(assetDirectoryPath ?? string.Empty).TrimEnd('/');
+            if (string.IsNullOrEmpty(assetDirectoryPath) || !assetDirectoryPath.StartsWith("Assets/", System.StringComparison.Ordinal) ||
+                assetDirectoryPath.Contains("..") || Path.IsPathRooted(assetDirectoryPath))
+            {
+                throw new GameFrameworkException($"Resource rule assetsDirectoryPath '{assetDirectoryPath}' is invalid.");
+            }
+
+            string fullPath = Path.GetFullPath(Path.Combine(Application.dataPath, assetDirectoryPath.Substring("Assets/".Length)));
+            string fullDataPath = Path.GetFullPath(Application.dataPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            if (!fullPath.StartsWith(fullDataPath, System.StringComparison.OrdinalIgnoreCase) || !Directory.Exists(fullPath))
+            {
+                throw new GameFrameworkException($"Resource rule assetsDirectoryPath '{assetDirectoryPath}' is invalid.");
+            }
+
+            return assetDirectoryPath;
+        }
+
+        private string NormalizeSearchPatterns(string searchPatterns)
+        {
+            string[] patterns = (searchPatterns ?? string.Empty)
+                .Split(';', ',', '|')
+                .Select(pattern => pattern.Trim())
+                .Where(pattern => !string.IsNullOrEmpty(pattern))
+                .ToArray();
+
+            if (patterns.Length == 0)
+            {
+                return "*.*";
+            }
+
+            foreach (string pattern in patterns)
+            {
+                if (pattern.Contains("..") || pattern.Contains("/") || pattern.Contains("\\") || Path.IsPathRooted(pattern))
+                {
+                    throw new GameFrameworkException($"Resource rule search pattern '{pattern}' is invalid.");
+                }
+
+                try
+                {
+                    new DirectoryInfo(Application.dataPath).GetFiles(pattern, SearchOption.TopDirectoryOnly);
+                }
+                catch (System.Exception exception)
+                {
+                    throw new GameFrameworkException($"Resource rule search pattern '{pattern}' is invalid. {exception.Message}");
+                }
+            }
+
+            return string.Join(";", patterns);
         }
 
         #endregion

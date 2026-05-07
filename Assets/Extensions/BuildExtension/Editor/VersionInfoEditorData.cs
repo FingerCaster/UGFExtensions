@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace UGFExtensions.Build.Editor
 {
@@ -74,7 +73,16 @@ namespace UGFExtensions.Build.Editor
                 Selection.activeObject = AssetDatabase.LoadAssetAtPath<VersionInfoEditorData>(M_DataPath);
                 return false;
             }
-            File.WriteAllText(path,versionInfoData.ToVersionInfoJson());
+
+            string json = versionInfoData.ToVersionInfoJson();
+            string fullPath = Path.GetFullPath(path);
+            string directoryName = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directoryName))
+            {
+                Directory.CreateDirectory(directoryName);
+            }
+
+            File.WriteAllText(fullPath, json);
             return true;
 
         }

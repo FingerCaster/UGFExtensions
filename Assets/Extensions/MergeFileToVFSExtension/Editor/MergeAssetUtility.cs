@@ -21,17 +21,19 @@ namespace UGFExtensions
     {
         public static void Merge(string fileSystemPath, List<AssetData> assetDataList, string searchPatterns)
         {
+            fileSystemPath = ValidateFileSystemPath(fileSystemPath);
             List<AssetData> tempList = new List<AssetData>(assetDataList.Count);
 
             foreach (AssetData assetData in assetDataList)
             {
+                ValidateAssetData(assetData);
                 if (assetData.AssetType == AssetType.Folder)
                 {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(assetData.AssetPath);
+                    DirectoryInfo directoryInfo = new DirectoryInfo(GetFullAssetPath(assetData.AssetPath));
                     var files = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories)
                         .Where(_ => !_.FullName.EndsWith(".meta"))
                         .Select(_ => Utility.Path.GetRegularPath(_.FullName))
-                        .Select(_ => _.Substring(_.IndexOf(assetData.AssetPath)))
+                        .Select(_ => ToAssetPath(_))
                         .ToArray();
 
                     if (files.Length == 0)
@@ -39,7 +41,7 @@ namespace UGFExtensions
                         continue;
                     }
 
-                    string[] patterns = searchPatterns.Split(';', ',', '|');
+                    string[] patterns = (searchPatterns ?? string.Empty).Split(';', ',', '|');
                     
                     foreach (var pattern in patterns)
                     {
@@ -55,6 +57,7 @@ namespace UGFExtensions
 
                         foreach (string assetPath in assetPaths)
                         {
+                            ValidateAssetPath(assetPath);
                             var newAssetData = new AssetData
                             {
                                 AssetPath = assetPath
@@ -82,6 +85,7 @@ namespace UGFExtensions
                 tempList.Count, tempList.Count * 8);
             foreach (var assetData in tempList)
             {
+                ValidateAssetData(assetData);
                 fileSystem.WriteFile(assetData.AssetPath, Asset2Bytes(assetData));
             }
 
@@ -150,6 +154,7 @@ namespace UGFExtensions
         
         public static void SaveScriptableObject(MergeAssetScriptableObject mergeAssetScriptableObject,string path)
         {
+            path = ValidateConfigAssetPath(path);
             if (mergeAssetScriptableObject == null)
             {
                 throw new Exception("MergeAssetScriptableObject can not be null.");
@@ -163,6 +168,89 @@ namespace UGFExtensions
                 EditorUtility.SetDirty(mergeAssetScriptableObject);
             }
             AssetDatabase.SaveAssets();
+        }
+
+        private static string ValidateFileSystemPath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || Path.GetExtension(path) != ".dat")
+            {
+                throw new Exception("VFS output path is invalid.");
+            }
+
+            string fullPath = Path.GetFullPath(path);
+            string fullDataPath = Path.GetFullPath(Application.dataPath);
+            string fullProjectPath = Directory.GetParent(fullDataPath).FullName;
+            if (!IsPathInRoot(fullPath, fullDataPath) && !IsPathInRoot(fullPath, fullProjectPath))
+            {
+                throw new Exception("VFS output path must be inside project path.");
+            }
+
+            return Utility.Path.GetRegularPath(fullPath);
+        }
+
+        private static string ValidateConfigAssetPath(string path)
+        {
+            path = Utility.Path.GetRegularPath(path);
+            ValidateAssetPath(path);
+            if (Path.GetExtension(path) != ".asset")
+            {
+                throw new Exception("MergeAssetScriptableObject save path must be an asset path.");
+            }
+
+            return path;
+        }
+
+        private static void ValidateAssetData(AssetData assetData)
+        {
+            if (assetData == null)
+            {
+                throw new Exception("AssetData can not be null.");
+            }
+
+            ValidateAssetPath(assetData.AssetPath);
+            if (assetData.AssetType != AssetType.Folder && assetData.Asset == null)
+            {
+                throw new Exception($"Asset '{assetData.AssetPath}' is invalid.");
+            }
+        }
+
+        private static void ValidateAssetPath(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath) || !assetPath.StartsWith("Assets/", StringComparison.Ordinal) ||
+                assetPath.Contains("..") || Path.IsPathRooted(assetPath))
+            {
+                throw new Exception($"Asset path '{assetPath}' is invalid.");
+            }
+
+            string fullPath = GetFullAssetPath(assetPath);
+            if (!IsPathInRoot(fullPath, Application.dataPath))
+            {
+                throw new Exception($"Asset path '{assetPath}' is outside Assets.");
+            }
+        }
+
+        private static string GetFullAssetPath(string assetPath)
+        {
+            return Path.GetFullPath(Path.Combine(Application.dataPath, assetPath.Substring("Assets/".Length)));
+        }
+
+        private static string ToAssetPath(string fullPath)
+        {
+            string regularFullPath = Utility.Path.GetRegularPath(Path.GetFullPath(fullPath));
+            string regularDataPath = Utility.Path.GetRegularPath(Path.GetFullPath(Application.dataPath));
+            if (!regularFullPath.StartsWith(regularDataPath + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new Exception($"Asset path '{fullPath}' is outside Assets.");
+            }
+
+            return "Assets/" + regularFullPath.Substring(regularDataPath.Length + 1);
+        }
+
+        private static bool IsPathInRoot(string path, string root)
+        {
+            string fullPath = Path.GetFullPath(path);
+            string fullRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            return fullPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase);
         }
         
     }

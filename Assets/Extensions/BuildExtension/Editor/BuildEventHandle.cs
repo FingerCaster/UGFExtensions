@@ -66,23 +66,45 @@ namespace UGFExtensions.Build.Editor
             }
 
             VersionInfoData versionInfoData = versionInfoEditorData.GetActiveVersionInfoData();
-            versionInfoData.AutoIncrementInternalGameVersion();
-            versionInfoData.ForceUpdateGame = false;
-            versionInfoData.ResourceVersion = builderController.ApplicableGameVersion.Replace('.', '_')+ "_"+builderController.InternalResourceVersion;
-            versionInfoData.Platform = (Platform)(int)platform;
-            versionInfoData.LatestGameVersion = builderController.ApplicableGameVersion;
-            versionInfoData.InternalResourceVersion = builderController.InternalResourceVersion;
-            versionInfoData.VersionListLength = versionListLength;
-            versionInfoData.VersionListHashCode = versionListHashCode;
-            versionInfoData.VersionListCompressedLength = versionListZipLength;
-            versionInfoData.VersionListCompressedHashCode = versionListZipHashCode;
-            EditorUtility.SetDirty(versionInfoEditorData);
-            AssetDatabase.SaveAssets();
+            VersionInfoData stagedVersionInfoData = versionInfoData.Clone();
+            stagedVersionInfoData.ForceUpdateGame = false;
+            stagedVersionInfoData.SetInternalGameVersion(versionInfoData.InternalGameVersion + 1);
+            stagedVersionInfoData.ResourceVersion = builderController.ApplicableGameVersion.Replace('.', '_')+ "_"+builderController.InternalResourceVersion;
+            stagedVersionInfoData.Platform = (Platform)(int)platform;
+            stagedVersionInfoData.LatestGameVersion = builderController.ApplicableGameVersion;
+            stagedVersionInfoData.InternalResourceVersion = builderController.InternalResourceVersion;
+            stagedVersionInfoData.VersionListLength = versionListLength;
+            stagedVersionInfoData.VersionListHashCode = versionListHashCode;
+            stagedVersionInfoData.VersionListCompressedLength = versionListZipLength;
+            stagedVersionInfoData.VersionListCompressedHashCode = versionListZipHashCode;
+
+            string generatedJson = stagedVersionInfoData.ToVersionInfoJson();
 
             if (versionInfoEditorData.IsGenerateToFullPath)
             {
-                versionInfoEditorData.Generate(Path.Combine(builderController.OutputFullPath, platform.ToString(), $"{platform}Version.txt"));
+                string outputPath = Path.Combine(builderController.OutputFullPath, platform.ToString(), $"{platform}Version.txt");
+                string outputDirectory = Path.GetDirectoryName(outputPath);
+                if (!string.IsNullOrEmpty(outputDirectory))
+                {
+                    Directory.CreateDirectory(outputDirectory);
+                }
+
+                File.WriteAllText(outputPath, generatedJson);
             }
+
+            versionInfoData.ForceUpdateGame = stagedVersionInfoData.ForceUpdateGame;
+            versionInfoData.SetInternalGameVersion(stagedVersionInfoData.InternalGameVersion);
+            versionInfoData.ResourceVersion = stagedVersionInfoData.ResourceVersion;
+            versionInfoData.Platform = stagedVersionInfoData.Platform;
+            versionInfoData.LatestGameVersion = stagedVersionInfoData.LatestGameVersion;
+            versionInfoData.InternalResourceVersion = stagedVersionInfoData.InternalResourceVersion;
+            versionInfoData.VersionListLength = stagedVersionInfoData.VersionListLength;
+            versionInfoData.VersionListHashCode = stagedVersionInfoData.VersionListHashCode;
+            versionInfoData.VersionListCompressedLength = stagedVersionInfoData.VersionListCompressedLength;
+            versionInfoData.VersionListCompressedHashCode = stagedVersionInfoData.VersionListCompressedHashCode;
+
+            EditorUtility.SetDirty(versionInfoEditorData);
+            AssetDatabase.SaveAssets();
         }
 
         public void OnPostprocessPlatform(UnityGameFramework.Editor.ResourceTools.Platform platform, string workingPath, bool outputPackageSelected,

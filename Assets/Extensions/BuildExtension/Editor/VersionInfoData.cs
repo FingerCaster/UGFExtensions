@@ -193,5 +193,29 @@ namespace UGFExtensions.Build.Editor
         {
             ++m_InternalGameVersion;
         }
+
+        public VersionInfoData Clone()
+        {
+            return new VersionInfoData
+            {
+                m_ForceUpdateGame = m_ForceUpdateGame,
+                m_LatestGameVersion = m_LatestGameVersion,
+                m_InternalGameVersion = m_InternalGameVersion,
+                m_ServerPath = m_ServerPath,
+                m_ResourceVersion = m_ResourceVersion,
+                m_Platform = m_Platform,
+                m_VersionListLength = m_VersionListLength,
+                m_InternalResourceVersion = m_InternalResourceVersion,
+                m_VersionListHashCode = m_VersionListHashCode,
+                m_VersionListCompressedLength = m_VersionListCompressedLength,
+                m_VersionListCompressedHashCode = m_VersionListCompressedHashCode,
+                m_IsShowCanNotChangeProperty = m_IsShowCanNotChangeProperty
+            };
+        }
+
+        public void SetInternalGameVersion(int version)
+        {
+            m_InternalGameVersion = version;
+        }
     }
 }
