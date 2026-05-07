@@ -8,6 +8,8 @@ namespace TimingWheel
     /// </summary>
     public class TimingWheel
     {
+        private readonly object m_SyncRoot = new object();
+
         /// <summary>
         /// 时间槽大小，即刻度，毫秒
         /// 注意这个代表时间轮的精度，比如设置为1s，那么所有小于1s的延迟任务都算到期，不管是1ms还是999ms
@@ -86,57 +88,60 @@ namespace TimingWheel
         /// <returns></returns>
         public bool AddTask(TimeTask task)
         {
-            if (!task.IsWaiting)
+            lock (m_SyncRoot)
             {
-                return false;
-            }
-
-            if (task.TimeoutMs < m_CurrentNeedle + m_TickSpan)
-            {
-                // 任务已经过期，无法添加
-                return false;
-            }
-
-            // 是否可以放入当前时间轮
-            if (task.TimeoutMs < m_CurrentNeedle + m_WheelSpan)
-            {
-                // 任务已经过期，无法添加
-                // 计算过期时间戳所属的时间槽
-                var tickCount = task.TimeoutMs / m_TickSpan;
-                var slotIndex = (int) (tickCount % m_SlotCount);
-
-                var slot = m_TimeSlots[slotIndex];
-                slot.AddTask(task);
-
-                // 设置成功，说明该时间槽已过期出队，需要重新入队
-                // 在同一轮循环内，同一个槽的slotTimeoutMs是一样的
-                var slotTimeoutMs = tickCount * m_TickSpan;
-                if (slot.SetExpiration(slotTimeoutMs))
+                if (!task.IsWaiting)
                 {
-                    // 注意这里有个特殊情况：
-                    // slotTimeoutMs是按照tickSpan裁剪得到的值，可能会小于当前时间，
-                    // 意味着这里入队的slot已经超时，TimingWheelTimer会将该slot立即出队。
-                    m_DelayQueue.TryAdd(slot);
-
-                    /*
-                    举个例子，需要结合TimingWheelTimer.Step方法来分析：
-                    假如第1层时间轮是秒级（1s 60个槽），那么第2层时间轮就是分钟级（60s 60个槽），第3层时间轮是小时级（3600s，60个槽）；
-                    第1层时间轮启动时间是12点钟（currentNeedle=12:00:00），1小时1分后（当前时间13:01:00）加入第1个延时任务，延时时间是1s；
-                    该任务TimeoutMs是13:01:01，虽然是1s后过期，但由于currentNeedle=12:00:00，所以计算后实际会进入第3层时间轮；
-                    在第3层时间轮计算得到的slotTimeoutMs为13:00:00，已过期，所以solt在入队后又会立即出队（由TimingWheelTimer.Step.TryTake处理）；
-                    那么出队后重新计算，第1层时间轮的currentNeedle会变成13:00:00，所以计算后任务会进入第2层时间轮；
-                    在第2层时间轮计算得到的slotTimeoutMs为13:01:00，还是过期，所以solt在入队后又会立即出队（由TimingWheelTimer.Step.TryTakeNoBlocking处理）；
-                    那么出队后重新计算，第1层时间轮的currentNeedle会变成13:01:00，延时任务将留在第1层时间轮，等待1s后过期。
-                    */
+                    return false;
                 }
 
-                return true;
-            }
-            // 超出当前时间轮，则放入下一层
-            else
-            {
-                CreateNextWheel();
-                return m_NextWheel.AddTask(task);
+                if (task.TimeoutMs < m_CurrentNeedle + m_TickSpan)
+                {
+                    // 任务已经过期，无法添加
+                    return false;
+                }
+
+                // 是否可以放入当前时间轮
+                if (task.TimeoutMs < m_CurrentNeedle + m_WheelSpan)
+                {
+                    // 任务已经过期，无法添加
+                    // 计算过期时间戳所属的时间槽
+                    var tickCount = task.TimeoutMs / m_TickSpan;
+                    var slotIndex = (int) (tickCount % m_SlotCount);
+
+                    var slot = m_TimeSlots[slotIndex];
+                    slot.AddTask(task);
+
+                    // 设置成功，说明该时间槽已过期出队，需要重新入队
+                    // 在同一轮循环内，同一个槽的slotTimeoutMs是一样的
+                    var slotTimeoutMs = tickCount * m_TickSpan;
+                    if (slot.SetExpiration(slotTimeoutMs))
+                    {
+                        // 注意这里有个特殊情况：
+                        // slotTimeoutMs是按照tickSpan裁剪得到的值，可能会小于当前时间，
+                        // 意味着这里入队的slot已经超时，TimingWheelTimer会将该slot立即出队。
+                        m_DelayQueue.TryAdd(slot);
+
+                        /*
+                        举个例子，需要结合TimingWheelTimer.Step方法来分析：
+                        假如第1层时间轮是秒级（1s 60个槽），那么第2层时间轮就是分钟级（60s 60个槽），第3层时间轮是小时级（3600s，60个槽）；
+                        第1层时间轮启动时间是12点钟（currentNeedle=12:00:00），1小时1分后（当前时间13:01:00）加入第1个延时任务，延时时间是1s；
+                        该任务TimeoutMs是13:01:01，虽然是1s后过期，但由于currentNeedle=12:00:00，所以计算后实际会进入第3层时间轮；
+                        在第3层时间轮计算得到的slotTimeoutMs为13:00:00，已过期，所以solt在入队后又会立即出队（由TimingWheelTimer.Step.TryTake处理）；
+                        那么出队后重新计算，第1层时间轮的currentNeedle会变成13:00:00，所以计算后任务会进入第2层时间轮；
+                        在第2层时间轮计算得到的slotTimeoutMs为13:01:00，还是过期，所以solt在入队后又会立即出队（由TimingWheelTimer.Step.TryTakeNoBlocking处理）；
+                        那么出队后重新计算，第1层时间轮的currentNeedle会变成13:01:00，延时任务将留在第1层时间轮，等待1s后过期。
+                        */
+                    }
+
+                    return true;
+                }
+                // 超出当前时间轮，则放入下一层
+                else
+                {
+                    CreateNextWheel();
+                    return m_NextWheel.AddTask(task);
+                }
             }
         }
 
@@ -146,14 +151,41 @@ namespace TimingWheel
         /// <param name="timestamp">前进到该时间戳</param>
         public void Step(long timestamp)
         {
-            // 时间戳已超出tickSpan，所以需要前进
-            if (timestamp >= m_CurrentNeedle + m_TickSpan)
+            lock (m_SyncRoot)
             {
-                // 调整指针到指定时间戳对应的时间槽
-                SetNeedle(timestamp);
+                // 时间戳已超出tickSpan，所以需要前进
+                if (timestamp >= m_CurrentNeedle + m_TickSpan)
+                {
+                    // 调整指针到指定时间戳对应的时间槽
+                    SetNeedle(timestamp);
 
-                // 同时推动下层时间轮前进
-                m_NextWheel?.Step(timestamp);
+                    // 同时推动下层时间轮前进
+                    m_NextWheel?.Step(timestamp);
+                }
+            }
+        }
+
+        public void CancelAll()
+        {
+            var tasks = new System.Collections.Generic.List<TimeTask>();
+            CollectAllTasks(tasks);
+
+            foreach (TimeTask task in tasks)
+            {
+                task.Cancel();
+            }
+        }
+
+        private void CollectAllTasks(System.Collections.Generic.List<TimeTask> tasks)
+        {
+            lock (m_SyncRoot)
+            {
+                foreach (TimeSlot timeSlot in m_TimeSlots)
+                {
+                    timeSlot.Flush(task => tasks.Add(task));
+                }
+
+                m_NextWheel?.CollectAllTasks(tasks);
             }
         }
 

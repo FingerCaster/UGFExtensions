@@ -1,5 +1,6 @@
 ﻿using System;
 using ET;
+using System.Threading;
 using GameFramework;
 using TimingWheel.Extensions;
 using TimingWheel.Interfaces;
@@ -36,12 +37,22 @@ namespace TimingWheel
         /// <summary>
         /// 所属时间槽
         /// </summary>
-        public TimeSlot TimeSlot;
+        public volatile TimeSlot TimeSlot;
 
         /// <summary>
         /// 任务状态
         /// </summary>
-        public TimeTaskStatus TaskStatus { get; private set; } = TimeTaskStatus.Wait;
+        private int m_TaskStatus = (int) TimeTaskStatus.Wait;
+
+        public TimeTaskStatus TaskStatus
+        {
+            get => (TimeTaskStatus) Volatile.Read(ref m_TaskStatus);
+            private set => Volatile.Write(ref m_TaskStatus, (int) value);
+        }
+
+        private readonly object m_SyncRoot = new object();
+
+        internal object SyncRoot => m_SyncRoot;
 
         /// <summary>
         /// 任务是否等待中
@@ -114,42 +125,39 @@ namespace TimingWheel
         /// </summary>
         public void Run()
         {
-            if (!IsWaiting)
+            lock (m_SyncRoot)
             {
-                return;
-            }
+                if (!IsWaiting)
+                {
+                    return;
+                }
 
-
-            if (IsWaiting)
-            {
                 TaskStatus = TimeTaskStatus.Running;
-                Remove();
             }
 
-            if (TaskStatus == TimeTaskStatus.Running)
-            {
-                try
-                {
-                    switch (m_TimerType)
-                    {
-                        case TimerType.Action:
-                            Action<bool> action = (Action<bool>) DelayTask;
-                            action.Invoke(true);
-                            break;
-                        case TimerType.Task:
-                            ETTask<bool> etTask = (ETTask<bool>) DelayTask;
-                            etTask.SetResult(true);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+            Remove();
 
-                    TaskStatus = TimeTaskStatus.Success;
-                }
-                catch
+            try
+            {
+                switch (m_TimerType)
                 {
-                    TaskStatus = TimeTaskStatus.Fail;
+                    case TimerType.Action:
+                        Action<bool> action = (Action<bool>) DelayTask;
+                        action.Invoke(true);
+                        break;
+                    case TimerType.Task:
+                        ETTask<bool> etTask = (ETTask<bool>) DelayTask;
+                        etTask.SetResult(true);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
+
+                TaskStatus = TimeTaskStatus.Success;
+            }
+            catch
+            {
+                TaskStatus = TimeTaskStatus.Fail;
             }
 
             ReferencePool.Release(this);
@@ -160,13 +168,28 @@ namespace TimingWheel
         /// </summary>
         public bool Cancel()
         {
-            if (!IsWaiting)
+            return Cancel(null);
+        }
+
+        internal bool Cancel(object expectedDelayTask)
+        {
+            lock (m_SyncRoot)
             {
-                return false;
-            }
-            if (IsWaiting)
-            {
+                if (expectedDelayTask != null && !ReferenceEquals(DelayTask, expectedDelayTask))
+                {
+                    return false;
+                }
+
+                if (!IsWaiting)
+                {
+                    return false;
+                }
+
                 TaskStatus = TimeTaskStatus.Cancel;
+            }
+
+            try
+            {
                 Remove();
                 switch (m_TimerType)
                 {
@@ -181,12 +204,17 @@ namespace TimingWheel
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-
-                return true;
             }
-            ReferencePool.Release(this);
+            catch
+            {
+                TaskStatus = TimeTaskStatus.Fail;
+            }
+            finally
+            {
+                ReferencePool.Release(this);
+            }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -194,12 +222,13 @@ namespace TimingWheel
         /// </summary>
         public void Remove()
         {
-            while (TimeSlot != null && !TimeSlot.RemoveTask(this))
+            var timeSlot = TimeSlot;
+            if (timeSlot == null)
             {
-                // 如果task被另一个线程移动到了其它slot中，就会移除失败，需要重试
+                return;
             }
 
-            TimeSlot = null;
+            timeSlot.RemoveTask(this);
         }
 
         public void Clear()

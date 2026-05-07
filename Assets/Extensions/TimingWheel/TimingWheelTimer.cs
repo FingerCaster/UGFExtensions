@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DelayQueue;
 using ET;
+using GameFramework;
 using TimingWheel.Extensions;
 using TimingWheel.Interfaces;
 using UGFExtensions;
@@ -35,6 +36,10 @@ namespace TimingWheel
         public int TaskCount => m_TaskCount.Get();
 
         private CancellationTokenSource m_CancelTokenSource;
+
+        private readonly object m_SyncRoot = new object();
+
+        private bool IsRunning => m_CancelTokenSource != null;
 
         /// <summary>
         /// 
@@ -93,22 +98,40 @@ namespace TimingWheel
         /// <returns></returns>
         public async ETTask<bool> AddTask(long timeoutMs, ETCancellationToken cancellationToken = default)
         {
-            var task = TimeTask.Create(timeoutMs);
-            AddTask(task);
-            // 如果添加了已经到期的时间 那么会立即执行 导致下面的task 被置空 报错 这里判断一下是否执行了
-            if (task.TaskStatus == TimeTaskStatus.None)
+            if (cancellationToken != null && cancellationToken.IsCancel())
             {
-                return true;
+                return false;
             }
+
+            TimeTask task = TimeTask.Create(timeoutMs);
+            ETTask<bool> delayTask;
+            bool runImmediately;
+            delayTask = (ETTask<bool>) task.DelayTask;
+            if (!TryScheduleTask(task, out runImmediately))
+            {
+                task.Cancel(delayTask);
+                return false;
+            }
+
             void CancelAction()
             {
-                task.Cancel();
+                task.Cancel(delayTask);
             }
             bool result;
             try
             {
                 cancellationToken?.Add(CancelAction);
-                result = await (ETTask<bool>) task.DelayTask;
+                if (cancellationToken != null && cancellationToken.IsCancel())
+                {
+                    CancelAction();
+                }
+
+                if (runImmediately && task.IsWaiting)
+                {
+                    Loom.Post(task.Run);
+                }
+
+                result = await delayTask;
             }
             finally
             {
@@ -125,8 +148,18 @@ namespace TimingWheel
         /// <returns></returns>
         public ITimeTask AddTask(long timeoutMs, Action<bool> action)
         {
-            var task = TimeTask.Create(timeoutMs, action);
-            AddTask(task);
+            TimeTask task = TimeTask.Create(timeoutMs, action);
+            if (!TryScheduleTask(task, out bool runImmediately))
+            {
+                ReferencePool.Release(task);
+                return null;
+            }
+
+            if (runImmediately && task.IsWaiting)
+            {
+                Loom.Post(task.Run);
+            }
+
             // 如果添加了已经到期的时间 那么会立即执行 返回null 不允许操作已经返还对象池的 ITimeTask 。
             return task.TaskStatus == TimeTaskStatus.None ? null : task;
         }
@@ -136,18 +169,23 @@ namespace TimingWheel
         /// </summary>
         public void Start()
         {
-            if (m_CancelTokenSource != null)
+            CancellationTokenSource cancellationTokenSource;
+            lock (m_SyncRoot)
             {
-                return;
+                if (m_CancelTokenSource != null)
+                {
+                    return;
+                }
+
+                cancellationTokenSource = new CancellationTokenSource();
+                m_CancelTokenSource = cancellationTokenSource;
+
+                // 时间轮运行线程
+                Task.Factory.StartNew(() => Run(cancellationTokenSource.Token),
+                    cancellationTokenSource.Token,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
             }
-
-            m_CancelTokenSource = new CancellationTokenSource();
-
-            // 时间轮运行线程
-            Task.Factory.StartNew(() => Run(m_CancelTokenSource.Token),
-                m_CancelTokenSource.Token,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
         }
 
         /// <summary>
@@ -155,7 +193,8 @@ namespace TimingWheel
         /// </summary>
         public void Stop()
         {
-            Cancel();
+            CancelRunningToken();
+            m_TimingWheel.CancelAll();
             m_DelayQueue.Clear();
         }
 
@@ -164,7 +203,7 @@ namespace TimingWheel
         /// </summary>
         public void Pause()
         {
-            Cancel();
+            CancelRunningToken();
         }
 
         /// <summary>
@@ -178,14 +217,26 @@ namespace TimingWheel
         /// <summary>
         /// 取消任务
         /// </summary>
-        private void Cancel()
+        private CancellationTokenSource TakeCancellationTokenSource()
         {
-            if (m_CancelTokenSource != null)
+            lock (m_SyncRoot)
             {
-                m_CancelTokenSource.Cancel();
-                m_CancelTokenSource.Dispose();
+                CancellationTokenSource cancellationTokenSource = m_CancelTokenSource;
                 m_CancelTokenSource = null;
+                return cancellationTokenSource;
             }
+        }
+
+        private void CancelRunningToken()
+        {
+            CancellationTokenSource cancellationTokenSource = TakeCancellationTokenSource();
+            if (cancellationTokenSource == null)
+            {
+                return;
+            }
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Dispose();
         }
 
         /// <summary>
@@ -227,7 +278,16 @@ namespace TimingWheel
 
                     // 到期的任务会重新添加进时间轮，那么下一层时间轮的任务重新计算后可能会进入上层时间轮。
                     // 这样就实现了任务在时间轮中的传递，由大精度的时间轮进入小精度的时间轮。
-                    slot.Flush(AddTask);
+                    slot.Flush(task =>
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            task.Cancel();
+                            return;
+                        }
+
+                        ScheduleFlushedTask(task);
+                    });
 
                     // Flush之后可能有新的slot入队，可能仍旧过期，因此尝试继续处理，直到没有过期项。
                     if (!m_DelayQueue.TryTakeNoBlocking(out slot))
@@ -242,13 +302,34 @@ namespace TimingWheel
         /// 添加任务
         /// </summary>
         /// <param name="timeTask">延时任务</param>
-        private void AddTask(TimeTask timeTask)
+        private void ScheduleFlushedTask(TimeTask timeTask)
         {
-            // 添加失败，说明该任务已到期，需要执行了
-            if (m_TimingWheel.AddTask(timeTask)) return;
-            if (timeTask.IsWaiting)
+            if (!TryScheduleTask(timeTask, out bool runImmediately))
+            {
+                timeTask.Cancel();
+                return;
+            }
+
+            if (runImmediately && timeTask.IsWaiting)
             {
                 Loom.Post(timeTask.Run);
+            }
+        }
+
+        private bool TryScheduleTask(TimeTask timeTask, out bool runImmediately)
+        {
+            runImmediately = false;
+            lock (m_SyncRoot)
+            {
+                if (!IsRunning)
+                {
+                    return false;
+                }
+
+                // 添加失败，说明该任务已到期，需要执行了
+                if (m_TimingWheel.AddTask(timeTask)) return true;
+                runImmediately = timeTask.IsWaiting;
+                return true;
             }
         }
     }

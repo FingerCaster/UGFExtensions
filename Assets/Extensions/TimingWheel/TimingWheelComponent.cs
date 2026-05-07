@@ -240,6 +240,11 @@ namespace UGFExtensions
             {
                 case LoopType.Frame:
                 {
+                    if (!IsLoop)
+                    {
+                        return;
+                    }
+
                     LastCount++;
                     if (LastCount == RateCount)
                     {
@@ -262,6 +267,11 @@ namespace UGFExtensions
         private void MillisecondCallBack(bool result)
         {
             LastCount = 0;
+            if (!result || !IsLoop)
+            {
+                return;
+            }
+
             this.CallBack(StarTime,this);
         }
         public void Stop()

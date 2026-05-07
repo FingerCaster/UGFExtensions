@@ -284,7 +284,7 @@ namespace UGFExtensions.Timer
                 {
                     TaskCompletionSource<bool> tcs = timer.Callback as TaskCompletionSource<bool>;
                     RemoveTimer(timer.ID);
-                    tcs?.SetResult(true);
+                    tcs?.TrySetResult(true);
                     break;
                 }
                 case TimerType.Once:
@@ -358,21 +358,32 @@ namespace UGFExtensions.Timer
             }
         }
 
+        private bool TryRemoveTimer(int id)
+        {
+            if (m_Timers.ContainsKey(id))
+            {
+                RemoveTimer(id);
+                return true;
+            }
+
+            if (m_PausedTimer.ContainsKey(id))
+            {
+                ReferencePool.Release(m_PausedTimer[id].Timer);
+                ReferencePool.Release(m_PausedTimer[id]);
+                m_PausedTimer.Remove(id);
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// 取消计时器
         /// </summary>
         /// <param name="id">定时器ID</param>
         public void CancelTimer(int id)
         {
-            if (m_PausedTimer.ContainsKey(id))
-            {
-                ReferencePool.Release(m_PausedTimer[id].Timer);
-                ReferencePool.Release(m_PausedTimer[id]);
-                m_PausedTimer.Remove(id);
-                return;
-            }
-
-            RemoveTimer(id);
+            TryRemoveTimer(id);
         }
 
         /// <summary>
@@ -499,6 +510,11 @@ namespace UGFExtensions.Timer
         public async Task<bool> OnceTimerAsync(long time, ETCancellationToken cancellationToken = null)
         {
             long nowTime = TimerTimeUtility.Now();
+            if (cancellationToken != null && cancellationToken.IsCancel())
+            {
+                return false;
+            }
+
             if (time <= 0)
             {
                 return true;
@@ -513,8 +529,8 @@ namespace UGFExtensions.Timer
 
             void CancelAction()
             {
-                RemoveTimer(timerId);
-                tcs.SetResult(false);
+                TryRemoveTimer(timerId);
+                tcs.TrySetResult(false);
             }
 
             bool result;

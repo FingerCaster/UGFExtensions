@@ -25,6 +25,8 @@ namespace TimingWheel
         /// </summary>
         private readonly LinkedList<TimeTask> m_Tasks = new LinkedList<TimeTask>();
 
+        private readonly object m_SyncRoot = new object();
+
         public TimeSlot(AtomicInt taskCount)
         {
             m_TaskCount = taskCount;
@@ -37,10 +39,26 @@ namespace TimingWheel
         /// <returns></returns>
         public void AddTask(TimeTask task)
         {
-            task.Remove();
-            m_Tasks.AddLast(task);
-            task.TimeSlot = this;
-            m_TaskCount.Increment();
+            lock (task.SyncRoot)
+            {
+                if (!task.IsWaiting)
+                {
+                    return;
+                }
+
+                task.Remove();
+                lock (m_SyncRoot)
+                {
+                    if (!task.IsWaiting)
+                    {
+                        return;
+                    }
+
+                    m_Tasks.AddLast(task);
+                    task.TimeSlot = this;
+                    m_TaskCount.Increment();
+                }
+            }
         }
 
         /// <summary>
@@ -50,19 +68,23 @@ namespace TimingWheel
         /// <returns></returns>
         public bool RemoveTask(TimeTask task)
         {
-            if (task.TimeSlot == this)
+            lock (m_SyncRoot)
             {
-                if (m_Tasks.Remove(task))
+                if (task.TimeSlot == this)
                 {
+                    if (m_Tasks.Remove(task))
+                    {
+                        task.TimeSlot = null;
+                        m_TaskCount.Decrement();
+                        return true;
+                    }
+
                     task.TimeSlot = null;
-                    m_TaskCount.Decrement();
-                    return true;
+                    return false;
                 }
 
                 return false;
             }
-
-            return false;
         }
 
         /// <summary>
@@ -71,10 +93,22 @@ namespace TimingWheel
         /// <param name="func"></param>
         public void Flush(Action<TimeTask> func)
         {
-            while (m_Tasks.Count > 0 && m_Tasks.First != null)
+            while (true)
             {
-                var task = m_Tasks.First.Value;
-                RemoveTask(task);
+                TimeTask task;
+                lock (m_SyncRoot)
+                {
+                    if (m_Tasks.Count <= 0 || m_Tasks.First == null)
+                    {
+                        break;
+                    }
+
+                    task = m_Tasks.First.Value;
+                    m_Tasks.RemoveFirst();
+                    task.TimeSlot = null;
+                    m_TaskCount.Decrement();
+                }
+
                 func(task);
             }
 

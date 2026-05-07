@@ -7,36 +7,53 @@ namespace ET
     {
         private HashSet<Action> actions = new HashSet<Action>();
 
+        private readonly object syncRoot = new object();
+
         public void Add(Action callback)
         {
             // 如果action是null，绝对不能添加,要抛异常，说明有协程泄漏
-            this.actions.Add(callback);
+            lock (this.syncRoot)
+            {
+                if (this.actions != null)
+                {
+                    this.actions.Add(callback);
+                    return;
+                }
+            }
+
+            callback.Invoke();
         }
 
         public void Remove(Action callback)
         {
-            this.actions?.Remove(callback);
+            lock (this.syncRoot)
+            {
+                this.actions?.Remove(callback);
+            }
         }
 
         public bool IsCancel()
         {
-            return this.actions == null;
+            lock (this.syncRoot)
+            {
+                return this.actions == null;
+            }
         }
 
         public void Cancel()
         {
-            if (this.actions == null)
+            HashSet<Action> runActions;
+            lock (this.syncRoot)
             {
-                return;
+                if (this.actions == null)
+                {
+                    return;
+                }
+
+                runActions = this.actions;
+                this.actions = null;
             }
 
-            this.Invoke();
-        }
-
-        private void Invoke()
-        {
-            HashSet<Action> runActions = this.actions;
-            this.actions = null;
             try
             {
                 foreach (Action action in runActions)
