@@ -19,16 +19,7 @@ namespace UGFExtensions.SpriteCollection
                 return;
             }
 
-            if (m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out var setSpriteObjects))
-            {
-                setSpriteObjects.AddLast(setSpriteObject);
-            }
-            else
-            {
-                var loadSp = new LinkedList<ISetSpriteObject>();
-                loadSp.AddFirst(setSpriteObject);
-                m_WaitSetObjects.Add(setSpriteObject.CollectionPath, loadSp);
-            }
+            AddWaitSetObject(setSpriteObject);
 
             if (m_SpriteCollectionBeingLoaded.Contains(setSpriteObject.CollectionPath))
             {
@@ -36,22 +27,18 @@ namespace UGFExtensions.SpriteCollection
             }
 
             m_SpriteCollectionBeingLoaded.Add(setSpriteObject.CollectionPath);
-            SpriteCollection collection = await m_ResourceComponent.LoadAssetAsync<SpriteCollection>(setSpriteObject.CollectionPath);
-            m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection,m_ResourceComponent), false);
-            m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
-            if (!m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages)) return;
-            LinkedListNode<ISetSpriteObject> current = awaitSetImages?.First;
-            while (current != null)
+            try
             {
-                m_SpriteCollectionPool.Spawn(setSpriteObject.CollectionPath);
-                current.Value.SetSprite(collection.GetSprite(current.Value.SpritePath));
-                m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(current.Value, collection));
-                current = current.Next;
+                SpriteCollection collection = await m_ResourceComponent.LoadAssetAsync<SpriteCollection>(setSpriteObject.CollectionPath);
+                m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection,m_ResourceComponent), true);
+                ApplyLoadedSpriteCollection(setSpriteObject.CollectionPath, collection);
             }
-
-            m_WaitSetObjects.Remove(setSpriteObject.CollectionPath);
-
-
+            catch
+            {
+                m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
+                ClearWaitSetObjects(setSpriteObject.CollectionPath, true);
+                throw;
+            }
         }
     }
 }

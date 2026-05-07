@@ -45,6 +45,87 @@ namespace UGFExtensions.SpriteCollection
             set => m_LoadSpriteObjectsLinkedList = value;
         }
 #endif
+        private void AddWaitSetObject(ISetSpriteObject setSpriteObject)
+        {
+            if (m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out var setSpriteObjects))
+            {
+                setSpriteObjects.AddLast(setSpriteObject);
+                return;
+            }
+
+            var loadSpriteObjects = new LinkedList<ISetSpriteObject>();
+            loadSpriteObjects.AddLast(setSpriteObject);
+            m_WaitSetObjects.Add(setSpriteObject.CollectionPath, loadSpriteObjects);
+        }
+
+        private void ClearWaitSetObjects(string collectionPath, bool releaseObjects)
+        {
+            if (!m_WaitSetObjects.TryGetValue(collectionPath, out var waitSetObjects))
+            {
+                return;
+            }
+
+            if (releaseObjects)
+            {
+                LinkedListNode<ISetSpriteObject> current = waitSetObjects.First;
+                while (current != null)
+                {
+                    current.Value.SetSprite(null);
+                    ReferencePool.Release(current.Value);
+                    current = current.Next;
+                }
+            }
+
+            waitSetObjects.Clear();
+            m_WaitSetObjects.Remove(collectionPath);
+        }
+
+        private void ApplyLoadedSpriteCollection(string collectionPath, SpriteCollection collection)
+        {
+            m_SpriteCollectionBeingLoaded.Remove(collectionPath);
+            if (!m_WaitSetObjects.TryGetValue(collectionPath, out LinkedList<ISetSpriteObject> awaitSetImages))
+            {
+                m_SpriteCollectionPool.Unspawn(collection);
+                return;
+            }
+
+            LinkedListNode<ISetSpriteObject> current = awaitSetImages.First;
+            while (current != null)
+            {
+                LinkedListNode<ISetSpriteObject> next = current.Next;
+                SpriteCollection currentCollection = collection;
+                if (current != awaitSetImages.First)
+                {
+                    SpriteCollectionItemObject itemObject = m_SpriteCollectionPool.Spawn(collectionPath);
+                    if (itemObject == null)
+                    {
+                        Log.Error("Can not spawn SpriteCollection from '{0}'.", collectionPath);
+                        ReleaseWaitSetObjectsFromNode(current);
+                        break;
+                    }
+
+                    currentCollection = (SpriteCollection)itemObject.Target;
+                }
+
+                current.Value.SetSprite(currentCollection.GetSprite(current.Value.SpritePath));
+                m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(current.Value, currentCollection));
+                current = next;
+            }
+
+            ClearWaitSetObjects(collectionPath, false);
+        }
+
+        private void ReleaseWaitSetObjectsFromNode(LinkedListNode<ISetSpriteObject> node)
+        {
+            while (node != null)
+            {
+                LinkedListNode<ISetSpriteObject> next = node.Next;
+                node.Value.SetSprite(null);
+                ReferencePool.Release(node.Value);
+                node = next;
+            }
+        }
+
         private void Start()
         {
             ObjectPoolComponent objectPoolComponent = UnityGameFramework.Runtime.GameEntry.GetComponent<ObjectPoolComponent>();

@@ -20,6 +20,12 @@ namespace UGFExtensions.SpriteCollection
         
         private void OnLoadAssetFailure(string assetName, LoadResourceStatus status, string errormessage, object userdata)
         {
+            if (userdata is ISetSpriteObject setSpriteObject)
+            {
+                m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
+                ClearWaitSetObjects(setSpriteObject.CollectionPath, true);
+            }
+
             Log.Error("Can not load SpriteCollection from '{0}' with error message '{1}'.",assetName,errormessage);
         }
 
@@ -27,18 +33,8 @@ namespace UGFExtensions.SpriteCollection
         {
             ISetSpriteObject setSpriteObject = (ISetSpriteObject)userdata;
             SpriteCollection collection = (SpriteCollection)asset;
-            m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection,m_ResourceComponent), false);
-            m_SpriteCollectionBeingLoaded.Remove(setSpriteObject.CollectionPath);
-            if (!m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out LinkedList<ISetSpriteObject> awaitSetImages)) return;
-            LinkedListNode<ISetSpriteObject> current = awaitSetImages?.First;
-            while (current != null)
-            {
-                m_SpriteCollectionPool.Spawn(setSpriteObject.CollectionPath);
-                current.Value.SetSprite(collection.GetSprite(current.Value.SpritePath));
-                m_LoadSpriteObjectsLinkedList.AddLast(new LoadSpriteObject(current.Value, collection));
-                current = current.Next;
-            }
-            m_WaitSetObjects.Remove(setSpriteObject.CollectionPath);
+            m_SpriteCollectionPool.Register(SpriteCollectionItemObject.Create(setSpriteObject.CollectionPath, collection,m_ResourceComponent), true);
+            ApplyLoadedSpriteCollection(setSpriteObject.CollectionPath, collection);
         }
         
         /// <summary>
@@ -55,16 +51,7 @@ namespace UGFExtensions.SpriteCollection
                 return;
             }
             
-            if (m_WaitSetObjects.TryGetValue(setSpriteObject.CollectionPath, out var setSpriteObjects))
-            {
-                setSpriteObjects.AddLast(setSpriteObject);
-            }
-            else
-            {
-                var loadSp = new LinkedList<ISetSpriteObject>();
-                loadSp.AddFirst(setSpriteObject);
-                m_WaitSetObjects.Add(setSpriteObject.CollectionPath, loadSp);
-            }
+            AddWaitSetObject(setSpriteObject);
             
             if (m_SpriteCollectionBeingLoaded.Contains(setSpriteObject.CollectionPath))
             {
