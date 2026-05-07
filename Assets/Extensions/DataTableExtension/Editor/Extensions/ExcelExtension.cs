@@ -7,7 +7,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using OfficeOpenXml;
 using UnityEngine;
 
 namespace DE.Editor
@@ -19,7 +18,6 @@ namespace DE.Editor
         public static void ExcelToTxt(string excelFolder, string txtFolder)
         {
             string[] excelFiles = Directory.GetFiles(excelFolder);
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             foreach (var excelFile in excelFiles)
             {
@@ -28,12 +26,12 @@ namespace DE.Editor
                 using (FileStream fileStream =
                        new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
+                    using (OpenXmlWorkbook workbook = OpenXmlWorkbook.Open(fileStream))
                     {
-                        for (int s = 0; s < excelPackage.Workbook.Worksheets.Count; s++)
+                        for (int s = 0; s < workbook.Worksheets.Count; s++)
                         {
-                            var sheet = excelPackage.Workbook.Worksheets[s];
-                            if (sheet.Dimension.End.Row < 1)
+                            var sheet = workbook.Worksheets[s];
+                            if (sheet.RowCount < 1)
                                 continue;
                             string fileName = sheet.Name;
                             if (string.IsNullOrWhiteSpace(fileName))
@@ -56,18 +54,18 @@ namespace DE.Editor
 
                             List<string> sContents = new List<string>();
                             StringBuilder sb = new StringBuilder();
-                            if (sheet.Dimension.End.Row < 3)
+                            if (sheet.RowCount < 3)
                             {
                                 Debug.LogErrorFormat("{0} has wrong row num!", fileFullPath);
                                 continue;
                             }
 
-                            int columnCount = sheet.Dimension.End.Column;
-                            for (int i = 1; i <= sheet.Dimension.End.Row; i++)
+                            int columnCount = sheet.ColumnCount;
+                            for (int i = 1; i <= sheet.RowCount; i++)
                             {
                                 if (i > DataTableConfig.GetDataTableConfig().ContentStartRow)
                                 {
-                                    if (sheet.Cells[i, DataTableConfig.GetDataTableConfig().IdColumn + 1].Value == null)
+                                    if (sheet.GetCellValue(i, DataTableConfig.GetDataTableConfig().IdColumn + 1) == null)
                                     {
                                         continue;
                                     }
@@ -76,13 +74,14 @@ namespace DE.Editor
                                 sb.Clear();
                                 for (int j = 1; j <= columnCount; j++)
                                 {
-                                    if (sheet.Cells[i, j] == null)
+                                    string value = sheet.GetCellValue(i, j);
+                                    if (value == null)
                                     {
                                         sb.Append("");
                                     }
                                     else
                                     {
-                                        sb.Append(sheet.Cells[i, j].Value);
+                                        sb.Append(value);
                                     }
 
                                     if (j != columnCount)

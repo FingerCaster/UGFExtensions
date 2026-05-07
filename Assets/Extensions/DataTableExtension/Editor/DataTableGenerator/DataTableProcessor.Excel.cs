@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DE.Editor;
 using GameFramework;
-using OfficeOpenXml;
 
 namespace DE.Editor.DataTableTools
 {
     public partial class DataTableProcessor
     {
-        public DataTableProcessor(ExcelWorksheet sheet, int nameRow, int typeRow,
+        public DataTableProcessor(OpenXmlWorksheet sheet, int nameRow, int typeRow,
             int? defaultValueRow, int? commentRow, int contentStartRow, int idColumn)
         {
             // if (string.IsNullOrEmpty(sheet))
@@ -24,13 +24,13 @@ namespace DE.Editor.DataTableTools
             var rawRowCount = 0;
             var rawColumnCount = 0;
             var rawValues = new List<string[]>();
-            rawColumnCount = sheet.Dimension.End.Column;
-            for (int i = 1; i <= sheet.Dimension.End.Row; i++)
+            rawColumnCount = sheet.ColumnCount;
+            for (int i = 1; i <= sheet.RowCount; i++)
             {
                 if (i>DataTableConfig.GetDataTableConfig().ContentStartRow)
                 {
                     //跳过没有id的空行
-                    if (sheet.Cells[i, DataTableConfig.GetDataTableConfig().IdColumn+1].Value == null)
+                    if (sheet.GetCellValue(i, DataTableConfig.GetDataTableConfig().IdColumn+1) == null)
                     {
                         continue;
                     }
@@ -38,13 +38,14 @@ namespace DE.Editor.DataTableTools
                 var rawValue = new string[rawColumnCount];
                 for (int j = 1; j <= rawColumnCount; j++)
                 {
-                    if (sheet.Cells[i,j].Value == null)
+                    string value = sheet.GetCellValue(i, j);
+                    if (value == null)
                     {
                         rawValue[j-1] = string.Empty;
                     }
                     else
                     {
-                        rawValue[j-1] = sheet.Cells[i,j].Value.ToString();
+                        rawValue[j-1] = value;
                     }
                 }
 

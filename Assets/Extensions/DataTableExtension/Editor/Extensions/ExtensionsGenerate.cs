@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DE.Editor;
 using GameFramework;
-using OfficeOpenXml;
 using UnityEditor;
 
 namespace DE.Editor.DataTableTools
@@ -37,20 +37,20 @@ namespace DE.Editor.DataTableTools
                     using (FileStream fileStream =
                         new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
-                        using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
+                        using (OpenXmlWorkbook workbook = OpenXmlWorkbook.Open(fileStream))
                         {
-                            for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
+                            for (int i = 0; i < workbook.Worksheets.Count; i++)
                             {
-                                var sheet = excelPackage.Workbook.Worksheets[i];
+                                var sheet = workbook.Worksheets[i];
                                 int typeRow = DataTableConfig.GetDataTableConfig().TypeRow;
                                 
-                                if (sheet.Dimension.Rows<typeRow)
+                                if (sheet.RowCount < typeRow)
                                 {
                                     throw new Exception("数据表格式不正确。请检查");
                                 }
-                                for (int j = 1; j <= sheet.Dimension.Columns; j++)
+                                for (int j = 1; j <= sheet.ColumnCount; j++)
                                 {
-                                    string rawValue = sheet.Cells[typeRow+1, j].Value?.ToString().Trim('\"');
+                                    string rawValue = sheet.GetCellValue(typeRow+1, j)?.Trim('\"');
                                     if (!string.IsNullOrEmpty(rawValue))
                                     {
                                         types.Add(rawValue);

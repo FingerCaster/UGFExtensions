@@ -11,6 +11,8 @@ namespace UGFExtensions
 {
     public partial class DataTableExtensionComponent : GameFrameworkComponent
     {
+        private const int MaxRowConfigLength = 16 * 1024 * 1024;
+
         /// <summary>
         /// 初始化Buffer长度
         /// </summary>
@@ -195,16 +197,7 @@ namespace UGFExtensions
                 rowConfig.DataProvider = new FileStreamProvider(filePath, isCache);
             }
 
-            rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
-            using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
-            {
-                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
-                {
-                    int count = binaryReader.Read7BitEncodedInt32(out int length);
-                    long configLength = rowConfig.DataProvider.ReadFileSegment(length, ref m_Buffer, 0, count);
-                    rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
-                }
-            }
+            LoadRowConfig(rowConfig);
 
             m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
             m_DataTableComponent.CreateDataTable(typeNamePair.Type, typeNamePair.Name);
@@ -222,16 +215,7 @@ namespace UGFExtensions
 
             rowConfig.DataProvider = new CustomVirtualFileSystemDataProvider(m_FileSystemComponent,fileSystem, assetName, isCache);
 
-            rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
-            using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
-            {
-                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
-                {
-                    int count = binaryReader.Read7BitEncodedInt32(out int length);
-                    long configLength = rowConfig.DataProvider.ReadFileSegment(length, ref m_Buffer, 0, count);
-                    rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
-                }
-            }
+            LoadRowConfig(rowConfig);
 
             m_DataTableRowConfigs.Add(typeNamePair, rowConfig);
             m_DataTableComponent.CreateDataTable(typeNamePair.Type, typeNamePair.Name);
@@ -266,6 +250,11 @@ namespace UGFExtensions
 
             var realLength = config.DataProvider.ReadFileSegment(value.StartIndex, ref m_Buffer, 0,
                 value.Length);
+            if (realLength != value.Length)
+            {
+                throw new Exception($"DataTable row {id} length is invalid.");
+            }
+
             dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, null);
             return dataTableBase.GetDataRow(id);
         }
@@ -294,6 +283,11 @@ namespace UGFExtensions
 
                 var realLength = config.DataProvider.ReadFileSegment(dataTableSetting.Value.StartIndex, ref m_Buffer, 0,
                     dataTableSetting.Value.Length);
+                if (realLength != dataTableSetting.Value.Length)
+                {
+                    throw new Exception($"DataTable row {dataTableSetting.Key} length is invalid.");
+                }
+
                 dataTableBase.AddDataRow(m_Buffer, 0, (int)realLength, null);
             }
 
@@ -308,7 +302,7 @@ namespace UGFExtensions
 
         private bool InternalDestroyDataTable<T>(TypeNamePair typeNamePair) where T : IDataRow
         {
-            IDataTable<T> dataTable = m_DataTableComponent.GetDataTable<T>();
+            IDataTable<T> dataTable = m_DataTableComponent.GetDataTable<T>(typeNamePair.Name);
             if (dataTable == null)
             {
                 return true;
@@ -343,6 +337,35 @@ namespace UGFExtensions
         {
             IDataTable<T> dataTableBase = m_DataTableComponent.GetDataTable<T>();
             return dataTableBase.GetDataRow(condition);
+        }
+
+        private void LoadRowConfig(DataTableRowConfig rowConfig)
+        {
+            long headerLength = rowConfig.DataProvider.ReadFileSegment(0, ref m_Buffer, 0, 32);
+            if (headerLength <= 0)
+            {
+                throw new Exception("DataTable row config header is missing.");
+            }
+
+            using (MemoryStream memoryStream = new MemoryStream(m_Buffer, 0, 32))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream))
+                {
+                    int count = binaryReader.Read7BitEncodedInt32(out int length);
+                    if (count <= 0 || count > MaxRowConfigLength || length <= 0 || length > headerLength || length > 32)
+                    {
+                        throw new Exception("DataTable row config header is invalid.");
+                    }
+
+                    long configLength = rowConfig.DataProvider.ReadFileSegment(length, ref m_Buffer, 0, count);
+                    if (configLength != count || configLength > int.MaxValue)
+                    {
+                        throw new Exception("DataTable row config length is invalid.");
+                    }
+
+                    rowConfig.DeSerialize(m_Buffer, 0, (int)configLength, length + count);
+                }
+            }
         }
 
         private void OnDestroy()

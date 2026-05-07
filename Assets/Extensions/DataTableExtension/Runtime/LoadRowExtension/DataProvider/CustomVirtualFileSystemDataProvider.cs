@@ -34,7 +34,7 @@ namespace UGFExtensions
                 m_FileSystem = fileSystem;
             }
 
-            return m_FileSystem;
+            return fileSystem;
         }
         
         public long ReadFileSegment(int offset, ref byte[] buffer, int startIndex, int length)
@@ -55,7 +55,11 @@ namespace UGFExtensions
             m_FilePath = null;
             m_AssetPath = null;
             m_IsCached = false;
-            m_FileSystemComponent.DestroyFileSystem(m_FileSystem,false);
+            if (m_FileSystem != null)
+            {
+                m_FileSystemComponent.DestroyFileSystem(m_FileSystem,false);
+            }
+
             m_FileSystemComponent = null;
             m_FileSystem = null;
         }

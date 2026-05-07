@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Security;
+using DE.Editor;
 using GameFramework;
-using OfficeOpenXml;
 using UnityEngine;
 
 namespace DE.Editor.DataTableTools
@@ -14,6 +15,7 @@ namespace DE.Editor.DataTableTools
     {
         private static readonly Regex EndWithNumberRegex = new Regex(@"\d+$");
         private static readonly Regex NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
+        private static readonly Regex NamespaceRegex = new Regex(@"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$");
         private static List<string> _nameSpace = new List<string>();
         private static DataTableConfig s_DataTableConfig;
         public static DataTableProcessor CreateDataTableProcessor(string dataTableName)
@@ -24,7 +26,7 @@ namespace DE.Editor.DataTableTools
                 null, 3, 4, 1);
         }
         
-        public static DataTableProcessor CreateExcelDataTableProcessor(ExcelWorksheet sheet)
+        public static DataTableProcessor CreateExcelDataTableProcessor(OpenXmlWorksheet sheet)
         {
             return new DataTableProcessor(
                 sheet,
@@ -52,23 +54,26 @@ namespace DE.Editor.DataTableTools
 
         public static void GenerateDataFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
+            ValidateGeneratedFileName(dataTableName);
             var binaryDataFileName =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().DataTableFolderPath,
-                    dataTableName + ".bytes"));
+                GetValidatedGeneratedFilePath(DataTableConfig.GetDataTableConfig().DataTableFolderPath,
+                    dataTableName + ".bytes");
             if (!dataTableProcessor.GenerateDataFile(binaryDataFileName) && File.Exists(binaryDataFileName))
                 File.Delete(binaryDataFileName);
         }
         public static void GenerateFileSystemFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
+            ValidateGeneratedFileName(dataTableName);
             var binaryDataFileName =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().DataTableFolderPath,
-                    dataTableName + ".bytes"));
+                GetValidatedGeneratedFilePath(DataTableConfig.GetDataTableConfig().DataTableFolderPath,
+                    dataTableName + ".bytes");
             if (!dataTableProcessor.GenerateFileSystemFile(binaryDataFileName) && File.Exists(binaryDataFileName))
                 File.Delete(binaryDataFileName);
         }
 
         public static void GenerateCodeFile(DataTableProcessor dataTableProcessor, string dataTableName)
         {
+            ValidateGeneratedFileName(dataTableName);
             dataTableProcessor.SetCodeTemplate(DataTableConfig.GetDataTableConfig().CSharpCodeTemplateFileName, Encoding.UTF8);
             dataTableProcessor.SetCodeGenerator(DataTableCodeGenerator);
             bool isChanged = CheckIsChanged(dataTableProcessor, dataTableName);
@@ -79,7 +84,7 @@ namespace DE.Editor.DataTableTools
             }
 
             var csharpCodeFileName =
-                Utility.Path.GetRegularPath(Path.Combine(DataTableConfig.GetDataTableConfig().CSharpCodePath, "DR" + dataTableName + ".cs"));
+                GetValidatedGeneratedFilePath(DataTableConfig.GetDataTableConfig().CSharpCodePath, "DR" + dataTableName + ".cs");
             if (!dataTableProcessor.GenerateCodeFile(csharpCodeFileName, Encoding.UTF8, dataTableName) &&
                 File.Exists(csharpCodeFileName))
                 File.Delete(csharpCodeFileName);
@@ -87,7 +92,7 @@ namespace DE.Editor.DataTableTools
 
         private static bool CheckIsChanged(DataTableProcessor dataTableProcessor, string dataTableName)
         {
-            string oldCsharpCodePath = Path.Combine(DataTableConfig.GetDataTableConfig().CSharpCodePath, "DR" + dataTableName + ".cs");
+            string oldCsharpCodePath = GetValidatedGeneratedFilePath(DataTableConfig.GetDataTableConfig().CSharpCodePath, "DR" + dataTableName + ".cs");
             if (!File.Exists(oldCsharpCodePath))
             {
                 return true;
@@ -109,21 +114,31 @@ namespace DE.Editor.DataTableTools
             StringBuilder codeContent, object userData)
         {
             var dataTableName = (string) userData;
+            string nameSpace = DataTableConfig.GetDataTableConfig().NameSpace;
+            if (string.IsNullOrEmpty(nameSpace) || !NamespaceRegex.IsMatch(nameSpace))
+            {
+                throw new GameFrameworkException(Utility.Text.Format("Data table namespace '{0}' is invalid.", nameSpace));
+            }
 
             codeContent.Replace("__DATA_TABLE_CREATE_TIME__", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-            codeContent.Replace("__DATA_TABLE_NAME_SPACE__", DataTableConfig.GetDataTableConfig().NameSpace);
+            codeContent.Replace("__DATA_TABLE_NAME_SPACE__", nameSpace);
             codeContent.Replace("__DATA_TABLE_CLASS_NAME__", "DR" + dataTableName);
-            codeContent.Replace("__DATA_TABLE_COMMENT__", dataTableProcessor.GetValue(0, 1) + "。");
+            codeContent.Replace("__DATA_TABLE_COMMENT__", EscapeXmlDocComment(dataTableProcessor.GetValue(0, 1)) + "。");
             codeContent.Replace("__DATA_TABLE_ID_COMMENT__",
-                "获取" + dataTableProcessor.GetComment(dataTableProcessor.IdColumn) + "。");
+                "获取" + EscapeXmlDocComment(dataTableProcessor.GetComment(dataTableProcessor.IdColumn)) + "。");
             codeContent.Replace("__DATA_TABLE_PROPERTIES__", GenerateDataTableProperties(dataTableProcessor));
             codeContent.Replace("__DATA_TABLE_PARSER__", GenerateDataTableParser(dataTableProcessor));
             codeContent.Replace("__DATA_TABLE_PROPERTY_ARRAY__", GenerateDataTablePropertyArray(dataTableProcessor));
             _nameSpace = _nameSpace.Distinct().ToList();
             StringBuilder nameSpaceBuilder = new StringBuilder();
-            foreach (string nameSpace in _nameSpace)
+            foreach (string itemNamespace in _nameSpace)
             {
-                nameSpaceBuilder.AppendLine($"using {nameSpace};");
+                if (string.IsNullOrEmpty(itemNamespace) || !NamespaceRegex.IsMatch(itemNamespace))
+                {
+                    throw new GameFrameworkException(Utility.Text.Format("Data table property namespace '{0}' is invalid.", itemNamespace));
+                }
+
+                nameSpaceBuilder.AppendLine($"using {itemNamespace};");
             }
 
             codeContent.Replace("__DATA_TABLE_PROPERTIES_NAMESPACE__", nameSpaceBuilder.ToString());
@@ -150,7 +165,7 @@ namespace DE.Editor.DataTableTools
 
                 stringBuilder
                     .AppendLine("        /// <summary>")
-                    .AppendFormat("        /// 获取{0}。", dataTableProcessor.GetComment(i)).AppendLine()
+                    .AppendFormat("        /// 获取{0}。", EscapeXmlDocComment(dataTableProcessor.GetComment(i))).AppendLine()
                     .AppendLine("        /// </summary>")
                     .AppendFormat("        public {0} {1}", dataTableProcessor.GetLanguageKeyword(i),
                         dataTableProcessor.GetName(i)).AppendLine()
@@ -576,6 +591,44 @@ namespace DE.Editor.DataTableTools
             {
                 m_Items.Add(new KeyValuePair<int, string>(id, propertyName));
             }
+        }
+
+        private static string GetValidatedGeneratedFilePath(string rootPath, string fileName)
+        {
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                throw new GameFrameworkException("Generated file root path is invalid.");
+            }
+
+            string fullRootPath = Path.GetFullPath(rootPath);
+            string fullFilePath = Path.GetFullPath(Path.Combine(fullRootPath, fileName));
+            string rootWithSeparator = fullRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+            if (!fullFilePath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new GameFrameworkException(Utility.Text.Format("Generated file path '{0}' is outside root '{1}'.", fullFilePath, fullRootPath));
+            }
+
+            return Utility.Path.GetRegularPath(fullFilePath);
+        }
+
+        private static void ValidateGeneratedFileName(string dataTableName)
+        {
+            if (string.IsNullOrEmpty(dataTableName) || dataTableName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+                dataTableName.Contains("/") || dataTableName.Contains("\\") || dataTableName == "." || dataTableName == "..")
+            {
+                throw new GameFrameworkException(Utility.Text.Format("Data table name '{0}' is invalid.", dataTableName));
+            }
+        }
+
+        private static string EscapeXmlDocComment(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return SecurityElement.Escape(value).Replace("\r", " ").Replace("\n", " ");
         }
     }
 }

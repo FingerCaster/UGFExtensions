@@ -487,16 +487,16 @@ namespace DE.Editor.DataTableTools
                             if (m_DataProcessor[rawColumn].IsId || string.IsNullOrEmpty(GetDefaultValue(rawColumn)))
                             {
                                 Debug.LogError(Utility.Text.Format(
-                                    "Parse raw value failure. OutputFileName='{0}' RawRow='{1}' RowColumn='{2}' Name='{3}' Type='{4}' RawValue='{5}'",
+                                    "Parse raw value failure. OutputFileName='{0}' RawRow='{1}' RowColumn='{2}' Name='{3}' Type='{4}'",
                                     outputFileName, rawRow.ToString(), rawColumn.ToString(), GetName(rawColumn),
-                                    GetLanguageKeyword(rawColumn), GetValue(rawRow, rawColumn)));
+                                    GetLanguageKeyword(rawColumn)));
                                 return null;
                             }
 
                             Debug.LogWarning(Utility.Text.Format(
-                                "Parse raw value failure, will try default value. OutputFileName='{0}' RawRow='{1}' RowColumn='{2}' Name='{3}' Type='{4}' RawValue='{5}'",
+                                "Parse raw value failure, will try default value. OutputFileName='{0}' RawRow='{1}' RowColumn='{2}' Name='{3}' Type='{4}'",
                                 outputFileName, rawRow.ToString(), rawColumn.ToString(), GetName(rawColumn),
-                                GetLanguageKeyword(rawColumn), GetValue(rawRow, rawColumn)));
+                                GetLanguageKeyword(rawColumn)));
                             try
                             {
                                 m_DataProcessor[rawColumn]
@@ -505,9 +505,9 @@ namespace DE.Editor.DataTableTools
                             catch
                             {
                                 Debug.LogError(Utility.Text.Format(
-                                    "Parse default value failure. OutputFileName='{0}' RawRow='{1}' RowColumn='{2}' Name='{3}' Type='{4}' RawValue='{5}'",
+                                    "Parse default value failure. OutputFileName='{0}' RawRow='{1}' RowColumn='{2}' Name='{3}' Type='{4}'",
                                     outputFileName, rawRow.ToString(), rawColumn.ToString(), GetName(rawColumn),
-                                    GetLanguageKeyword(rawColumn), GetComment(rawColumn)));
+                                    GetLanguageKeyword(rawColumn)));
                                 return null;
                             }
                         }

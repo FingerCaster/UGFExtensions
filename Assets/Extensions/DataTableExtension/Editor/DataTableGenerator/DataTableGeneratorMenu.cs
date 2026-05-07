@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using GameFramework;
-using OfficeOpenXml;
+using DE.Editor;
 using UnityEditor;
 using Debug = UnityEngine.Debug;
 
@@ -36,7 +36,6 @@ namespace DE.Editor.DataTableTools
         {
             DataTableConfig.GetDataTableConfig().RefreshDataTables();
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,
                 DataTableConfig.GetDataTableConfig().ExcelFilePaths, 2);
             foreach (var excelFile in DataTableConfig.GetDataTableConfig().ExcelFilePaths)
@@ -44,11 +43,11 @@ namespace DE.Editor.DataTableTools
                 using (FileStream fileStream =
                        new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
+                    using (OpenXmlWorkbook workbook = OpenXmlWorkbook.Open(fileStream))
                     {
-                        for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
+                        for (int i = 0; i < workbook.Worksheets.Count; i++)
                         {
-                            ExcelWorksheet sheet = excelPackage.Workbook.Worksheets[i];
+                            OpenXmlWorksheet sheet = workbook.Worksheets[i];
                             var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(sheet);
                             if (!DataTableGenerator.CheckRawData(dataTableProcessor, sheet.Name))
                             {
@@ -95,7 +94,6 @@ namespace DE.Editor.DataTableTools
         {
             DataTableConfig.GetDataTableConfig().RefreshDataTables();
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             ExtensionsGenerate.GenerateExtensionByAnalysis(ExtensionsGenerate.DataTableType.Excel,
                 DataTableConfig.GetDataTableConfig().ExcelFilePaths, 2);
             foreach (var excelFile in DataTableConfig.GetDataTableConfig().ExcelFilePaths)
@@ -103,11 +101,11 @@ namespace DE.Editor.DataTableTools
                 using (FileStream fileStream =
                        new FileStream(excelFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    using (ExcelPackage excelPackage = new ExcelPackage(fileStream))
+                    using (OpenXmlWorkbook workbook = OpenXmlWorkbook.Open(fileStream))
                     {
-                        for (int i = 0; i < excelPackage.Workbook.Worksheets.Count; i++)
+                        for (int i = 0; i < workbook.Worksheets.Count; i++)
                         {
-                            ExcelWorksheet sheet = excelPackage.Workbook.Worksheets[i];
+                            OpenXmlWorksheet sheet = workbook.Worksheets[i];
                             var dataTableProcessor = DataTableGenerator.CreateExcelDataTableProcessor(sheet);
                             if (!DataTableGenerator.CheckRawData(dataTableProcessor, sheet.Name))
                             {
